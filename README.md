@@ -4,3 +4,5 @@ Fream 개선 프로젝트
 <br>
 기존 프로젝트 : https://github.com/junhyeong9812/fream_back
 <br>
+기본 API
+<br>
