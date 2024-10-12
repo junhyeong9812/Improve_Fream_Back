@@ -6,3 +6,6 @@ Fream 개선 프로젝트
 <br>
 기본 API
 <br>
+SpringBoot3.1
+SpringDataJpa
+
