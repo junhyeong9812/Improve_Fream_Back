@@ -9,3 +9,15 @@ Fream 개선 프로젝트
 SpringBoot3.1
 SpringDataJpa
 
+
+
+<br>
+Api
+-/admin
+-/shop
+-/style
+-/info
+-/member
+-/buy
+-/selling
+
