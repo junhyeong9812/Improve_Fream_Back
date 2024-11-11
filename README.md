@@ -24,6 +24,7 @@ Api
 <br>
 기본 ERD구조
 <br>
-![image](https://github.com/user-attachments/assets/c74c540c-14a4-41ba-bcb7-065d1b89b9d5)
+![image](https://github.com/user-attachments/assets/f74b7096-d245-4881-bac6-7bb8155653c5)
+
 
 
