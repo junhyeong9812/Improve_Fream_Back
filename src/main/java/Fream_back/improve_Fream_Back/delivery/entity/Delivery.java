@@ -28,7 +28,7 @@ public class Delivery extends BaseTimeEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 배송 ID (기본 키)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user; // 배송 정보를 가지는 사용자
 

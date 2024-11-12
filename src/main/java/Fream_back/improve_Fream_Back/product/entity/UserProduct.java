@@ -29,11 +29,11 @@ public class UserProduct extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 사용자 등록 상품 ID (기본 키)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product; // 기본 상품 정보와 연결 (어떤 상품인지)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
     private User seller; // 이 상품을 판매하는 사용자 (판매자)
 

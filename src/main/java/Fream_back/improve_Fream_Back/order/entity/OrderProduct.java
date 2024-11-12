@@ -27,11 +27,11 @@ public class OrderProduct extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 주문 상품 ID (기본 키)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order; // 어떤 주문에 속해 있는지
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_product_id")
     private UserProduct userProduct; // 어떤 상품을 주문했는지
 
