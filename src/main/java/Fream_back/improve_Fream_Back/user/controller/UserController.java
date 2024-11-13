@@ -18,7 +18,15 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // 로그인 엔드포인트
+    /**
+     * 로그인 엔드포인트
+     * 사용자의 loginId와 password로 로그인 처리.
+     * 성공 시 쿠키에 loginId를 저장하고, 성공 메시지와 사용자 정보를 반환.
+     *
+     * @param loginDto 로그인에 필요한 loginId와 password 정보를 담은 DTO
+     * @param response HttpServletResponse 객체로 쿠키 설정을 위해 사용
+     * @return 로그인 성공 시 사용자 정보와 성공 메시지 반환, 실패 시 오류 메시지 반환
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
         Optional<User> user = userService.login(loginDto);
@@ -44,7 +52,13 @@ public class UserController {
         }
     }
 
-    // 전화번호로 아이디 찾기 엔드포인트
+    /**
+     * 전화번호로 아이디 찾기 엔드포인트
+     * 사용자의 전화번호로 loginId를 조회.
+     *
+     * @param recoveryDto 전화번호 정보를 담은 LoginIdRecoveryDto
+     * @return loginId가 존재하면 반환, 없으면 404 오류 응답
+     */
     @PostMapping("/find-loginId/phone")
     public ResponseEntity<UsernameResponseDto> findLoginIdByPhoneNumber(@RequestBody LoginIdRecoveryDto recoveryDto) {
         return userService.findLoginIdByPhoneNumber(recoveryDto)
@@ -52,7 +66,13 @@ public class UserController {
                 .orElse(ResponseEntity.status(404).body(null));
     }
 
-    // 이메일로 아이디 찾기 엔드포인트
+    /**
+     * 이메일로 아이디 찾기 엔드포인트
+     * 사용자의 이메일로 loginId를 조회.
+     *
+     * @param recoveryDto 이메일 정보를 담은 LoginIdRecoveryDto
+     * @return loginId가 존재하면 반환, 없으면 404 오류 응답
+     */
     @PostMapping("/find-loginId/email")
     public ResponseEntity<UsernameResponseDto> findLoginIdByEmail(@RequestBody LoginIdRecoveryDto recoveryDto) {
         return userService.findLoginIdByEmail(recoveryDto)
@@ -60,7 +80,14 @@ public class UserController {
                 .orElse(ResponseEntity.status(404).body(null));
     }
 
-    // 비밀번호 재설정 요청 엔드포인트
+    /**
+     * 비밀번호 재설정 요청 엔드포인트
+     * 사용자가 입력한 정보가 유효한지 확인.
+     * 사용자가 입력한 loginId와 전화번호 또는 이메일이 일치하는 경우 비밀번호 재설정을 승인.
+     *
+     * @param requestDto loginId, 전화번호, 이메일 정보를 포함한 비밀번호 재설정 요청 DTO
+     * @return 유효한 사용자일 경우 승인 메시지 반환, 아니면 404 오류 응답
+     */
     @PostMapping("/password-reset/request")
     public ResponseEntity<String> requestPasswordReset(@RequestBody PasswordResetRequestDto requestDto) {
         boolean isValidUser = userService.validateUserForPasswordReset(requestDto);
@@ -69,12 +96,42 @@ public class UserController {
                 : ResponseEntity.status(404).body("User not found or invalid details.");
     }
 
-    // 비밀번호 업데이트 엔드포인트
+    /**
+     * 비밀번호 업데이트 엔드포인트
+     * 인증된 사용자에 대해 비밀번호를 업데이트.
+     *
+     * @param updateDto loginId와 새 비밀번호 정보를 포함한 PasswordUpdateDto
+     * @return 업데이트 성공 시 성공 메시지 반환, 실패 시 404 오류 응답
+     */
     @PostMapping("/password-reset/update")
     public ResponseEntity<String> updatePassword(@RequestBody PasswordUpdateDto updateDto) {
         boolean isUpdated = userService.updatePassword(updateDto);
         return isUpdated
                 ? ResponseEntity.ok("Password updated successfully.")
                 : ResponseEntity.status(404).body("User not found.");
+    }
+
+    /**
+     * 로그인 아이디 중복 확인 엔드포인트
+     *
+     * @param loginId 확인할 로그인 아이디
+     * @return 중복 여부 ("ok" 또는 "duplicate")
+     */
+    @GetMapping("/check-duplicate")
+    public ResponseEntity<String> checkDuplicateLoginId(@RequestParam(name = "loginId") String loginId) {
+        String result = userService.checkDuplicateLoginId(loginId);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 회원 가입 엔드포인트
+     *
+     * @param signupDto 회원 가입에 필요한 정보가 담긴 UserSignupDto
+     * @return 등록된 User 엔티티를 포함한 ResponseEntity
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<User> signup(@RequestBody UserSignupDto signupDto) {
+        User newUser = userService.registerUser(signupDto);
+        return ResponseEntity.ok(newUser);
     }
 }

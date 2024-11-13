@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 public class UserServiceTest {
 
@@ -108,5 +109,51 @@ public class UserServiceTest {
         boolean isUpdated = userService.updatePassword(updateDto);
         assertThat(isUpdated).isTrue();
         assertThat(testUser.getPassword()).isEqualTo("newPassword");
+    }
+
+    @Test
+    @DisplayName("LoginId 중복 체크 - 중복일 경우")
+    public void checkDuplicateLoginIdWhenExists() {
+        // given
+        String duplicateLoginId = "testLoginId";
+        when(userRepository.existsByLoginId(duplicateLoginId)).thenReturn(true);
+
+        // when
+        String result = userService.checkDuplicateLoginId(duplicateLoginId);
+
+        // then
+        assertThat(result).isEqualTo("duplicate");
+    }
+
+    @Test
+    @DisplayName("LoginId 중복 체크 - 중복이 아닐 경우")
+    public void checkDuplicateLoginIdWhenNotExists() {
+        // given
+        String uniqueLoginId = "uniqueLoginId";
+        when(userRepository.existsByLoginId(uniqueLoginId)).thenReturn(false);
+
+        // when
+        String result = userService.checkDuplicateLoginId(uniqueLoginId);
+
+        // then
+        assertThat(result).isEqualTo("ok");
+    }
+
+    @Test
+    @DisplayName("회원가입 테스트")
+    public void registerNewUser() {
+        // given
+        UserSignupDto signupDto = new UserSignupDto("newLoginId", "newPassword", "newNickname", "Jane Doe", "987-6543-2101", "new@example.com", false, true);
+
+        // Mock 설정 - userRepository.save() 호출 시, 전달받은 User 객체를 그대로 반환
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        User result = userService.registerUser(signupDto);
+
+        // then
+        assertThat(result.getLoginId()).isEqualTo("newLoginId");
+        assertThat(result.getNickname()).isEqualTo("newNickname");
+        assertThat(result.getRole()).isEqualTo(Role.USER);
     }
 }

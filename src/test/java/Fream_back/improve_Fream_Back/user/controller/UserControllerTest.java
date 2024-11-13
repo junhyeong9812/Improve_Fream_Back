@@ -20,7 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -120,5 +123,64 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("Password updated successfully."));
     }
+
+    @Test
+    @DisplayName("로그인 아이디 중복 확인 - 중복일 경우")
+    public void checkDuplicateLoginId_duplicate() throws Exception {
+        // given
+        String duplicateLoginId = "duplicateLoginId";
+        when(userService.checkDuplicateLoginId(anyString())).thenReturn("duplicate");
+
+        // when & then
+        mockMvc.perform(get("/api/users/check-duplicate")
+                        .param("loginId", duplicateLoginId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("duplicate"));
+    }
+
+    @Test
+    @DisplayName("로그인 아이디 중복 확인 - 중복이 아닐 경우")
+    public void checkDuplicateLoginId_notDuplicate() throws Exception {
+        // given
+        String uniqueLoginId = "uniqueLoginId";
+        when(userService.checkDuplicateLoginId(anyString())).thenReturn("ok");
+
+        // when & then
+        mockMvc.perform(get("/api/users/check-duplicate")
+                        .param("loginId", uniqueLoginId))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ok"));
+    }
+
+    @Test
+    @DisplayName("회원 가입 성공 테스트")
+    public void signupUserSuccess() throws Exception {
+        // given
+        UserSignupDto signupDto = new UserSignupDto("newLoginId", "newPassword", "newNickname", "Jane Doe", "987-6543-2101", "new@example.com", false, true);
+        User createdUser = User.builder()
+                .loginId("newLoginId")
+                .password("newPassword")
+                .nickname("newNickname")
+                .realName("Jane Doe")
+                .phoneNumber("987-6543-2101")
+                .email("new@example.com")
+                .phoneNotificationConsent(false)
+                .emailNotificationConsent(true)
+                .role(Role.USER)
+                .build();
+
+        // when
+        when(userService.registerUser(any(UserSignupDto.class))).thenReturn(createdUser);
+
+        // then
+        mockMvc.perform(post("/api/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.loginId").value("newLoginId"))
+                .andExpect(jsonPath("$.nickname").value("newNickname"))
+                .andExpect(jsonPath("$.role").value("USER"));
+    }
+
 }
 

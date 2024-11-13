@@ -21,4 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // loginId로 사용자 조회 (비밀번호 업데이트용)
     Optional<User> findByLoginId(String loginId);
+
+    // 특정 loginId의 존재 여부를 확인하는 메서드
+    boolean existsByLoginId(String loginId);
 }
