@@ -21,3 +21,11 @@ Api
 -/buy
 -/selling
 
+<br>
+기본 ERD구조
+<br>
+<img src="https://github.com/user-attachments/assets/c040190e-b830-451d-a873-f0c0640dc05f"/>
+
+
+
+
