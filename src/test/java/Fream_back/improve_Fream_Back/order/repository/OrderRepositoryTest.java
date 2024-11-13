@@ -31,7 +31,7 @@ public class OrderRepositoryTest {
     public void saveAndFindOrder() {
         // User 및 Delivery 생성 후 저장
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .role(Role.USER)
                 .build();
@@ -58,7 +58,7 @@ public class OrderRepositoryTest {
         // Order 및 연관 데이터 조회
         Order foundOrder = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(foundOrder.getStatus()).isEqualTo("주문완료");
-        assertThat(foundOrder.getUser().getUsername()).isEqualTo("testuser");
+        assertThat(foundOrder.getUser().getLoginId()).isEqualTo("testuser");
         assertThat(foundOrder.getDelivery().getRecipientName()).isEqualTo("Recipient");
     }
 }

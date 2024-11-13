@@ -12,7 +12,7 @@ public class UserEntityTest {
     public void createUser() {
         // User 엔티티 생성
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .nickname("testnickname")
                 .realName("John Doe")
@@ -24,7 +24,7 @@ public class UserEntityTest {
                 .build();
 
         // 데이터 검증
-        assertThat(user.getUsername()).isEqualTo("testuser");
+        assertThat(user.getLoginId()).isEqualTo("testuser");
         assertThat(user.getPassword()).isEqualTo("password");
         assertThat(user.getNickname()).isEqualTo("testnickname");
         assertThat(user.getRealName()).isEqualTo("John Doe");

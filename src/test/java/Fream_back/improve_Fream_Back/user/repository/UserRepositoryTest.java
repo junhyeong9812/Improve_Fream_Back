@@ -22,7 +22,7 @@ public class UserRepositoryTest {
     public void saveAndFindUser() {
         // User 엔티티 생성 및 저장
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .nickname("testnickname")
                 .realName("John Doe")
@@ -37,7 +37,7 @@ public class UserRepositoryTest {
         // User 조회
         Optional<User> foundUser = userRepository.findById(user.getId());
         assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getUsername()).isEqualTo("testuser");
+        assertThat(foundUser.get().getLoginId()).isEqualTo("testuser");
         assertThat(foundUser.get().getPassword()).isEqualTo("password");
         assertThat(foundUser.get().getNickname()).isEqualTo("testnickname");
         assertThat(foundUser.get().getRealName()).isEqualTo("John Doe");

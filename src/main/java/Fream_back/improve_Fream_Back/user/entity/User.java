@@ -30,7 +30,7 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 사용자 ID (기본 키)
 
-    private String username; // 커뮤니티 아이디
+    private String loginId; // 커뮤니티 아이디
     private String password; // 비밀번호
     private String nickname; // 커뮤니티에서 사용할 별명
 
@@ -47,9 +47,9 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "seller")
     private List<UserProduct> productsForSale; // 판매자로서 등록한 상품들
 
-    public User(String username, String password, String nickname, String realName, String phoneNumber,
+    public User(String loginId, String password, String nickname, String realName, String phoneNumber,
                 String email, Boolean phoneNotificationConsent, Boolean emailNotificationConsent, Role role) {
-        this.username = username;
+        this.loginId = loginId;
         this.password = password;
         this.nickname = nickname;
         this.realName = realName;
@@ -64,5 +64,9 @@ public class User extends BaseEntity {
     public void addProductForSale(UserProduct userProduct) {
         this.productsForSale.add(userProduct);
         userProduct.assignSeller(this);
+    }
+    // 비밀번호 업데이트 메서드
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
     }
 }

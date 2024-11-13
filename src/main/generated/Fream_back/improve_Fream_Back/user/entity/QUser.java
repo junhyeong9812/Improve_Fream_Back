@@ -34,6 +34,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final StringPath loginId = createString("loginId");
+
     //inherited
     public final StringPath modifiedBy = _super.modifiedBy;
 
@@ -53,8 +55,6 @@ public class QUser extends EntityPathBase<User> {
     public final StringPath realName = createString("realName");
 
     public final EnumPath<Role> role = createEnum("role", Role.class);
-
-    public final StringPath username = createString("username");
 
     public QUser(String variable) {
         super(User.class, forVariable(variable));

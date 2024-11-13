@@ -43,7 +43,7 @@ public class OrderProductRepositoryTest {
     public void saveAndFindOrderProduct() {
         // User 및 Product 생성 후 저장
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .role(Role.USER)
                 .build();

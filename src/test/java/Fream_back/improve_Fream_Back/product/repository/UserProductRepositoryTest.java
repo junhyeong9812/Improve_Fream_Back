@@ -33,7 +33,7 @@ public class UserProductRepositoryTest {
     public void saveAndFindUserProduct() {
         // User 및 Product 생성 후 저장
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .role(Role.USER)
                 .build();
@@ -62,7 +62,7 @@ public class UserProductRepositoryTest {
         // UserProduct 및 연관 데이터 조회
         UserProduct foundUserProduct = userProductRepository.findById(userProduct.getId()).orElseThrow();
         assertThat(foundUserProduct.getProduct().getName()).isEqualTo("Sample Product");
-        assertThat(foundUserProduct.getSeller().getUsername()).isEqualTo("testuser");
+        assertThat(foundUserProduct.getSeller().getLoginId()).isEqualTo("testuser");
     }
 }
 

@@ -26,7 +26,7 @@ public class DeliveryRepositoryTest {
     public void saveAndFindDelivery() {
         // User 생성 및 저장
         User user = User.builder()
-                .username("testuser")
+                .loginId("testuser")
                 .password("password")
                 .role(Role.USER)
                 .build();
@@ -47,7 +47,7 @@ public class DeliveryRepositoryTest {
         // Delivery 및 연관 데이터 조회
         Delivery foundDelivery = deliveryRepository.findById(delivery.getId()).orElseThrow();
         assertThat(foundDelivery.getRecipientName()).isEqualTo("Recipient");
-        assertThat(foundDelivery.getUser().getUsername()).isEqualTo("testuser");
+        assertThat(foundDelivery.getUser().getLoginId()).isEqualTo("testuser");
         assertThat(foundDelivery.isDefault()).isTrue();
     }
 }
