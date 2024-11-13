@@ -45,6 +45,20 @@ public class Delivery extends BaseTimeEntity
     public void assignUser(User user) {
         this.user = user;
     }
+
+    // 기본 배송지 여부 설정 메서드
+    public void setAsDefault(boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+    // 배송지 정보 업데이트 메서드
+    public void updateDelivery(String recipientName, String phoneNumber, String address, String addressDetail, String zipCode, boolean isDefault) {
+        this.recipientName = recipientName;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.addressDetail = addressDetail;
+        this.zipCode = zipCode;
+        this.isDefault = isDefault;
+    }
 }
 
 
