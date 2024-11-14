@@ -1,6 +1,5 @@
 package Fream_back.improve_Fream_Back.user.controller;
 
-import Fream_back.improve_Fream_Back.user.controller.UserController;
 import Fream_back.improve_Fream_Back.user.dto.*;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.service.UserService;
@@ -8,12 +7,8 @@ import Fream_back.improve_Fream_Back.user.entity.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,15 +25,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest // @SpringBootTest를 사용하여 전체 애플리케이션 컨텍스트를 로드
-@AutoConfigureMockMvc // MockMvc를 자동으로 설정
-public class UserControllerTest {
+@WebMvcTest(UserController.class)
+public class MockUserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private UserService userService; // @MockBean을 통해 의존성 주입
+    private UserService userService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -183,4 +177,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.nickname").value("newNickname"))
                 .andExpect(jsonPath("$.role").value("USER"));
     }
+
 }
+

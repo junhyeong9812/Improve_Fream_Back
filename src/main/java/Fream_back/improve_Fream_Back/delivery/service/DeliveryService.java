@@ -45,10 +45,16 @@ public class DeliveryService {
         }
 
         // 기본 배송지로 설정된 배송지가 이미 있는 경우 해제
+//        if (deliveryDto.isDefault()) {
+//            deliveryRepository.findAllByUserIdWithFetchJoin(user.getId()).stream()
+//                    .filter(Delivery::isDefault)
+//                    .forEach(existingDelivery -> existingDelivery.setAsDefault(false));
+//        }
+
+        // 기본 배송지로 설정된 배송지가 이미 있는 경우 해제
         if (deliveryDto.isDefault()) {
-            deliveryRepository.findAllByUserIdWithFetchJoin(user.getId()).stream()
-                    .filter(Delivery::isDefault)
-                    .forEach(existingDelivery -> existingDelivery.setAsDefault(false));
+            // changeDefaultDelivery 메소드 호출
+            changeDefaultDelivery(user, null); // 현재 기본 배송지를 변경하기 위해 호출
         }
 
         // 새로운 배송지 추가

@@ -43,8 +43,9 @@ public class DeliveryDto {
         );
     }
 
-    // 정렬을 위한 우선순위 필드
-    public static int compareByIsDefault(DeliveryDto d1, DeliveryDto d2) {
-        return Boolean.compare(d2.isDefault(), d1.isDefault());
-    }
+//    // 정렬을 위한 우선순위 필드
+//    public static int compareByIsDefault(DeliveryDto d1, DeliveryDto d2) {
+//        return Boolean.compare(d2.isDefault(), d1.isDefault());
+//    }
+    //sorted / Boolean.compare을 통해 getDeliveries 메소드에 진행
 }

@@ -27,7 +27,7 @@ public class DeliveryController {
      */
     @PostMapping("/add")
     public ResponseEntity<String> addDelivery(
-            @RequestParam String loginId,
+            @RequestParam("loginId") String loginId,
             @RequestBody DeliveryDto deliveryDto
     ) {
         String result = deliveryService.addDelivery(loginId, deliveryDto);
@@ -42,7 +42,7 @@ public class DeliveryController {
      * @return ResponseEntity<List<DeliveryDto>> 조회된 배송지 목록을 담은 DTO 리스트 반환
      */
     @GetMapping("/list")
-    public ResponseEntity<List<DeliveryDto>> getDeliveries(@RequestParam String loginId) {
+    public ResponseEntity<List<DeliveryDto>> getDeliveries(@RequestParam("loginId") String loginId) {
         List<DeliveryDto> deliveries = deliveryService.getDeliveries(loginId);
         return ResponseEntity.ok(deliveries);
     }
@@ -58,7 +58,7 @@ public class DeliveryController {
      */
     @PutMapping("/update")
     public ResponseEntity<String> updateDelivery(
-            @RequestParam String loginId,
+            @RequestParam("loginId") String loginId,
             @RequestBody DeliveryDto deliveryDto
     ) {
         String result = deliveryService.updateDelivery(loginId, deliveryDto);
@@ -76,7 +76,7 @@ public class DeliveryController {
      */
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteDelivery(
-            @RequestParam String loginId,
+            @RequestParam("loginId") String loginId,
             @RequestBody DeliveryDto deliveryDto
     ) {
         try {
