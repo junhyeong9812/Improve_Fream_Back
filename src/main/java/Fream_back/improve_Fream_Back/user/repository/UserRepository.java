@@ -24,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 특정 loginId의 존재 여부를 확인하는 메서드
     boolean existsByLoginId(String loginId);
+
+
 }

@@ -1,8 +1,11 @@
 package Fream_back.improve_Fream_Back.user.controller;
 
+import Fream_back.improve_Fream_Back.user.Jwt.JwtTokenProvider;
 import Fream_back.improve_Fream_Back.user.dto.*;
 import Fream_back.improve_Fream_Back.user.entity.User;
+import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import Fream_back.improve_Fream_Back.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,14 +21,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     /**
      * 로그인 엔드포인트
      * 사용자의 loginId와 password로 로그인 처리.
-     * 성공 시 쿠키에 loginId를 저장하고, 성공 메시지와 사용자 정보를 반환.
+     * 성공 시 JWT 토큰을 클라이언트에게 응답.
      *
      * @param loginDto 로그인에 필요한 loginId와 password 정보를 담은 DTO
-     * @param response HttpServletResponse 객체로 쿠키 설정을 위해 사용
-     * @return 로그인 성공 시 사용자 정보와 성공 메시지 반환, 실패 시 오류 메시지 반환
+     * @return 로그인 성공 시 JWT 토큰과 사용자 정보를 반환, 실패 시 오류 메시지 반환
      */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
@@ -33,24 +41,49 @@ public class UserController {
         if (user.isPresent()) {
             User foundUser = user.get();
 
-            // 쿠키 생성
-            Cookie cookie = new Cookie("loginId", foundUser.getLoginId());
-            cookie.setMaxAge(30 * 60); // 30분
-            cookie.setHttpOnly(true); // JavaScript에서 접근 불가
-            cookie.setPath("/"); // 모든 경로에서 쿠키 사용 가능
+            // JWT 토큰 생성
+            String token = jwtTokenProvider.generateToken(foundUser.getLoginId());
 
-            // 쿠키를 응답에 추가
-            response.addCookie(cookie);
+            // 토큰을 Redis 화이트리스트에 저장
+            redisService.addTokenToWhitelist(token);
 
+
+            // JWT 토큰을 클라이언트에게 응답
             return ResponseEntity.ok(new LoginResponseDto(
                     "Login successful.",
                     foundUser.getLoginId(),
-                    foundUser.getNickname()
+                    foundUser.getNickname(),
+                    token  // JWT 토큰을 반환
             ));
         } else {
-            return ResponseEntity.status(401).body(new LoginResponseDto("Invalid credentials.", null, null));
+            return ResponseEntity.status(401).body(new LoginResponseDto("Invalid credentials.", null, null, null));
         }
     }
+
+    /**
+     * 로그아웃 엔드포인트
+     * 클라이언트에서 전달된 JWT 토큰을 화이트리스트에서 제거하여 로그아웃 처리.
+     *
+     * @param request HTTP 요청에서 Authorization 헤더를 통해 토큰을 받음
+     * @return 로그아웃 성공 메시지 또는 실패 메시지 반환
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7); // "Bearer " 부분을 제외한 토큰만 추출
+
+            // Redis에서 토큰 제거
+            redisService.removeTokenFromWhitelist(token);
+
+            return ResponseEntity.ok("Logout successful.");
+        }
+
+        return ResponseEntity.status(400).body("Authorization header is missing or invalid.");
+    }
+
+
 
     /**
      * 전화번호로 아이디 찾기 엔드포인트
@@ -134,4 +167,6 @@ public class UserController {
         User newUser = userService.registerUser(signupDto);
         return ResponseEntity.ok(newUser);
     }
+
+
 }
