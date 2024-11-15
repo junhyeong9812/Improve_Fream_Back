@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
+//	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10' // QueryDSL 플러그인 추가
+
 }
 
 group = 'Fream_back'
@@ -51,13 +53,22 @@ dependencies {
 
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+//test
+	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
-//tasks.withType(JavaCompile) {
-//	options.compilerArgs << "-parameters"
-//}
 
-
+clean {
+	delete file('src/main/generated')
+}
+tasks.withType(Test) {
+	// 테스트를 실행하지 않도록 설정
+	enabled = false
+}
+sourceSets {
+	main.java.srcDir file("build/generated/sources/annotationProcessor/java/main")
+}
