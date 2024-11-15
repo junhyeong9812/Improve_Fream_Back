@@ -13,6 +13,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -46,14 +52,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())  // CSRF 비활성화
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/login", "/signup").permitAll()  // 로그인과 회원가입은 허용
+                        .requestMatchers("**","/api/deliveries/**").permitAll()  // 로그인과 회원가입은 허용
+                        .requestMatchers("/admin/**").hasRole("ADMIN")  // ROLE_ADMIN만 접근 가능
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증된 사용자만 허용
                 )
-                .addFilter(new JwtAuthenticationFilter(jwtTokenProvider, redisService));  // JwtAuthenticationFilter에 RedisService 추가
-
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisService), UsernamePasswordAuthenticationFilter.class);  // JwtAuthenticationFilter만 추가하고, 필터 순서 지정
         return http.build();
     }
+
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        // 허용할 도메인 설정
+//        configuration.setAllowedOrigins(List.of("http://localhost**"));
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+//        configuration.setAllowedHeaders(List.of("*"));
+//        configuration.setAllowCredentials(true);  // 자격증명 허용 (예: 쿠키)
+//
+//        // 모든 경로에 대해 CORS 정책 적용
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 
     // PasswordEncoder 설정
     @Bean

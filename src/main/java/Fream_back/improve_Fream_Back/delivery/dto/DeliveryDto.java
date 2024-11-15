@@ -2,15 +2,13 @@ package Fream_back.improve_Fream_Back.delivery.dto;
 
 
 import Fream_back.improve_Fream_Back.delivery.entity.Delivery;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 public class DeliveryDto {
 
     private Long id; // 배송 ID

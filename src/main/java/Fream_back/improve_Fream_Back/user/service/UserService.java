@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.user.entity.Role;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder; // PasswordEncoder 주입
+
     /**
      * 로그인 서비스
      * 주어진 loginId와 비밀번호를 기반으로 사용자 조회.
@@ -31,8 +35,17 @@ public class UserService {
      * @return Optional<User> 로그인에 성공하면 해당 사용자 정보, 실패 시 빈 Optional
      */
     public Optional<User> login(LoginDto loginDto) {
-        return userRepository.findByLoginIdAndPassword(
-                loginDto.getLoginId(), loginDto.getPassword());
+        Optional<User> userOpt = userRepository.findByLoginId(loginDto.getLoginId());
+
+        // 사용자 존재 시 비밀번호 비교
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+                System.out.println("Optional.of(user) = " + user.getLoginId());
+                return Optional.of(user); // 비밀번호가 일치하면 사용자 반환
+            }
+        }
+        return Optional.empty(); // 비밀번호 불일치 또는 사용자 없음
     }
 
     /**
@@ -85,7 +98,7 @@ public class UserService {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            user.updatePassword(updateDto.getNewPassword()); // 더티체킹을 통한 비밀번호 업데이트
+            user.updatePassword(passwordEncoder.encode(updateDto.getNewPassword())); // 비밀번호 암호화 후 업데이트
             return true;
         }
 
@@ -112,9 +125,12 @@ public class UserService {
      * @return 등록된 User 엔티티
      */
     public User registerUser(UserSignupDto dto) {
+        // 비밀번호 암호화 후 등록
+        String encryptedPassword = passwordEncoder.encode(dto.getPassword());
+
         User newUser = User.builder()
                 .loginId(dto.getLoginId())
-                .password(dto.getPassword())
+                .password(encryptedPassword) // 암호화된 비밀번호 저장
                 .nickname(dto.getNickname())
                 .realName(dto.getRealName())
                 .phoneNumber(dto.getPhoneNumber())

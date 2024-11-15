@@ -37,8 +37,13 @@ public class UserController {
      */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto, HttpServletResponse response) {
+
         Optional<User> user = userService.login(loginDto);
+        // user가 실제로 존재하는지 확인
+//        System.out.println("컨트롤러에서 받은 user: " + user); // 전체 Optional 객체 출력
+
         if (user.isPresent()) {
+
             User foundUser = user.get();
 
             // JWT 토큰 생성
@@ -47,13 +52,16 @@ public class UserController {
             // 토큰을 Redis 화이트리스트에 저장
             redisService.addTokenToWhitelist(token);
 
+            // JWT 토큰을 헤더에 추가
+            response.setHeader("Authorization", "Bearer " + token);
 
             // JWT 토큰을 클라이언트에게 응답
             return ResponseEntity.ok(new LoginResponseDto(
                     "Login successful.",
                     foundUser.getLoginId(),
                     foundUser.getNickname(),
-                    token  // JWT 토큰을 반환
+//                    token  // JWT 토큰을 반환
+                    null // 토큰은 본문에서 제외
             ));
         } else {
             return ResponseEntity.status(401).body(new LoginResponseDto("Invalid credentials.", null, null, null));
@@ -74,6 +82,11 @@ public class UserController {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // "Bearer " 부분을 제외한 토큰만 추출
 
+            // Redis에서 토큰이 화이트리스트에 있는지 확인
+            if (!redisService.isTokenInWhitelist(token)) {
+                return ResponseEntity.status(400).body("Invalid token.");
+            }
+
             // Redis에서 토큰 제거
             redisService.removeTokenFromWhitelist(token);
 
@@ -82,8 +95,6 @@ public class UserController {
 
         return ResponseEntity.status(400).body("Authorization header is missing or invalid.");
     }
-
-
 
     /**
      * 전화번호로 아이디 찾기 엔드포인트
@@ -168,5 +179,14 @@ public class UserController {
         return ResponseEntity.ok(newUser);
     }
 
+    // 필터에서 설정한 Authorization 헤더 확인 후, 인증 처리
+    private boolean isTokenValid(HttpServletRequest request) {
+        String tokenStatus = (String) request.getAttribute("Authorization");
 
+        // 토큰 상태에 따라 인증 실패 처리
+        if (tokenStatus == null || tokenStatus.startsWith("Token") || tokenStatus.equals("Invalid or expired token")) {
+            return false;
+        }
+        return true;
+    }
 }

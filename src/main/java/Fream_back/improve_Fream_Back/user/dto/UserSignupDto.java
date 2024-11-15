@@ -19,4 +19,13 @@ public class UserSignupDto {
     private String email;
     private Boolean phoneNotificationConsent = false;
     private Boolean emailNotificationConsent = false;
+
+    public UserSignupDto(String loginId, String password, String nickname, String realName, String phoneNumber, String email) {
+        this.loginId = loginId;
+        this.password = password;
+        this.nickname = nickname;
+        this.realName = realName;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
 }

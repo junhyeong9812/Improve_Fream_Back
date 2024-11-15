@@ -5,29 +5,41 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class AllDenyJwtFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
 
-    // 생성자: JwtTokenProvider와 RedisService를 주입받아 필터 초기화
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, RedisService redisService) {
+    // 생성자: JwtTokenProvider를 주입받아 필터 초기화
+    public AllDenyJwtFilter(JwtTokenProvider jwtTokenProvider, RedisService redisService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.redisService = redisService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = extractToken(request); // 토큰 추출
+//        String uri = request.getRequestURI();
+//        // /api/** 경로는 필터를 실행하지 않도록 조건 처리
+//        if (uri.startsWith("/api/")) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
-        // 토큰이 유효한지 검증
+        String token = extractToken(request);
+
+        System.out.println("JwtAuthenticationFilter 실행됨");  // 디버깅 로그 추가
+
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰 검증 후 Redis 화이트리스트에 존재하는지 확인
             if (redisService.isTokenInWhitelist(token)) {
@@ -35,16 +47,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 인증 객체에 권한 정보 추가 (예: roles, authorities)
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginId, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                // 헤더에 토큰을 설정 (컨트롤러에서 사용할 수 있게)
-                request.setAttribute("Authorization", "Bearer " + token);
             } else {
-                // 화이트리스트에 없으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
-                // 헤더에 메시지 추가만 하고, 필터 체인 계속 진행
-                request.setAttribute("Authorization", "Token is not in the whitelist");
+                // 토큰이 화이트리스트에 없으면 인증 실패 (401 상태 코드)
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token is not in the whitelist");
+                return;
             }
         } else {
-            // 토큰이 없거나 유효하지 않으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
-            request.setAttribute("Authorization", "Invalid or expired token");
+            // 토큰 검증 실패 시 인증 실패 (401 상태 코드)
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid or expired token");
+            return;
         }
 
         // 필터 체인에서 다음 필터로 요청 전달

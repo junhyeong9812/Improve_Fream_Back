@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.user.Jwt;
 
+import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -18,6 +19,13 @@ public class JwtTokenProvider {
 
     @Value("${jwt.expiration}")
     private long expirationTime;  // JWT 만료 시간 (밀리초 단위)
+
+    private final RedisService redisService;
+
+    // RedisService 주입
+    public JwtTokenProvider(RedisService redisService) {
+        this.redisService = redisService;
+    }
 
     /**
      * JWT 토큰을 생성하는 메서드
@@ -55,6 +63,12 @@ public class JwtTokenProvider {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC512(secretKey))  // 서명에 사용된 알고리즘과 키를 지정
                     .build();
             verifier.verify(token);  // 토큰 검증
+
+            // 토큰이 화이트리스트에 있는지 Redis에서 확인
+            if (!redisService.isTokenInWhitelist(token)) {
+                return false;  // 화이트리스트에 없으면 유효하지 않음
+            }
+
             return true;  // 검증 성공 시 true 반환
         } catch (JWTVerificationException exception) {
             return false;  // 검증 실패 시 false 반환

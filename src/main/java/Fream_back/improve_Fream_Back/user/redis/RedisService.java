@@ -30,4 +30,8 @@ public class RedisService {
     public void removeTokenFromWhitelist(String token) {
         redisTemplate.delete("whitelist:" + token);
     }
+    // 토큰이 화이트리스트에서 삭제되었는지 확인
+    public boolean isTokenRemoved(String token) {
+        return !redisTemplate.hasKey("whitelist:" + token);
+    }
 }
