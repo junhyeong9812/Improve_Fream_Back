@@ -49,23 +49,65 @@ public class ProductRepositoryTests {
                 .description("편안한 티셔츠")
                 .images(List.of(new ProductImageDto(null, "image1.jpg", "thumbnail", true),
                         new ProductImageDto(null, "image2.jpg", "detail", false)))
-                .sizeAndColorQuantities(Set.of(new ProductSizeAndColorQuantityDto(null, "CLOTHING", "M", null, "BLACK", 10)))
+                .sizeAndColorQuantities(Set.of(
+                        ProductSizeAndColorQuantityDto.builder()
+                                .sizeType("CLOTHING")
+                                .clothingSizes(Set.of("M", "L"))  // Set으로 감싸서 넣기
+                                .shoeSizes(Set.of())  // 신발 사이즈가 없으므로 빈 Set으로 처리
+                                .colors(Set.of("BLACK", "WHITE"))  // 색상도 Set으로 감싸기
+                                .quantity(10)
+                                .build()
+                ))
                 .build();
 
         // DTO를 엔티티로 변환하고, Product를 먼저 저장해서 영속 상태로 만듭니다.
         Product tempProduct = productRepository.save(createRequestDtoToEntity(createRequestDto));
 
+//        // 연관 관계 설정 - ProductSizeAndColorQuantity 추가
+//        createRequestDto.getSizeAndColorQuantities().forEach(sizeAndColorDto -> {
+//            ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
+//                    .sizeType(SizeType.valueOf(sizeAndColorDto.getSizeType()))
+//                    .clothingSize(sizeAndColorDto.getClothingSize() != null ? ClothingSizeType.valueOf(sizeAndColorDto.getClothingSize()) : null)
+//                    .shoeSize(sizeAndColorDto.getShoeSize() != null ? ShoeSizeType.valueOf(sizeAndColorDto.getShoeSize()) : null)
+//                    .color(Color.valueOf(sizeAndColorDto.getColor()))
+//                    .quantity(sizeAndColorDto.getQuantity())
+//                    .product(tempProduct) // 영속 상태인 product 설정
+//                    .build();
+//            tempProduct.addSizeAndColorQuantity(sizeAndColorQuantity);
+//        });
         // 연관 관계 설정 - ProductSizeAndColorQuantity 추가
         createRequestDto.getSizeAndColorQuantities().forEach(sizeAndColorDto -> {
-            ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
-                    .sizeType(SizeType.valueOf(sizeAndColorDto.getSizeType()))
-                    .clothingSize(sizeAndColorDto.getClothingSize() != null ? ClothingSizeType.valueOf(sizeAndColorDto.getClothingSize()) : null)
-                    .shoeSize(sizeAndColorDto.getShoeSize() != null ? ShoeSizeType.valueOf(sizeAndColorDto.getShoeSize()) : null)
-                    .color(Color.valueOf(sizeAndColorDto.getColor()))
-                    .quantity(sizeAndColorDto.getQuantity())
-                    .product(tempProduct) // 영속 상태인 product 설정
-                    .build();
-            tempProduct.addSizeAndColorQuantity(sizeAndColorQuantity);
+            SizeType sizeType = SizeType.valueOf(sizeAndColorDto.getSizeType());
+
+            if (sizeType == SizeType.CLOTHING) {
+                sizeAndColorDto.getColors().forEach(color -> {
+                    Color colorEnum = Color.valueOf(color);
+                    sizeAndColorDto.getClothingSizes().forEach(clothingSize -> {
+                        ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
+                                .sizeType(sizeType)
+                                .clothingSize(ClothingSizeType.valueOf(clothingSize))
+                                .color(colorEnum)
+                                .quantity(sizeAndColorDto.getQuantity())
+                                .product(tempProduct) // 영속 상태인 product 설정
+                                .build();
+                        tempProduct.addSizeAndColorQuantity(sizeAndColorQuantity);
+                    });
+                });
+            } else if (sizeType == SizeType.SHOES) {
+                sizeAndColorDto.getColors().forEach(color -> {
+                    Color colorEnum = Color.valueOf(color);
+                    sizeAndColorDto.getShoeSizes().forEach(shoeSize -> {
+                        ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
+                                .sizeType(sizeType)
+                                .shoeSize(ShoeSizeType.valueOf(shoeSize))
+                                .color(colorEnum)
+                                .quantity(sizeAndColorDto.getQuantity())
+                                .product(tempProduct) // 영속 상태인 product 설정
+                                .build();
+                        tempProduct.addSizeAndColorQuantity(sizeAndColorQuantity);
+                    });
+                });
+            }
         });
 
         // 최종적으로 Product를 다시 저장하여 연관 엔티티들도 저장
@@ -85,7 +127,7 @@ public class ProductRepositoryTests {
         // then
         assertThat(product.getId()).isNotNull();
         assertThat(product.getName()).isEqualTo("티셔츠");
-        assertThat(productSizeAndColorQuantityRepository.findAllByProductId(product.getId())).hasSize(1);
+        assertThat(productSizeAndColorQuantityRepository.findAllByProductId(product.getId())).hasSize(4);
         assertThat(productImageRepository.findAllByProductId(product.getId())).hasSize(2);
     }
 
