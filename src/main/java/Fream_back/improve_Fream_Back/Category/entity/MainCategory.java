@@ -29,9 +29,31 @@ public class MainCategory extends BaseEntity {
     @Builder.Default
     private Set<SubCategory> subCategories = new HashSet<>(); // 하위 카테고리들
 
-    // 연관관계 편의 메서드
+    /**
+     * 상위 카테고리 이름을 수정하는 메서드.
+     * 이름을 변경하면 dirty checking을 통해 자동으로 DB에 반영됩니다.
+     *
+     * @param newName 새로운 상위 카테고리 이름
+     */
+    public void updateName(String newName) {
+        this.name = newName; // 이름 변경
+    }
+
+    /**
+     * 하위 카테고리를 추가하는 메서드.
+     * @param subCategory 추가할 하위 카테고리
+     */
     public void addSubCategory(SubCategory subCategory) {
         subCategories.add(subCategory);
-        subCategory.setMainCategory(this);
+        subCategory.setMainCategory(this); // 연관관계 설정
+    }
+
+    /**
+     * 하위 카테고리를 삭제하는 메서드.
+     * @param subCategory 삭제할 하위 카테고리
+     */
+    public void removeSubCategory(SubCategory subCategory) {
+        subCategories.remove(subCategory);
+        subCategory.setMainCategory(null); // 연관관계 해제
     }
 }

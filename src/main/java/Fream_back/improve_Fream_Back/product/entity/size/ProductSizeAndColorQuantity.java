@@ -45,4 +45,8 @@ public class ProductSizeAndColorQuantity extends BaseEntity {
     public void assignProduct(Product product) {
         this.product = product;
     }
+    // 수량 업데이트 메서드
+    public void updateQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 }
