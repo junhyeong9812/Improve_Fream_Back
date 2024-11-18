@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +18,10 @@ public class ProductQueryDslResponseDto {
     private String brand;
     private String mainCategoryName;
     private String subCategoryName;
-    private String color;
-    private String size;
+    private List<String> colors; // 색상을 배열로 그룹화
+    private List<String> sizes;  // 사이즈를 배열로 그룹화
     private int quantity;
+
+
+
 }
