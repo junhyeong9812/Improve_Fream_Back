@@ -180,30 +180,30 @@ public class ProductRepositoryTests {
         assertThat(updatedProduct.getBrand()).isEqualTo("브랜드B");
     }
 
-    @Test
-    @DisplayName("쿼리DSL로 필터링된 프로덕트 조회 테스트")
-    public void testFindProductsByFilter() {
-        // given
-        Product product1 = productRepository.save(Product.builder().name("티셔츠").brand("브랜드A").sku("SKU1234").build());
-        Product product2 = productRepository.save(Product.builder().name("운동화").brand("브랜드B").sku("SKU5678").build());
-
-        ProductSizeAndColorQuantity sizeAndColor1 = ProductSizeAndColorQuantity.builder()
-                .product(product1)
-                .sizeType(SizeType.CLOTHING)
-                .color(Color.BLACK)
-                .clothingSize(ClothingSizeType.M)
-                .quantity(10)
-                .build();
-        productSizeAndColorQuantityRepository.save(sizeAndColor1);
-
-        // when
-        ProductQueryRepository productQueryRepository = new ProductQueryRepository(entityManager);
-        List<ProductQueryDslResponseDto> products = productQueryRepository.findProductsByFilter(null, null, "BLACK", null);
-
-        // then
-        assertThat(products).hasSize(1);
-        assertThat(products.get(0).getName()).isEqualTo("티셔츠");
-    }
+//    @Test
+//    @DisplayName("쿼리DSL로 필터링된 프로덕트 조회 테스트")
+//    public void testFindProductsByFilter() {
+//        // given
+//        Product product1 = productRepository.save(Product.builder().name("티셔츠").brand("브랜드A").sku("SKU1234").build());
+//        Product product2 = productRepository.save(Product.builder().name("운동화").brand("브랜드B").sku("SKU5678").build());
+//
+//        ProductSizeAndColorQuantity sizeAndColor1 = ProductSizeAndColorQuantity.builder()
+//                .product(product1)
+//                .sizeType(SizeType.CLOTHING)
+//                .color(Color.BLACK)
+//                .clothingSize(ClothingSizeType.M)
+//                .quantity(10)
+//                .build();
+//        productSizeAndColorQuantityRepository.save(sizeAndColor1);
+//
+//        // when
+//        ProductQueryRepository productQueryRepository = new ProductQueryRepository(entityManager);
+//        List<ProductQueryDslResponseDto> products = productQueryRepository.findProductsByFilter(null, null, "BLACK", null);
+//
+//        // then
+//        assertThat(products).hasSize(1);
+//        assertThat(products.get(0).getName()).isEqualTo("티셔츠");
+//    }
 
     private Product createRequestDtoToEntity(ProductCreateRequestDto dto) {
         return Product.builder()

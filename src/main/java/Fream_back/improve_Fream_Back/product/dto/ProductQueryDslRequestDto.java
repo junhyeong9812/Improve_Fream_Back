@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 public class ProductQueryDslRequestDto {
     private Long mainCategoryId;
     private Long subCategoryId;
-    private String color;
-    private String size;
+    private String color; //색상
+    private String size; //사이즈
+    private String brand; // 브랜드
+    private String sortBy; // 정렬 방식
 }

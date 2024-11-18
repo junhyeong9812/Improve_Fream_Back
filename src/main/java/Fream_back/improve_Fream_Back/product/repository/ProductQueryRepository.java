@@ -24,7 +24,7 @@ public class ProductQueryRepository {
         this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
-    public Page<ProductQueryDslResponseDto> findFilteredProducts(
+    public Page<ProductQueryDslResponseDto> findProductsByFilter(
             Long mainCategoryId, Long subCategoryId, String color, String size, String brand, String sortBy, Pageable pageable) {
         QProduct product = QProduct.product;
         QProductSizeAndColorQuantity sizeAndColorQuantity = QProductSizeAndColorQuantity.productSizeAndColorQuantity;
@@ -49,6 +49,10 @@ public class ProductQueryRepository {
             filteredProductIds.orderBy(product.initialPrice.asc());
         } else if ("priceDesc".equals(sortBy)) {
             filteredProductIds.orderBy(product.initialPrice.desc());
+        } else if ("releaseDateAsc".equals(sortBy)) {
+            filteredProductIds.orderBy(product.releaseDate.asc());
+        } else if ("releaseDateDesc".equals(sortBy)) {
+            filteredProductIds.orderBy(product.releaseDate.desc());
         }
 
         // 페이징 수동 처리

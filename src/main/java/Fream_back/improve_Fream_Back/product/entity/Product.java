@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +50,7 @@ public class Product extends BaseTimeEntity {
 
     private BigDecimal initialPrice; // 출시가 (상품의 최초 가격)
     private String description; // 상품 설명
+    private LocalDate releaseDate; // 출시일 추가
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -77,7 +79,7 @@ public class Product extends BaseTimeEntity {
         sizeAndColorQuantity.assignProduct(this);
     }
     // 상품 정보 수정 메서드
-    public void updateProductInfo(String name, String brand, String sku, MainCategory mainCategory, SubCategory subCategory, BigDecimal initialPrice, String description) {
+    public void updateProductInfo(String name, String brand, String sku, MainCategory mainCategory, SubCategory subCategory, BigDecimal initialPrice, String description,LocalDate releaseDate) {
         this.name = name;
         this.brand = brand;
         this.sku = sku;
@@ -85,6 +87,7 @@ public class Product extends BaseTimeEntity {
         this.subCategory = subCategory;
         this.initialPrice = initialPrice;
         this.description = description;
+        this.releaseDate = releaseDate;
     }
 
 

@@ -1,5 +1,7 @@
 package Fream_back.improve_Fream_Back.product.service;
 
+import Fream_back.improve_Fream_Back.Category.dto.MainCategoryDto;
+import Fream_back.improve_Fream_Back.Category.dto.SubCategoryDto;
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
@@ -12,19 +14,18 @@ import Fream_back.improve_Fream_Back.Category.entity.MainCategory;
 import Fream_back.improve_Fream_Back.Category.entity.SubCategory;
 import Fream_back.improve_Fream_Back.Category.repository.MainCategoryRepository;
 import Fream_back.improve_Fream_Back.Category.repository.SubCategoryRepository;
+import Fream_back.improve_Fream_Back.product.service.fileStorageUtil.FileStorageUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +37,7 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final ProductSizeAndColorQuantityRepository productSizeAndColorQuantityRepository;
     private final ProductQueryRepository productQueryRepository;
+    private final FileStorageUtil fileStorageUtil;
 
     @Autowired
     public ProductService(ProductRepository productRepository,
@@ -43,17 +45,39 @@ public class ProductService {
                           SubCategoryRepository subCategoryRepository,
                           ProductImageRepository productImageRepository,
                           ProductSizeAndColorQuantityRepository productSizeAndColorQuantityRepository,
-                          ProductQueryRepository productQueryRepository) {
+                          ProductQueryRepository productQueryRepository,
+                          FileStorageUtil fileStorageUtil) {
         this.productRepository = productRepository;
         this.mainCategoryRepository = mainCategoryRepository;
         this.subCategoryRepository = subCategoryRepository;
         this.productImageRepository = productImageRepository;
         this.productSizeAndColorQuantityRepository = productSizeAndColorQuantityRepository;
         this.productQueryRepository = productQueryRepository;
+        this.fileStorageUtil = fileStorageUtil;
     }
 
-    // 상품 생성
-    public Product createProduct(ProductCreateRequestDto productDto) {
+    /**
+     * 임시 URL 생성 메서드
+     *
+     * @param file 업로드할 이미지 파일
+     * @return 생성된 임시 URL
+     */
+    public String createTemporaryUrl(MultipartFile file) {
+        try {
+            return fileStorageUtil.saveTemporaryFile(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save temporary file", e);
+        }
+    }
+
+    /**
+     * 상품 생성 메서드
+     *
+     * @param productDto    생성할 상품의 상세 정보 DTO
+     * @param tempFilePaths 임시 저장된 이미지 파일 경로 목록
+     * @return 생성된 상품의 ID를 담은 DTO
+     */
+    public ProductIdResponseDto createProduct(ProductCreateRequestDto productDto, List<String> tempFilePaths) {
         MainCategory mainCategory = mainCategoryRepository.findById(productDto.getMainCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("MainCategory not found"));
         SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategoryId())
@@ -67,209 +91,200 @@ public class ProductService {
                 .subCategory(subCategory)
                 .initialPrice(productDto.getInitialPrice())
                 .description(productDto.getDescription())
+                .releaseDate(productDto.getReleaseDate())
                 .build();
 
         productRepository.save(product);
 
-        // 상품 이미지 추가
-        if (productDto.getImages() != null) {
-            productDto.getImages().forEach(imageDto -> {
-                try {
-                    String imageFileName = saveImageToFileSystem(imageDto.getImageUrl(), product.getId());
-                    ProductImage productImage = ProductImage.builder()
-                            .imageUrl(imageFileName)
-                            .imageType(imageDto.getImageType())
-                            .isMainThumbnail(imageDto.isMainThumbnail())
-                            .build();
-                    productImage.assignProduct(product);
-                    productImageRepository.save(productImage); // 영속성 컨텍스트에 저장
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to save image", e);
-                }
-            });
-        }
+        // 임시 파일을 최종 경로로 이동하여 저장
+        tempFilePaths.forEach(tempFilePath -> {
+            try {
+                String permanentPath = fileStorageUtil.moveToPermanentStorage(tempFilePath, product.getId());
+                ProductImage productImage = ProductImage.builder()
+                        .imageUrl(permanentPath)
+                        .imageType("detail")
+                        .isMainThumbnail(false)
+                        .build();
+                productImage.assignProduct(product);
+                productImageRepository.save(productImage);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to move file to permanent storage", e);
+            }
+        });
 
-        // 사이즈 및 색상별 수량 추가 (모든 조합 생성)
-        if (productDto.getSizeAndColorQuantities() != null) {
-            productDto.getSizeAndColorQuantities().forEach(sizeAndColorDto -> {
-                SizeType sizeType = SizeType.valueOf(sizeAndColorDto.getSizeType());
-
-                if (sizeType == SizeType.CLOTHING) {
-                    sizeAndColorDto.getColors().forEach(color -> {
-                        Color colorEnum = Color.valueOf(color);
-                        sizeAndColorDto.getClothingSizes().forEach(clothingSize -> {
-                            ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
-                                    .sizeType(sizeType)
-                                    .clothingSize(ClothingSizeType.valueOf(clothingSize))
-                                    .color(colorEnum)
-                                    .quantity(sizeAndColorDto.getQuantity())
-                                    .build();
-                            sizeAndColorQuantity.assignProduct(product);
-                            // product.addSizeAndColorQuantity(sizeAndColorQuantity); // Removed as size and color quantities are managed separately from Product
-                            productSizeAndColorQuantityRepository.save(sizeAndColorQuantity); // 영속성 컨텍스트에 저장
-                        });
-                    });
-                } else if (sizeType == SizeType.SHOES) {
-                    sizeAndColorDto.getColors().forEach(color -> {
-                        Color colorEnum = Color.valueOf(color);
-                        sizeAndColorDto.getShoeSizes().forEach(shoeSize -> {
-                            ProductSizeAndColorQuantity sizeAndColorQuantity = ProductSizeAndColorQuantity.builder()
-                                    .sizeType(sizeType)
-                                    .shoeSize(ShoeSizeType.valueOf(shoeSize))
-                                    .color(colorEnum)
-                                    .quantity(sizeAndColorDto.getQuantity())
-                                    .build();
-                            sizeAndColorQuantity.assignProduct(product);
-                            // product.addSizeAndColorQuantity(sizeAndColorQuantity); // Removed as size and color quantities are managed separately from Product
-                            productSizeAndColorQuantityRepository.save(sizeAndColorQuantity); // 영속성 컨텍스트에 저장
-                        });
-                    });
-                }
-            });
-        }
-
-        return product;
+        return new ProductIdResponseDto(product.getId());
     }
 
-    //파일 저장
-    private String saveImageToFileSystem(String imageUrl, Long productId) throws IOException {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String uniqueFileName = "product_" + productId + "_" + timestamp + "_" + UUID.randomUUID() + ".jpg";
-        Path imagePath = Paths.get("images/" + uniqueFileName);
-
-        // 임시로 URL을 파일로 저장하는 부분 (실제로는 파일 업로드 기능 필요)
-        Files.copy(Paths.get(imageUrl), imagePath);
-
-        return imagePath.toString();
-    }
-
-    // 상품 수정
-    public Product updateProduct(Long productId, ProductUpdateRequestDto productDto) {
+    /**
+     * 상품 수정 메서드
+     *
+     * @param productId     수정할 상품 ID
+     * @param productDto    수정할 상품의 상세 정보 DTO
+     * @param tempFilePaths 임시 저장된 이미지 파일 경로 목록
+     * @return 수정된 상품의 ID를 담은 DTO
+     */
+    public ProductIdResponseDto updateProduct(Long productId, ProductUpdateRequestDto productDto, List<String> tempFilePaths) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
-        // 상품 수정 메서드 호출
         MainCategory mainCategory = mainCategoryRepository.findById(productDto.getMainCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("MainCategory not found"));
         SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("SubCategory not found"));
 
-        product.updateProductInfo(productDto.getName(), productDto.getBrand(), productDto.getSku(), mainCategory, subCategory, productDto.getInitialPrice(), productDto.getDescription());
+        product.updateProductInfo(
+                productDto.getName(),
+                productDto.getBrand(),
+                productDto.getSku(),
+                mainCategory,
+                subCategory,
+                productDto.getInitialPrice(),
+                productDto.getDescription(),
+                productDto.getReleaseDate()
+        );
 
-//        // 이미지 수정 (더티 체크 활용)
-//        // product.clearProductImages(); // Removed as images are managed separately from Product
-//        if (productDto.getImages() != null) {
-//            productDto.getImages().forEach(imageDto -> {
-//                ProductImage productImage = ProductImage.builder()
-//                        .imageUrl(imageDto.getImageUrl())
-//                        .imageType(imageDto.getImageType())
-//                        .isMainThumbnail(imageDto.isMainThumbnail())
-//                        .build();
-//                productImage.assignProduct(product);
-//                // product.addProductImage(productImage); // Removed as images are not associated directly with Product in the current design
-//            });
-//        }
-        // 기존 이미지와 비교하여 업데이트
-        if (productDto.getImages() != null) {
-            Set<String> updatedImageUrls = productDto.getImages().stream()
-                    .map(ProductImageDto::getImageUrl)
-                    .collect(Collectors.toSet());
+        // 기존 이미지 처리
+        Set<String> updatedImageUrls = productDto.getImages().stream()
+                .map(ProductImageDto::getImageUrl)
+                .collect(Collectors.toSet());
 
-            // 기존 이미지 중에서 업데이트된 리스트에 없는 이미지를 삭제
-            List<ProductImage> existingImages = productImageRepository.findAllByProductId(productId);
-            existingImages.forEach(existingImage -> {
-                if (!updatedImageUrls.contains(existingImage.getImageUrl())) {
-                    deleteImageFile(existingImage.getImageUrl());
+        List<ProductImage> existingImages = productImageRepository.findAllByProductId(productId);
+        existingImages.forEach(existingImage -> {
+            if (!updatedImageUrls.contains(existingImage.getImageUrl())) {
+                try {
+                    fileStorageUtil.deleteFile(existingImage.getImageUrl());
                     productImageRepository.delete(existingImage);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to delete image file", e);
                 }
-            });
+            }
+        });
 
-            // 새로운 이미지를 추가
-            productDto.getImages().forEach(imageDto -> {
-                if (existingImages.stream().noneMatch(existingImage -> existingImage.getImageUrl().equals(imageDto.getImageUrl()))) {
-                    try {
-                        String newImageFileName = saveImageToFileSystem(imageDto.getImageUrl(), product.getId());
-                        ProductImage newProductImage = ProductImage.builder()
-                                .imageUrl(newImageFileName)
-                                .imageType(imageDto.getImageType())
-                                .isMainThumbnail(imageDto.isMainThumbnail())
-                                .build();
-                        newProductImage.assignProduct(product);
-                        productImageRepository.save(newProductImage);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to save new image", e);
-                    }
-                }
-            });
-        }
+        // 새로운 이미지 추가
+        tempFilePaths.forEach(tempFilePath -> {
+            try {
+                String permanentPath = fileStorageUtil.moveToPermanentStorage(tempFilePath, productId);
+                ProductImage newProductImage = ProductImage.builder()
+                        .imageUrl(permanentPath)
+                        .imageType("detail")
+                        .isMainThumbnail(false)
+                        .build();
+                newProductImage.assignProduct(product);
+                productImageRepository.save(newProductImage);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to save new image", e);
+            }
+        });
 
-        // 사이즈 및 색상별 수량 수정 (더티 체크 활용)
-        // product.clearSizeAndColorQuantities(); // Removed as size and color quantities are managed separately from Product
-        if (productDto.getSizeAndColorQuantities() != null) {
-            productDto.getSizeAndColorQuantities().forEach(sizeAndColorDto -> {
-                SizeType sizeType = SizeType.valueOf(sizeAndColorDto.getSizeType());
-
-                if (sizeType == SizeType.CLOTHING) {
-                    sizeAndColorDto.getColors().forEach(color -> {
-                        Color colorEnum = Color.valueOf(color);
-                        sizeAndColorDto.getClothingSizes().forEach(clothingSize -> {
-                            ProductSizeAndColorQuantity sizeAndColorQuantity = productSizeAndColorQuantityRepository.findByProductIdAndClothingSizeAndColor(productId, ClothingSizeType.valueOf(clothingSize), colorEnum)
-                                    .orElseGet(() -> ProductSizeAndColorQuantity.builder()
-                                            .sizeType(sizeType)
-                                            .clothingSize(ClothingSizeType.valueOf(clothingSize))
-                                            .color(colorEnum)
-                                            .build());
-                            sizeAndColorQuantity.updateQuantity(sizeAndColorDto.getQuantity());
-                            sizeAndColorQuantity.assignProduct(product);
-                            // product.addSizeAndColorQuantity(sizeAndColorQuantity); // Removed as size and color quantities are managed separately from Product
-                        });
-                    });
-                } else if (sizeType == SizeType.SHOES) {
-                    sizeAndColorDto.getColors().forEach(color -> {
-                        Color colorEnum = Color.valueOf(color);
-                        sizeAndColorDto.getShoeSizes().forEach(shoeSize -> {
-                            ProductSizeAndColorQuantity sizeAndColorQuantity = productSizeAndColorQuantityRepository.findByProductIdAndShoeSizeAndColor(productId, ShoeSizeType.valueOf(shoeSize), colorEnum)
-                                    .orElseGet(() -> ProductSizeAndColorQuantity.builder()
-                                            .sizeType(sizeType)
-                                            .shoeSize(ShoeSizeType.valueOf(shoeSize))
-                                            .color(colorEnum)
-                                            .build());
-                            sizeAndColorQuantity.updateQuantity(sizeAndColorDto.getQuantity());
-                            sizeAndColorQuantity.assignProduct(product);
-                            // product.addSizeAndColorQuantity(sizeAndColorQuantity); // Removed as size and color quantities are managed separately from Product
-                        });
-                    });
-                }
-            });
-        }
-
-        return product;
+        return new ProductIdResponseDto(product.getId());
     }
 
-    // 상품 삭제
-    public void deleteProduct(ProductDeleteRequestDto productDeleteRequestDto) {
+    /**
+     * 상품 삭제 메서드
+     *
+     * @param productDeleteRequestDto 삭제할 상품의 ID를 담은 DTO
+     */
+    public String deleteProduct(ProductDeleteRequestDto productDeleteRequestDto) {
         Long productId = productDeleteRequestDto.getId();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+
+        // 이미지 파일 삭제
+        List<ProductImage> images = productImageRepository.findAllByProductId(productId);
+        images.forEach(image -> {
+            try {
+                fileStorageUtil.deleteFile(image.getImageUrl());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to delete image file", e);
+            }
+        });
+
         productRepository.delete(product);
+        return "Product deleted successfully.";
     }
 
-    // 필터링 조회 (QueryDSL)
-    public List<ProductQueryDslResponseDto> searchProducts(ProductQueryDslRequestDto queryDslRequestDto) {
+    /**
+     * 단일 상품 조회 메서드
+     *
+     * @param productId 조회할 상품 ID
+     * @return 단일 상품의 상세 정보를 담은 DTO
+     */
+    public ProductResponseDto getProductById(Long productId) {
+        Product product = productRepository.findByIdWithDetails(productId);
+
+        if (product == null) {
+            throw new EntityNotFoundException("Product not found");
+        }
+
+        // 이미지 리스트 생성
+        List<ProductImageDto> images = productImageRepository.findAllByProductId(productId).stream()
+                .map(image -> ProductImageDto.builder()
+                        .id(image.getId())
+                        .imageUrl(image.getImageUrl())
+                        .imageType(image.getImageType())
+                        .isMainThumbnail(image.isMainThumbnail())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 사이즈와 색상 그룹화
+        Set<ProductSizeAndColorQuantityDto> sizeAndColorQuantities = product.getSizeAndColorQuantities().stream()
+                .collect(Collectors.groupingBy(
+                        quantity -> quantity.getSizeType().name(), // 그룹 기준: 사이즈 타입
+                        Collectors.toSet()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> ProductSizeAndColorQuantityDto.builder()
+                        .id(null) // 그룹화된 데이터는 단일 ID가 없으므로 null
+                        .sizeType(entry.getKey())
+                        .clothingSizes(entry.getValue().stream()
+                                .filter(quantity -> quantity.getClothingSize() != null)
+                                .map(quantity -> quantity.getClothingSize().name())
+                                .collect(Collectors.toSet()))
+                        .shoeSizes(entry.getValue().stream()
+                                .filter(quantity -> quantity.getShoeSize() != null)
+                                .map(quantity -> quantity.getShoeSize().name())
+                                .collect(Collectors.toSet()))
+                        .colors(entry.getValue().stream()
+                                .map(quantity -> quantity.getColor().name())
+                                .collect(Collectors.toSet()))
+                        .quantity(entry.getValue().stream()
+                                .mapToInt(ProductSizeAndColorQuantity::getQuantity)
+                                .sum()) // 수량 합계
+                        .build())
+                .collect(Collectors.toSet());
+
+        // DTO 생성 및 반환
+        return ProductResponseDto.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .brand(product.getBrand())
+                .sku(product.getSku())
+                .mainCategory(new MainCategoryDto(product.getMainCategory()))
+                .subCategory(new SubCategoryDto(product.getSubCategory()))
+                .initialPrice(product.getInitialPrice())
+                .description(product.getDescription())
+                .images(images) // 이미지를 DTO에 추가
+                .sizeAndColorQuantities(sizeAndColorQuantities)
+                .build();
+    }
+
+    /**
+     * 필터링된 상품 조회
+     *
+     * @param queryDslRequestDto 필터링 조건을 담은 DTO
+     * @param pageable           페이징 정보
+     * @return 필터링 및 페이징된 상품 리스트
+     */
+    public Page<ProductQueryDslResponseDto> searchFilteredProducts(ProductQueryDslRequestDto queryDslRequestDto, Pageable pageable) {
         return productQueryRepository.findProductsByFilter(
                 queryDslRequestDto.getMainCategoryId(),
                 queryDslRequestDto.getSubCategoryId(),
                 queryDslRequestDto.getColor(),
-                queryDslRequestDto.getSize());
-    }
-    // 파일 시스템에서 이미지 파일을 삭제하는 메서드
-    private void deleteImageFile(String imageUrl) {
-        Path imagePath = Paths.get("images/" + imageUrl);
-        try {
-            Files.deleteIfExists(imagePath);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete image file", e);
-        }
+                queryDslRequestDto.getSize(),
+                queryDslRequestDto.getBrand(),
+                queryDslRequestDto.getSortBy(),
+                pageable
+        );
     }
 }
-
