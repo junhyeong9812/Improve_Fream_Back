@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class ProductService {
@@ -96,6 +97,36 @@ public class ProductService {
 
         productRepository.save(product);
 
+        // **색상과 사이즈 데이터 저장**
+        for (ProductSizeAndColorQuantityDto quantityDto : productDto.getSizeAndColorQuantities()) {
+            for (String color : quantityDto.getColors()) {
+                // 의류 사이즈 저장
+                for (String clothingSize : quantityDto.getClothingSizes()) {
+                    ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+                            .product(product)
+                            .sizeType(SizeType.CLOTHING)
+                            .clothingSize(ClothingSizeType.valueOf(clothingSize))
+                            .color(Color.valueOf(color))
+                            .quantity(quantityDto.getQuantity())
+                            .build();
+                    product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                }
+
+                // 신발 사이즈 저장
+                for (String shoeSize : quantityDto.getShoeSizes()) {
+                    ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+                            .product(product)
+                            .sizeType(SizeType.SHOES)
+                            .shoeSize(ShoeSizeType.valueOf(shoeSize))
+                            .color(Color.valueOf(color))
+                            .quantity(quantityDto.getQuantity())
+                            .build();
+                    product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                }
+            }
+        }
+
+
         // 임시 파일을 최종 경로로 이동하여 저장
         tempFilePaths.forEach(tempFilePath -> {
             try {
@@ -142,6 +173,49 @@ public class ProductService {
                 productDto.getDescription(),
                 productDto.getReleaseDate()
         );
+
+        // **기존 사이즈 및 색상 조합 처리**
+        Set<ProductSizeAndColorQuantity> existingQuantities = product.getSizeAndColorQuantities();
+
+        // 요청된 새로운 데이터로 변환
+        Set<ProductSizeAndColorQuantity> newQuantities = productDto.getSizeAndColorQuantities().stream()
+                .flatMap(quantityDto -> {
+                    // 의류 사이즈 처리
+                    if (quantityDto.getClothingSizes() != null && !quantityDto.getClothingSizes().isEmpty()) {
+                        return quantityDto.getColors().stream().flatMap(color ->
+                                quantityDto.getClothingSizes().stream().map(clothingSize -> ProductSizeAndColorQuantity.builder()
+                                        .product(product)
+                                        .sizeType(SizeType.CLOTHING)
+                                        .clothingSize(ClothingSizeType.valueOf(clothingSize))
+                                        .color(Color.valueOf(color))
+                                        .quantity(quantityDto.getQuantity())
+                                        .build()));
+                    }
+                    // 신발 사이즈 처리
+                    else if (quantityDto.getShoeSizes() != null && !quantityDto.getShoeSizes().isEmpty()) {
+                        return quantityDto.getColors().stream().flatMap(color ->
+                                quantityDto.getShoeSizes().stream().map(shoeSize -> ProductSizeAndColorQuantity.builder()
+                                        .product(product)
+                                        .sizeType(SizeType.SHOES)
+                                        .shoeSize(ShoeSizeType.valueOf(shoeSize))
+                                        .color(Color.valueOf(color))
+                                        .quantity(quantityDto.getQuantity())
+                                        .build()));
+                    }
+                    // 유효하지 않은 데이터는 제외
+                    return Stream.empty();
+                })
+                .collect(Collectors.toSet());
+
+        // 삭제: 기존 데이터 중 요청에 없는 데이터 삭제
+        existingQuantities.stream()
+                .filter(existing -> !newQuantities.contains(existing))
+                .forEach(productSizeAndColorQuantityRepository::delete);
+
+        // 추가: 새로운 데이터 중 기존에 없는 데이터 추가
+        newQuantities.stream()
+                .filter(newQuantity -> !existingQuantities.contains(newQuantity))
+                .forEach(product::addSizeAndColorQuantity);
 
         // 기존 이미지 처리
         Set<String> updatedImageUrls = productDto.getImages().stream()

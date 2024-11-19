@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
-//	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10' // QueryDSL 플러그인 추가
+	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10' // QueryDSL 플러그인 추가
 
 }
 
@@ -40,8 +40,8 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	//Querydsl 추가
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
-//	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+//	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	// Spring Security
@@ -57,18 +57,46 @@ dependencies {
 //test
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
-
 tasks.named('test') {
 	useJUnitPlatform()
 }
 
-clean {
-	delete file('src/main/generated')
-}
 tasks.withType(Test) {
 	// 테스트를 실행하지 않도록 설정
 	enabled = false
 }
-sourceSets {
-	main.java.srcDir file("build/generated/sources/annotationProcessor/java/main")
+//querydsl 추가 시작
+
+def querydslDir = "$buildDir/generated/querydsl"
+querydsl {
+	jpa = true
+	querydslSourcesDir = querydslDir
 }
+sourceSets {
+	main.java.srcDir querydslDir
+}
+configurations {
+	querydsl.extendsFrom compileClasspath
+}
+compileQuerydsl {
+	options.annotationProcessorPath = configurations.querydsl
+}
+//querydsl 추가 끝
+
+
+
+
+//// `JavaCompile` 태스크에서 `annotationProcessorPath`와 `generatedSourceOutputDirectory`를 설정
+//tasks.withType(JavaCompile) {
+//	options.annotationProcessorPath = configurations.annotationProcessor
+//	options.generatedSourceOutputDirectory = file("build/generated/sources/annotationProcessor/java/main")
+//}
+//// 올바르게 `sourceSets` 설정을 위치시켜야 합니다.
+//sourceSets {
+//	main.java.srcDirs += file("build/generated/sources/annotationProcessor/java/main")
+//}
+//
+//clean {
+//	delete file('build/generated') // QueryDSL 소스 디렉토리 삭제
+//}
+//

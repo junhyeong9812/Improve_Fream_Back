@@ -76,8 +76,10 @@ public class ProductQueryRepository {
                             product.id,
                             product.name,
                             product.brand,
-                            product.mainCategory.name,
-                            product.subCategory.name,
+                            product.mainCategory.id, // mainCategoryId 추가
+                            product.mainCategory.name, // mainCategoryName
+                            product.subCategory.id, // subCategoryId 추가
+                            product.subCategory.name, // subCategoryName
                             null, // colors는 나중에 설정
                             null, // sizes는 나중에 설정
                             sizeAndColorQuantity.quantity.sum()))
