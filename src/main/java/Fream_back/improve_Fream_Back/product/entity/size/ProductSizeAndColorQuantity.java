@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -48,5 +50,23 @@ public class ProductSizeAndColorQuantity extends BaseEntity {
     // 수량 업데이트 메서드
     public void updateQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    // equals and hashCode 정의
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductSizeAndColorQuantity that = (ProductSizeAndColorQuantity) o;
+        return sizeType == that.sizeType &&
+                Objects.equals(clothingSize, that.clothingSize) &&
+                Objects.equals(shoeSize, that.shoeSize) &&
+                Objects.equals(color, that.color) &&
+                Objects.equals(product, that.product);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sizeType, clothingSize, shoeSize, color, product);
     }
 }

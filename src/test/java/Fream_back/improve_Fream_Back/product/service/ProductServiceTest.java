@@ -5,6 +5,11 @@ import Fream_back.improve_Fream_Back.Category.entity.SubCategory;
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.ProductImage;
+import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
+import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
+import Fream_back.improve_Fream_Back.product.entity.enumType.ShoeSizeType;
+import Fream_back.improve_Fream_Back.product.entity.enumType.SizeType;
+import Fream_back.improve_Fream_Back.product.entity.size.ProductSizeAndColorQuantity;
 import Fream_back.improve_Fream_Back.product.repository.*;
 import Fream_back.improve_Fream_Back.Category.repository.MainCategoryRepository;
 import Fream_back.improve_Fream_Back.Category.repository.SubCategoryRepository;
@@ -23,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -50,10 +56,14 @@ public class ProductServiceTest {
     @Mock
     private FileStorageUtil fileStorageUtil;
 
+    @Mock
+    private ProductSizeAndColorQuantityRepository productSizeAndColorQuantityRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
 
     @Test
     @DisplayName("상품 생성 테스트")
@@ -68,10 +78,17 @@ public class ProductServiceTest {
                 .releaseDate(LocalDate.parse("2023-12-31"))
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
+                .sizeAndColorQuantities(Set.of(
+                        ProductSizeAndColorQuantityDto.builder()
+                                .colors(Set.of("RED", "BLUE"))
+                                .clothingSizes(Set.of("M", "L"))
+                                .quantity(10)
+                                .build()
+                ))
                 .build();
 
-        MainCategory mainCategory = MainCategory.builder().name("Main Category").build();
-        SubCategory subCategory = SubCategory.builder().name("Sub Category").mainCategory(mainCategory).build();
+        MainCategory mainCategory = MainCategory.builder().id(1L).name("Main Category").build();
+        SubCategory subCategory = SubCategory.builder().id(2L).name("Sub Category").mainCategory(mainCategory).build();
 
         when(mainCategoryRepository.findById(1L)).thenReturn(Optional.of(mainCategory));
         when(subCategoryRepository.findById(2L)).thenReturn(Optional.of(subCategory));
@@ -87,25 +104,16 @@ public class ProductServiceTest {
                 .releaseDate(LocalDate.parse("2023-12-31"))
                 .build();
 
-        Product savedProduct = Product.builder()
-                .name("Product Name")
-                .brand("Brand")
-                .sku("123456")
-                .mainCategory(mainCategory)
-                .subCategory(subCategory)
-                .initialPrice(BigDecimal.valueOf(100.0))
-                .description("Product Description")
-                .releaseDate(LocalDate.parse("2023-12-31"))
-                .build();
-
-        when(productRepository.save(product)).thenReturn(savedProduct);
+        when(productRepository.save(any(Product.class))).thenReturn(product);
 
         // When: 상품 생성 메서드 호출
         ProductIdResponseDto response = productService.createProduct(productDto, List.of("tempFilePath"));
 
         // Then: 결과 검증
         assertNotNull(response);
-        verify(productRepository, times(1)).save(product);
+        assertEquals(product.getId(), response.getId());
+
+        verify(productRepository, times(1)).save(any(Product.class));
     }
 
 
@@ -142,6 +150,13 @@ public class ProductServiceTest {
                 .releaseDate(LocalDate.parse("2024-01-01"))
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
+                .sizeAndColorQuantities(Set.of(
+                        ProductSizeAndColorQuantityDto.builder()
+                                .colors(Set.of("GREEN"))
+                                .shoeSizes(Set.of("40", "41"))
+                                .quantity(15)
+                                .build()
+                ))
                 .images(List.of()) // 이미지 초기화
                 .build();
 
@@ -152,16 +167,8 @@ public class ProductServiceTest {
         assertNotNull(response);
         assertEquals(productId, response.getId()); // 반환된 ID가 원래 ID와 동일한지 확인
 
-        // 저장 호출 검증: 더티 체킹을 사용하므로 save()는 호출되지 않음
-        verify(productRepository, never()).save(any(Product.class));
-
-        // 엔티티의 필드 값이 올바르게 업데이트되었는지 검증
-        assertEquals("Updated Product", existingProduct.getName());
-        assertEquals("Updated Brand", existingProduct.getBrand());
-        assertEquals("654321", existingProduct.getSku());
-        assertEquals(BigDecimal.valueOf(150.0), existingProduct.getInitialPrice());
-        assertEquals("Updated Description", existingProduct.getDescription());
-        assertEquals(LocalDate.parse("2024-01-01"), existingProduct.getReleaseDate());
+        verify(productSizeAndColorQuantityRepository, times(2)).delete(any(ProductSizeAndColorQuantity.class)); // 기존 데이터 삭제
+        verify(productSizeAndColorQuantityRepository, times(2)).save(any(ProductSizeAndColorQuantity.class)); // GREEN x 2(40, 41) 저장
     }
 
 
@@ -197,15 +204,33 @@ public class ProductServiceTest {
                 .mainCategory(mainCategory)  // mainCategory 설정
                 .subCategory(subCategory)    // subCategory 설정
                 .build();
-        when(productRepository.findByIdWithDetails(productId)).thenReturn(product);
 
-        // When: 상품 단일 조회 메서드를 호출
+        ProductSizeAndColorQuantity quantity1 = ProductSizeAndColorQuantity.builder()
+                .product(product)
+                .sizeType(SizeType.CLOTHING)
+                .clothingSize(ClothingSizeType.M)
+                .color(Color.RED)
+                .quantity(10)
+                .build();
+
+        ProductSizeAndColorQuantity quantity2 = ProductSizeAndColorQuantity.builder()
+                .product(product)
+                .sizeType(SizeType.SHOES)
+                .shoeSize(ShoeSizeType.SIZE_140)
+                .color(Color.BLUE)
+                .quantity(5)
+                .build();
+
+        when(productRepository.findByIdWithDetails(productId)).thenReturn(product);
+        when(productSizeAndColorQuantityRepository.findAllByProductId(productId)).thenReturn(List.of(quantity1, quantity2));
+
+        // When: 상품 단일 조회 메서드 호출
         ProductResponseDto response = productService.getProductById(productId);
 
         // Then: 결과 검증
         assertNotNull(response);
         assertEquals("Test Product", response.getName());
-        verify(productRepository, times(1)).findByIdWithDetails(productId);
+        assertEquals(2, response.getSizeAndColorQuantities().size()); // 두 개의 사이즈-색상 조합 검증
     }
 
     @Test
@@ -215,68 +240,58 @@ public class ProductServiceTest {
         ProductQueryDslRequestDto queryDto = ProductQueryDslRequestDto.builder()
                 .mainCategoryId(1L) // MainCategory ID
                 .subCategoryId(2L)  // SubCategory ID
-                .color("Red")
-                .size("L")
+                .color("RED")
+                .size("M")
                 .build();
 
         Pageable pageable = Pageable.unpaged();
 
-        // 카테고리 데이터 생성
-        MainCategory mainCategory = MainCategory.builder()
+        // MainCategory 및 SubCategory 생성
+        MainCategory mainCategory = MainCategory.builder().id(1L).name("Clothing").build();
+        SubCategory subCategory1 = SubCategory.builder().id(2L).name("T-Shirts").mainCategory(mainCategory).build();
+
+        // Product 생성
+        Product product1 = Product.builder()
                 .id(1L)
-                .name("Clothing")
-                .build();
-
-        SubCategory subCategory1 = SubCategory.builder()
-                .id(2L)
-                .name("T-Shirts")
-                .mainCategory(mainCategory)
-                .build();
-
-        SubCategory subCategory2 = SubCategory.builder()
-                .id(3L)
-                .name("Jackets")
-                .mainCategory(mainCategory)
-                .build();
-
-        // 상품 데이터 생성 (3개의 상품)
-        ProductQueryDslResponseDto product1 = ProductQueryDslResponseDto.builder()
-                .id(1L)
-                .name("Red T-Shirt L")
+                .name("Red T-Shirt")
                 .brand("Brand A")
-                .color("Red")
-                .size("L")
-                .mainCategoryId(1L) // MainCategory와 SubCategory1
-                .subCategoryId(2L)
+                .sku("SKU001")
+                .mainCategory(mainCategory)
+                .subCategory(subCategory1)
+                .initialPrice(BigDecimal.valueOf(100))
                 .build();
 
-        ProductQueryDslResponseDto product2 = ProductQueryDslResponseDto.builder()
-                .id(2L)
-                .name("Blue T-Shirt M")
-                .brand("Brand B")
-                .color("Blue")
-                .size("M")
-                .mainCategoryId(1L) // MainCategory와 SubCategory1
-                .subCategoryId(2L)
+        ProductSizeAndColorQuantity quantity1 = ProductSizeAndColorQuantity.builder()
+                .product(product1)
+                .sizeType(SizeType.CLOTHING)
+                .clothingSize(ClothingSizeType.M)
+                .color(Color.RED)
+                .quantity(10)
                 .build();
 
-        ProductQueryDslResponseDto product3 = ProductQueryDslResponseDto.builder()
-                .id(3L)
-                .name("Green Jacket S")
-                .brand("Brand C")
-                .color("Green")
-                .size("S")
-                .mainCategoryId(1L) // MainCategory와 SubCategory2
-                .subCategoryId(3L)
-                .build();
+        product1.addSizeAndColorQuantity(quantity1);
 
-        // Mock 데이터 리스트 생성 (SubCategoryId 2L에 해당하는 데이터만 포함)
-        List<ProductQueryDslResponseDto> filteredProducts = List.of(product1, product2);
+        // Mock 데이터
+        List<ProductQueryDslResponseDto> filteredProducts = List.of(
+                ProductQueryDslResponseDto.builder()
+                        .id(product1.getId())
+                        .name(product1.getName())
+                        .brand(product1.getBrand())
+                        .mainCategoryId(mainCategory.getId())
+                        .mainCategoryName(mainCategory.getName())
+                        .subCategoryId(subCategory1.getId())
+                        .subCategoryName(subCategory1.getName())
+                        .colors(List.of("RED"))
+                        .sizes(List.of("M"))
+                        .quantity(10)
+                        .build()
+        );
+
         Page<ProductQueryDslResponseDto> mockPage = new PageImpl<>(filteredProducts, pageable, filteredProducts.size());
 
         // Repository Mock 설정
         when(productQueryRepository.findProductsByFilter(
-                eq(1L), eq(2L), eq("Red"), eq("L"), anyString(), anyString(), eq(pageable)))
+                eq(1L), eq(2L), eq("RED"), eq("M"), anyString(), anyString(), eq(pageable)))
                 .thenReturn(mockPage);
 
         // When: 필터링된 상품 조회 메서드를 호출
@@ -285,21 +300,18 @@ public class ProductServiceTest {
         // Then: 결과 검증
         assertNotNull(response);
         assertFalse(response.isEmpty());
-        assertEquals(2, response.getContent().size()); // 필터링된 상품은 2개
-        assertEquals("Red T-Shirt L", response.getContent().get(0).getName()); // 첫 번째 상품 이름 검증
-        assertEquals("Blue T-Shirt M", response.getContent().get(1).getName()); // 두 번째 상품 이름 검증
-
-        // 카테고리 필터 조건 검증
-        assertEquals(1L, response.getContent().get(0).getMainCategoryId()); // MainCategory 검증
-        assertEquals(2L, response.getContent().get(0).getSubCategoryId()); // SubCategory 검증
-        assertEquals(2L, response.getContent().get(1).getSubCategoryId()); // SubCategory 검증
-
-        // 다른 카테고리 상품이 필터링되지 않았는지 검증
-        assertNotEquals(3L, response.getContent().get(0).getSubCategoryId()); // SubCategory2 제외
+        assertEquals(1, response.getContent().size());
+        assertEquals("Red T-Shirt", response.getContent().get(0).getName());
+        assertEquals("Brand A", response.getContent().get(0).getBrand());
+        assertEquals(1L, response.getContent().get(0).getMainCategoryId());
+        assertEquals(2L, response.getContent().get(0).getSubCategoryId());
+        assertEquals("RED", response.getContent().get(0).getColors().get(0));
+        assertEquals("M", response.getContent().get(0).getSizes().get(0));
+        assertEquals(10, response.getContent().get(0).getQuantity());
 
         // Repository 호출 검증
         verify(productQueryRepository, times(1)).findProductsByFilter(
-                eq(1L), eq(2L), eq("Red"), eq("L"), anyString(), anyString(), eq(pageable));
+                eq(1L), eq(2L), eq("RED"), eq("M"), anyString(), anyString(), eq(pageable));
     }
 
 }

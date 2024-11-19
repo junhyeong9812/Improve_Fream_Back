@@ -100,32 +100,35 @@ public class ProductService {
         // **색상과 사이즈 데이터 저장**
         for (ProductSizeAndColorQuantityDto quantityDto : productDto.getSizeAndColorQuantities()) {
             for (String color : quantityDto.getColors()) {
-                // 의류 사이즈 저장
-                for (String clothingSize : quantityDto.getClothingSizes()) {
-                    ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
-                            .product(product)
-                            .sizeType(SizeType.CLOTHING)
-                            .clothingSize(ClothingSizeType.valueOf(clothingSize))
-                            .color(Color.valueOf(color))
-                            .quantity(quantityDto.getQuantity())
-                            .build();
-                    product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                // **의류 사이즈 처리**
+                if (quantityDto.getClothingSizes() != null && !quantityDto.getClothingSizes().isEmpty()) {
+                    for (String clothingSize : quantityDto.getClothingSizes()) {
+                        ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+                                .product(product)
+                                .sizeType(SizeType.CLOTHING)
+                                .clothingSize(ClothingSizeType.valueOf(clothingSize))
+                                .color(Color.valueOf(color))
+                                .quantity(quantityDto.getQuantity())
+                                .build();
+                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                    }
                 }
 
-                // 신발 사이즈 저장
-                for (String shoeSize : quantityDto.getShoeSizes()) {
-                    ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
-                            .product(product)
-                            .sizeType(SizeType.SHOES)
-                            .shoeSize(ShoeSizeType.valueOf(shoeSize))
-                            .color(Color.valueOf(color))
-                            .quantity(quantityDto.getQuantity())
-                            .build();
-                    product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                // **신발 사이즈 처리**
+                if (quantityDto.getShoeSizes() != null && !quantityDto.getShoeSizes().isEmpty()) {
+                    for (String shoeSize : quantityDto.getShoeSizes()) {
+                        ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+                                .product(product)
+                                .sizeType(SizeType.SHOES)
+                                .shoeSize(ShoeSizeType.valueOf(shoeSize))
+                                .color(Color.valueOf(color))
+                                .quantity(quantityDto.getQuantity())
+                                .build();
+                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+                    }
                 }
             }
         }
-
 
         // 임시 파일을 최종 경로로 이동하여 저장
         tempFilePaths.forEach(tempFilePath -> {
