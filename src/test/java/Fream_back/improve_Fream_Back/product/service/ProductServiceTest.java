@@ -189,11 +189,20 @@ public class ProductServiceTest {
         assertNotNull(response);
         assertEquals(productId, response.getId()); // 반환된 ID가 원래 ID와 동일한지 확인
 
-        // 기존 데이터 삭제 검증 (기존 사이즈와 색상 데이터 삭제)
-//        verify(productSizeAndColorQuantityRepository, times(2)).delete(any(ProductSizeAndColorQuantity.class));
+        // 업데이트 후 사이즈 및 색상 데이터 검증
+        Set<ProductSizeAndColorQuantity> updatedQuantities = existingProduct.getSizeAndColorQuantities();
+        assertEquals(4, updatedQuantities.size()); // 새 데이터 2개 추가 확인
 
-        // 새 데이터 저장 검증 (새로운 사이즈와 색상 데이터 저장)
-//        verify(productSizeAndColorQuantityRepository, times(2)).save(any(ProductSizeAndColorQuantity.class)); // GREEN x 2(280, 290) 저장
+        // 예상 데이터 확인
+        assertTrue(updatedQuantities.stream().anyMatch(quantity ->
+                quantity.getShoeSize() == ShoeSizeType.SIZE_280 &&
+                        quantity.getColor() == Color.GREEN &&
+                        quantity.getQuantity() == 15));
+
+        assertTrue(updatedQuantities.stream().anyMatch(quantity ->
+                quantity.getShoeSize() == ShoeSizeType.SIZE_290 &&
+                        quantity.getColor() == Color.GREEN &&
+                        quantity.getQuantity() == 15));
     }
 
 
@@ -217,18 +226,25 @@ public class ProductServiceTest {
     @Test
     @DisplayName("상품 단일 조회 테스트")
     void getProductByIdTest() {
-        // Given: 조회할 상품 데이터 준비
+        // Given: 생성된 상품 데이터 준비
         Long productId = 1L;
         MainCategory mainCategory = MainCategory.builder().id(1L).name("Main Category").build();
         SubCategory subCategory = SubCategory.builder().id(2L).name("Sub Category").mainCategory(mainCategory).build();
 
+        // 상품 생성
         Product product = Product.builder()
                 .id(productId)
                 .name("Test Product")
-                .mainCategory(mainCategory)  // mainCategory 설정
-                .subCategory(subCategory)    // subCategory 설정
+                .brand("Brand A")
+                .sku("SKU001")
+                .mainCategory(mainCategory)
+                .subCategory(subCategory)
+                .initialPrice(BigDecimal.valueOf(100))
+                .description("Description")
+                .releaseDate(LocalDate.parse("2023-12-31"))
                 .build();
 
+        // 사이즈와 색상 데이터 추가
         ProductSizeAndColorQuantity quantity1 = ProductSizeAndColorQuantity.builder()
                 .product(product)
                 .sizeType(SizeType.CLOTHING)
@@ -245,66 +261,83 @@ public class ProductServiceTest {
                 .quantity(5)
                 .build();
 
-        when(productRepository.findByIdWithDetails(productId)).thenReturn(product);
-        when(productSizeAndColorQuantityRepository.findAllByProductId(productId)).thenReturn(List.of(quantity1, quantity2));
+        product.addSizeAndColorQuantity(quantity1);
+        product.addSizeAndColorQuantity(quantity2);
 
-        // When: 상품 단일 조회 메서드 호출
+        // Mock 설정
+        when(productRepository.findByIdWithDetails(productId)).thenReturn(product);
+
+        // When: 단일 조회 호출
         ProductResponseDto response = productService.getProductById(productId);
 
         // Then: 결과 검증
         assertNotNull(response);
         assertEquals("Test Product", response.getName());
-        assertEquals(2, response.getSizeAndColorQuantities().size()); // 두 개의 사이즈-색상 조합 검증
+        assertEquals(2, response.getSizeAndColorQuantities().size());
+
+        // 사이즈 및 색상 데이터 확인
+        assertTrue(response.getSizeAndColorQuantities().stream().anyMatch(quantity ->
+                quantity.getClothingSizes().contains("M") &&
+                        quantity.getColors().contains("RED") &&
+                        quantity.getQuantity() == 10));
+
+        assertTrue(response.getSizeAndColorQuantities().stream().anyMatch(quantity ->
+                quantity.getShoeSizes().contains("SIZE_140") &&
+                        quantity.getColors().contains("BLUE") &&
+                        quantity.getQuantity() == 5));
     }
 
     @Test
     @DisplayName("서브 카테고리를 포함한 필터링된 상품 조회 테스트")
     void searchFilteredProductsTest() {
-        // Given: 필터링 조건과 페이지 정보 설정
+        // Given: 생성된 상품 데이터와 필터 조건 준비
         ProductQueryDslRequestDto queryDto = ProductQueryDslRequestDto.builder()
-                .mainCategoryId(1L) // MainCategory ID
-                .subCategoryId(2L)  // SubCategory ID
+                .mainCategoryId(1L)
+                .subCategoryId(2L)
                 .color("RED")
                 .size("M")
                 .build();
 
         Pageable pageable = Pageable.unpaged();
 
-        // MainCategory 및 SubCategory 생성
+        // 카테고리 생성
         MainCategory mainCategory = MainCategory.builder().id(1L).name("Clothing").build();
-        SubCategory subCategory1 = SubCategory.builder().id(2L).name("T-Shirts").mainCategory(mainCategory).build();
+        SubCategory subCategory = SubCategory.builder().id(2L).name("T-Shirts").mainCategory(mainCategory).build();
 
-        // Product 생성
-        Product product1 = Product.builder()
+        // 상품 생성
+        Product product = Product.builder()
                 .id(1L)
                 .name("Red T-Shirt")
                 .brand("Brand A")
                 .sku("SKU001")
                 .mainCategory(mainCategory)
-                .subCategory(subCategory1)
+                .subCategory(subCategory)
                 .initialPrice(BigDecimal.valueOf(100))
+                .description("Description")
+                .releaseDate(LocalDate.parse("2023-12-31"))
                 .build();
 
-        ProductSizeAndColorQuantity quantity1 = ProductSizeAndColorQuantity.builder()
-                .product(product1)
+        // 사이즈와 색상 데이터 추가
+        ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+                .product(product)
                 .sizeType(SizeType.CLOTHING)
                 .clothingSize(ClothingSizeType.M)
                 .color(Color.RED)
                 .quantity(10)
                 .build();
 
-        product1.addSizeAndColorQuantity(quantity1);
+        product.addSizeAndColorQuantity(quantity);
 
         // Mock 데이터
         List<ProductQueryDslResponseDto> filteredProducts = List.of(
                 ProductQueryDslResponseDto.builder()
-                        .id(product1.getId())
-                        .name(product1.getName())
-                        .brand(product1.getBrand())
+                        .id(product.getId())
+                        .name(product.getName())
+                        .brand(product.getBrand())
                         .mainCategoryId(mainCategory.getId())
                         .mainCategoryName(mainCategory.getName())
-                        .subCategoryId(subCategory1.getId())
-                        .subCategoryName(subCategory1.getName())
+                        .subCategoryId(subCategory.getId())
+                        .subCategoryName(subCategory.getName())
                         .colors(List.of("RED"))
                         .sizes(List.of("M"))
                         .quantity(10)
@@ -313,29 +346,31 @@ public class ProductServiceTest {
 
         Page<ProductQueryDslResponseDto> mockPage = new PageImpl<>(filteredProducts, pageable, filteredProducts.size());
 
-        // Repository Mock 설정
+        // Mock 설정
         when(productQueryRepository.findProductsByFilter(
-                eq(1L), eq(2L), eq("RED"), eq("M"), anyString(), anyString(), eq(pageable)))
-                .thenReturn(mockPage);
+                eq(1L), eq(2L), eq("RED"), eq("M"), isNull(), isNull(), eq(pageable))
+        ).thenReturn(mockPage);
 
-        // When: 필터링된 상품 조회 메서드를 호출
+        // When: 필터링된 상품 조회 호출
         Page<ProductQueryDslResponseDto> response = productService.searchFilteredProducts(queryDto, pageable);
 
         // Then: 결과 검증
         assertNotNull(response);
         assertFalse(response.isEmpty());
         assertEquals(1, response.getContent().size());
-        assertEquals("Red T-Shirt", response.getContent().get(0).getName());
-        assertEquals("Brand A", response.getContent().get(0).getBrand());
-        assertEquals(1L, response.getContent().get(0).getMainCategoryId());
-        assertEquals(2L, response.getContent().get(0).getSubCategoryId());
-        assertEquals("RED", response.getContent().get(0).getColors().get(0));
-        assertEquals("M", response.getContent().get(0).getSizes().get(0));
-        assertEquals(10, response.getContent().get(0).getQuantity());
 
-        // Repository 호출 검증
         verify(productQueryRepository, times(1)).findProductsByFilter(
-                eq(1L), eq(2L), eq("RED"), eq("M"), anyString(), anyString(), eq(pageable));
+                eq(1L), eq(2L), eq("RED"), eq("M"), isNull(), isNull(), eq(pageable));
+
+        // 필터링된 데이터 확인
+        ProductQueryDslResponseDto result = response.getContent().get(0);
+        assertEquals("Red T-Shirt", result.getName());
+        assertEquals("Brand A", result.getBrand());
+        assertEquals(1L, result.getMainCategoryId());
+        assertEquals(2L, result.getSubCategoryId());
+        assertEquals("RED", result.getColors().get(0));
+        assertEquals("M", result.getSizes().get(0));
+        assertEquals(10, result.getQuantity());
     }
 
 }
