@@ -34,16 +34,20 @@ public class ProductController {
      * 상품 생성 엔드포인트
      *
      * @param productDto 생성할 상품의 상세 정보 DTO
-     * @param tempFilePaths 임시 저장된 이미지 파일 경로 목록
      * @return 생성된 상품의 ID를 담은 DTO
      */
     @PostMapping
-    public ResponseEntity<ProductIdResponseDto> createProduct(
-            @RequestBody ProductCreateRequestDto productDto,
-            @RequestParam List<String> tempFilePaths) {
-        ProductIdResponseDto createdProduct = productService.createProduct(productDto, tempFilePaths);
+    public ResponseEntity<ProductIdResponseDto> createProduct(@RequestBody ProductCreateRequestDto productDto) {
+        ProductIdResponseDto createdProduct = productService.createProduct(productDto);
         return ResponseEntity.ok(createdProduct);
     }
+//    @PostMapping
+//    public ResponseEntity<ProductIdResponseDto> createProduct(
+//            @RequestBody ProductCreateRequestDto productDto,
+//            @RequestParam("tempFilePaths") List<String> tempFilePaths) {
+//        ProductIdResponseDto createdProduct = productService.createProduct(productDto, tempFilePaths);
+//        return ResponseEntity.ok(createdProduct);
+//    }
 
     /**
      * 상품 수정 엔드포인트

@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProductImageDto {
     private Long id;
+    private String imageName;
+    private String temp_Url;
     private String imageUrl;
     private String imageType;
     private boolean isMainThumbnail;

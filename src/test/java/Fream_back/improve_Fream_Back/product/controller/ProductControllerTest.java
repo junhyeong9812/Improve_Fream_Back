@@ -106,10 +106,9 @@ public class ProductControllerTest {
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDto))
-                        .param("tempFilePaths", tempFilePaths))
+                        .param("tempFilePaths", "temp/path/1", "temp/path/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
-
         verify(productService, times(1)).createProduct(any(ProductCreateRequestDto.class), anyList());
     }
 

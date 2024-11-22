@@ -75,15 +75,17 @@ public class ProductService {
      * 상품 생성 메서드
      *
      * @param productDto    생성할 상품의 상세 정보 DTO
-     * @param tempFilePaths 임시 저장된 이미지 파일 경로 목록
+//     * @param tempFilePaths 임시 저장된 이미지 파일 경로 목록
      * @return 생성된 상품의 ID를 담은 DTO
      */
-    public ProductIdResponseDto createProduct(ProductCreateRequestDto productDto, List<String> tempFilePaths) {
+    public ProductIdResponseDto createProduct(ProductCreateRequestDto productDto) {
+        // MainCategory 및 SubCategory 조회
         MainCategory mainCategory = mainCategoryRepository.findById(productDto.getMainCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("MainCategory not found"));
         SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("SubCategory not found"));
 
+        // 상품 생성
         Product product = Product.builder()
                 .name(productDto.getName())
                 .brand(productDto.getBrand())
@@ -94,50 +96,49 @@ public class ProductService {
                 .description(productDto.getDescription())
                 .releaseDate(productDto.getReleaseDate())
                 .build();
-
         productRepository.save(product);
 
-        // **색상과 사이즈 데이터 저장**
-        for (ProductSizeAndColorQuantityDto quantityDto : productDto.getSizeAndColorQuantities()) {
-            for (String color : quantityDto.getColors()) {
-                // **의류 사이즈 처리**
-                if (quantityDto.getClothingSizes() != null && !quantityDto.getClothingSizes().isEmpty()) {
-                    for (String clothingSize : quantityDto.getClothingSizes()) {
+        // 색상과 사이즈 데이터 저장
+        productDto.getSizeAndColorQuantities().forEach(quantityDto -> {
+            quantityDto.getColors().forEach(color -> {
+                // 의류 사이즈 처리
+                if (quantityDto.getClothingSizes() != null) {
+                    quantityDto.getClothingSizes().forEach(size -> {
                         ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
                                 .product(product)
                                 .sizeType(SizeType.CLOTHING)
-                                .clothingSize(ClothingSizeType.valueOf(clothingSize))
+                                .clothingSize(ClothingSizeType.valueOf(size))
                                 .color(Color.valueOf(color))
                                 .quantity(quantityDto.getQuantity())
                                 .build();
-                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
-                    }
+                        product.addSizeAndColorQuantity(quantity);
+                    });
                 }
 
-                // **신발 사이즈 처리**
-                if (quantityDto.getShoeSizes() != null && !quantityDto.getShoeSizes().isEmpty()) {
-                    for (String shoeSize : quantityDto.getShoeSizes()) {
+                // 신발 사이즈 처리
+                if (quantityDto.getShoeSizes() != null) {
+                    quantityDto.getShoeSizes().forEach(size -> {
                         ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
                                 .product(product)
                                 .sizeType(SizeType.SHOES)
-                                .shoeSize(ShoeSizeType.valueOf(shoeSize))
+                                .shoeSize(ShoeSizeType.valueOf(size))
                                 .color(Color.valueOf(color))
                                 .quantity(quantityDto.getQuantity())
                                 .build();
-                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
-                    }
+                        product.addSizeAndColorQuantity(quantity);
+                    });
                 }
-            }
-        }
+            });
+        });
 
-        // 임시 파일을 최종 경로로 이동하여 저장
-        tempFilePaths.forEach(tempFilePath -> {
+        // 이미지 저장 처리
+        productDto.getImage().forEach(imageDto -> {
             try {
-                String permanentPath = fileStorageUtil.moveToPermanentStorage(tempFilePath, product.getId());
+                String permanentPath = fileStorageUtil.moveToPermanentStorage(imageDto.getTemp_Url(), product.getId());
                 ProductImage productImage = ProductImage.builder()
                         .imageUrl(permanentPath)
-                        .imageType("detail")
-                        .isMainThumbnail(false)
+                        .imageType(imageDto.getImageType())
+                        .isMainThumbnail(imageDto.isMainThumbnail())
                         .build();
                 productImage.assignProduct(product);
                 productImageRepository.save(productImage);
@@ -148,6 +149,76 @@ public class ProductService {
 
         return new ProductIdResponseDto(product.getId());
     }
+//    public ProductIdResponseDto createProduct(ProductCreateRequestDto productDto, List<String> tempFilePaths) {
+//        MainCategory mainCategory = mainCategoryRepository.findById(productDto.getMainCategoryId())
+//                .orElseThrow(() -> new EntityNotFoundException("MainCategory not found"));
+//        SubCategory subCategory = subCategoryRepository.findById(productDto.getSubCategoryId())
+//                .orElseThrow(() -> new EntityNotFoundException("SubCategory not found"));
+//
+//        Product product = Product.builder()
+//                .name(productDto.getName())
+//                .brand(productDto.getBrand())
+//                .sku(productDto.getSku())
+//                .mainCategory(mainCategory)
+//                .subCategory(subCategory)
+//                .initialPrice(productDto.getInitialPrice())
+//                .description(productDto.getDescription())
+//                .releaseDate(productDto.getReleaseDate())
+//                .build();
+//
+//        productRepository.save(product);
+//
+//        // **색상과 사이즈 데이터 저장**
+//        for (ProductSizeAndColorQuantityDto quantityDto : productDto.getSizeAndColorQuantities()) {
+//            for (String color : quantityDto.getColors()) {
+//                // **의류 사이즈 처리**
+//                if (quantityDto.getClothingSizes() != null && !quantityDto.getClothingSizes().isEmpty()) {
+//                    for (String clothingSize : quantityDto.getClothingSizes()) {
+//                        ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+//                                .product(product)
+//                                .sizeType(SizeType.CLOTHING)
+//                                .clothingSize(ClothingSizeType.valueOf(clothingSize))
+//                                .color(Color.valueOf(color))
+//                                .quantity(quantityDto.getQuantity())
+//                                .build();
+//                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+//                    }
+//                }
+//
+//                // **신발 사이즈 처리**
+//                if (quantityDto.getShoeSizes() != null && !quantityDto.getShoeSizes().isEmpty()) {
+//                    for (String shoeSize : quantityDto.getShoeSizes()) {
+//                        ProductSizeAndColorQuantity quantity = ProductSizeAndColorQuantity.builder()
+//                                .product(product)
+//                                .sizeType(SizeType.SHOES)
+//                                .shoeSize(ShoeSizeType.valueOf(shoeSize))
+//                                .color(Color.valueOf(color))
+//                                .quantity(quantityDto.getQuantity())
+//                                .build();
+//                        product.addSizeAndColorQuantity(quantity); // 연관관계 편의 메서드 사용
+//                    }
+//                }
+//            }
+//        }
+//
+//        // 임시 파일을 최종 경로로 이동하여 저장
+//        tempFilePaths.forEach(tempFilePath -> {
+//            try {
+//                String permanentPath = fileStorageUtil.moveToPermanentStorage(tempFilePath, product.getId());
+//                ProductImage productImage = ProductImage.builder()
+//                        .imageUrl(permanentPath)
+//                        .imageType("detail")
+//                        .isMainThumbnail(false)
+//                        .build();
+//                productImage.assignProduct(product);
+//                productImageRepository.save(productImage);
+//            } catch (IOException e) {
+//                throw new RuntimeException("Failed to move file to permanent storage", e);
+//            }
+//        });
+//
+//        return new ProductIdResponseDto(product.getId());
+//    }
 
     /**
      * 상품 수정 메서드
