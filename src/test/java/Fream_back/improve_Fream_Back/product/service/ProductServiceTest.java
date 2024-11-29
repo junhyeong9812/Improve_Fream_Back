@@ -23,8 +23,11 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -64,11 +67,15 @@ public class ProductServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-
     @Test
-    @DisplayName("상품 생성 테스트")
-    void createProductTest() {
-        // Given: 상품 생성에 필요한 데이터 준비
+    @DisplayName("상품 생성 및 임시 파일 이동 테스트")
+    void createProductTest() throws Exception {
+        // Given: 임시 파일 저장
+        String tempFilePath1 = fileStorageUtil.saveTemporaryFile(new MockMultipartFile(
+                "file", "image1.jpg", "image/jpeg", "dummy content".getBytes()));
+        String tempFilePath2 = fileStorageUtil.saveTemporaryFile(new MockMultipartFile(
+                "file", "image2.jpg", "image/jpeg", "dummy content".getBytes()));
+
         ProductCreateRequestDto productDto = ProductCreateRequestDto.builder()
                 .name("Product Name")
                 .brand("Brand")
@@ -85,6 +92,20 @@ public class ProductServiceTest {
                                 .quantity(10)
                                 .build()
                 ))
+                .images(List.of(
+                        ProductImageDto.builder()
+                                .imageName("image1.jpg")
+                                .temp_Url(tempFilePath1)
+                                .imageType("thumbnail")
+                                .isMainThumbnail(true)
+                                .build(),
+                        ProductImageDto.builder()
+                                .imageName("image2.jpg")
+                                .temp_Url(tempFilePath2)
+                                .imageType("detail")
+                                .isMainThumbnail(false)
+                                .build()
+                ))
                 .build();
 
         MainCategory mainCategory = MainCategory.builder().id(1L).name("Main Category").build();
@@ -93,27 +114,24 @@ public class ProductServiceTest {
         when(mainCategoryRepository.findById(1L)).thenReturn(Optional.of(mainCategory));
         when(subCategoryRepository.findById(2L)).thenReturn(Optional.of(subCategory));
 
-        Product product = Product.builder()
-                .name("Product Name")
-                .brand("Brand")
-                .sku("123456")
-                .mainCategory(mainCategory)
-                .subCategory(subCategory)
-                .initialPrice(BigDecimal.valueOf(100.0))
-                .description("Product Description")
-                .releaseDate(LocalDate.parse("2023-12-31"))
-                .build();
+        // When
+        ProductIdResponseDto response = productService.createProduct(productDto);
 
-        when(productRepository.save(any(Product.class))).thenReturn(product);
-
-        // When: 상품 생성 메서드 호출
-        ProductIdResponseDto response = productService.createProduct(productDto, List.of("tempFilePath"));
-
-        // Then: 결과 검증
+        // Then
         assertNotNull(response);
-        assertEquals(product.getId(), response.getId());
+        assertEquals(1L, response.getId()); // ID 검증
 
-        verify(productRepository, times(1)).save(any(Product.class));
+        // 파일 이동 검증
+        assertTrue(Files.exists(Paths.get("images/product_1_image1.jpg")));
+        assertTrue(Files.exists(Paths.get("images/product_1_image2.jpg")));
+
+        // 임시 파일 삭제 검증
+        assertFalse(Files.exists(Paths.get(tempFilePath1)));
+        assertFalse(Files.exists(Paths.get(tempFilePath2)));
+
+        // 테스트 종료 후 생성된 파일 삭제
+        Files.deleteIfExists(Paths.get("images/product_1_image1.jpg"));
+        Files.deleteIfExists(Paths.get("images/product_1_image2.jpg"));
     }
 
 

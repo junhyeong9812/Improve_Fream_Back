@@ -132,7 +132,7 @@ public class ProductService {
         });
 
         // 이미지 저장 처리
-        productDto.getImage().forEach(imageDto -> {
+        productDto.getImages().forEach(imageDto -> {
             try {
                 String permanentPath = fileStorageUtil.moveToPermanentStorage(imageDto.getTemp_Url(), product.getId());
                 ProductImage productImage = ProductImage.builder()

@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -78,38 +79,52 @@ public class ProductControllerTest {
 
     @Test
     @DisplayName("상품 생성 테스트")
-    public void createProductTest() throws Exception {
-        // Given
+    void createProductControllerTest() throws Exception {
+        // Given: 상품 생성 요청 DTO 및 반환값 설정
         ProductCreateRequestDto productDto = ProductCreateRequestDto.builder()
-                .name("Test Product")
-                .brand("Test Brand")
-                .sku("SKU12345")
+                .name("Product Name")
+                .brand("Brand")
+                .sku("123456")
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
-                .initialPrice(new BigDecimal("10000"))
-                .description("This is a test product")
+                .initialPrice(BigDecimal.valueOf(100.0))
+                .description("Product Description")
+                .releaseDate(LocalDate.parse("2023-12-31"))
                 .sizeAndColorQuantities(Set.of(
                         ProductSizeAndColorQuantityDto.builder()
-                                .clothingSizes(Set.of("M", "L"))
                                 .colors(Set.of("RED", "BLUE"))
-                                .quantity(100)
+                                .clothingSizes(Set.of("M", "L"))
+                                .quantity(10)
+                                .build()
+                ))
+                .images(List.of(
+                        ProductImageDto.builder()
+                                .imageName("tempImage1.jpg")
+                                .temp_Url("temp/path/tempImage1.jpg")
+                                .imageType("detail")
+                                .isMainThumbnail(false)
+                                .build(),
+                        ProductImageDto.builder()
+                                .imageName("tempImage2.jpg")
+                                .temp_Url("temp/path/tempImage2.jpg")
+                                .imageType("thumbnail")
+                                .isMainThumbnail(true)
                                 .build()
                 ))
                 .build();
 
-        String tempFilePaths = "[\"temp/path/1\", \"temp/path/2\"]";
         ProductIdResponseDto responseDto = new ProductIdResponseDto(1L);
 
-        when(productService.createProduct(any(ProductCreateRequestDto.class), anyList())).thenReturn(responseDto);
+        when(productService.createProduct(any(ProductCreateRequestDto.class))).thenReturn(responseDto);
 
-        // When & Then
+        // When & Then: 요청 및 검증
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDto))
-                        .param("tempFilePaths", "temp/path/1", "temp/path/2"))
+                        .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
-        verify(productService, times(1)).createProduct(any(ProductCreateRequestDto.class), anyList());
+
+        verify(productService, times(1)).createProduct(any(ProductCreateRequestDto.class));
     }
 
     @Test

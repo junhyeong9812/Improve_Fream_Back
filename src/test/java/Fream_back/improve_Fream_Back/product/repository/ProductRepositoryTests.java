@@ -8,12 +8,15 @@ import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ShoeSizeType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.SizeType;
 import Fream_back.improve_Fream_Back.product.entity.size.ProductSizeAndColorQuantity;
+import Fream_back.improve_Fream_Back.product.service.fileStorageUtil.FileStorageUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -35,10 +38,18 @@ public class ProductRepositoryTests {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private FileStorageUtil fileStorageUtil;
+
     @Test
     @DisplayName("프로덕트 생성 테스트")
-    public void testCreateProduct() {
+    public void testCreateProduct() throws IOException {
         // given
+        String tempFilePath1 = fileStorageUtil.saveTemporaryFile(new MockMultipartFile(
+                "file", "image1.jpg", "image/jpeg", "dummy content".getBytes()));
+        String tempFilePath2 = fileStorageUtil.saveTemporaryFile(new MockMultipartFile(
+                "file", "image2.jpg", "image/jpeg", "dummy content".getBytes()));
+
         ProductCreateRequestDto createRequestDto = ProductCreateRequestDto.builder()
                 .name("티셔츠")
                 .brand("브랜드A")
@@ -47,8 +58,18 @@ public class ProductRepositoryTests {
                 .subCategoryId(2L)
                 .initialPrice(new BigDecimal("29900"))
                 .description("편안한 티셔츠")
-                .images(List.of(new ProductImageDto(null, "image1.jpg", "thumbnail", true),
-                        new ProductImageDto(null, "image2.jpg", "detail", false)))
+                .images(List.of(ProductImageDto.builder()
+                                .imageName("image1.jpg")
+                                .temp_Url(tempFilePath1)
+                                .imageType("thumbnail")
+                                .isMainThumbnail(true)
+                                .build(),
+                        ProductImageDto.builder()
+                                .imageName("image2.jpg")
+                                .temp_Url(tempFilePath2)
+                                .imageType("detail")
+                                .isMainThumbnail(false)
+                                .build()))
                 .sizeAndColorQuantities(Set.of(
                         ProductSizeAndColorQuantityDto.builder()
                                 .sizeType("CLOTHING")

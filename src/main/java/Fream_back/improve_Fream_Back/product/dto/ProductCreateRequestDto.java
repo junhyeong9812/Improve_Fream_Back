@@ -23,6 +23,6 @@ public class ProductCreateRequestDto {
     private BigDecimal initialPrice;
     private String description;
     private LocalDate releaseDate;
-    private List<ProductImageDto> image;
+    private List<ProductImageDto> images;
     private Set<ProductSizeAndColorQuantityDto> sizeAndColorQuantities;
 }

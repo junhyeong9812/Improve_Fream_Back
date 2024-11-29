@@ -67,14 +67,27 @@ tasks.withType(Test) {
 }
 //querydsl 추가 시작
 
-def querydslDir = "$buildDir/generated/querydsl"
+//def querydslDir = "$buildDir/generated/querydsl"
+//querydsl {
+//	jpa = true
+//	querydslSourcesDir = querydslDir
+//}
+//sourceSets {
+//	main.java.srcDir querydslDir
+//}
 querydsl {
 	jpa = true
-	querydslSourcesDir = querydslDir
+	querydslSourcesDir = "$buildDir/generated/querydsl"
 }
+
 sourceSets {
-	main.java.srcDir querydslDir
+	main {
+		java {
+			srcDirs += "$buildDir/generated/querydsl"
+		}
+	}
 }
+
 configurations {
 	querydsl.extendsFrom compileClasspath
 }
@@ -86,17 +99,3 @@ compileQuerydsl {
 
 
 
-//// `JavaCompile` 태스크에서 `annotationProcessorPath`와 `generatedSourceOutputDirectory`를 설정
-//tasks.withType(JavaCompile) {
-//	options.annotationProcessorPath = configurations.annotationProcessor
-//	options.generatedSourceOutputDirectory = file("build/generated/sources/annotationProcessor/java/main")
-//}
-//// 올바르게 `sourceSets` 설정을 위치시켜야 합니다.
-//sourceSets {
-//	main.java.srcDirs += file("build/generated/sources/annotationProcessor/java/main")
-//}
-//
-//clean {
-//	delete file('build/generated') // QueryDSL 소스 디렉토리 삭제
-//}
-//
