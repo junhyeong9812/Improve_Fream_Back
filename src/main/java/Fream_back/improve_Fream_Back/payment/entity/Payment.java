@@ -31,6 +31,7 @@ public class Payment extends BaseTimeEntity {
     private LocalDate paymentDate; // 결제 날짜
 
     private boolean isSuccessful; // 결제 성공 여부
+    private boolean isRefunded; // 환불 여부
 
     // 연관관계 편의 메서드
     public void assignOrder(Order order) {
@@ -39,5 +40,15 @@ public class Payment extends BaseTimeEntity {
 
     public void markAsSuccessful() {
         this.isSuccessful = true;
+    }
+    // 환불 처리
+    public void markAsRefunded() {
+        if (!this.isSuccessful) {
+            throw new IllegalStateException("결제에 성공하지 않은 경우 환불할 수 없습니다.");
+        }
+        if (this.isRefunded) {
+            throw new IllegalStateException("이미 환불된 결제입니다.");
+        }
+        this.isRefunded = true;
     }
 }

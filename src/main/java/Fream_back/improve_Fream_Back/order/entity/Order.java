@@ -61,6 +61,9 @@ public class Order extends BaseTimeEntity {
         orderItem.assignOrder(this);
         calculateTotalPrice(); // 상품 추가 시 총 가격 재계산
     }
+    public void markPaymentCompleted(boolean status) {
+        this.paymentCompleted = status;
+    }
 
     //부분 결제 구현 시 사용
 //    public void addPayment(Payment payment) {

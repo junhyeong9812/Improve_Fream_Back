@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -16,4 +17,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // 특정 주문의 결제 성공 여부 확인
     @Query("SELECT p.isSuccessful FROM Payment p WHERE p.order.id = :orderId")
     boolean isPaymentSuccessful(@Param("orderId") Long orderId);
+
+    // 주문 ID를 기반으로 단일 결제 조회 (결제가 단일일 경우 사용)
+    @Query("SELECT p FROM Payment p WHERE p.order.id = :orderId")
+    Optional<Payment> findSinglePaymentByOrderId(@Param("orderId") Long orderId);
 }

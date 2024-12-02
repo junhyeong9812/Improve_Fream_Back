@@ -40,10 +40,18 @@ public class Shipment extends BaseTimeEntity {
 
     public void updateShipmentStatus(ShipmentStatus shipmentStatus) {
         this.shipmentStatus = shipmentStatus;
+        // 배송 완료 시점 처리
+        if (shipmentStatus == ShipmentStatus.DELIVERED) {
+            markAsDelivered();
+        }
     }
 
     public void registerTrackingInfo(String trackingNumber, String courierCompany) {
         this.trackingNumber = trackingNumber;
         this.courierCompany = courierCompany;
+    }
+    // 배송 완료 처리
+    private void markAsDelivered() {
+        this.deliveredAt = LocalDate.now();
     }
 }
