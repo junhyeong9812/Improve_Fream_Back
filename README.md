@@ -258,6 +258,160 @@ SpringDataJpa
 
 ```
 
+Order API
+1. 주문 생성
+URL: /order
+Method: POST
+Request Body:
+json
+코드 복사
+{
+  "userId": 1,
+  "delivery": {
+    "recipientName": "John Doe",
+    "phoneNumber": "010-1234-5678",
+    "address": "123 Main St",
+    "addressDetail": "Apt 101",
+    "zipCode": "12345"
+  },
+  "orderItems": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 50000
+    }
+  ]
+}
+Response:
+json
+코드 복사
+{
+  "orderId": 1,
+  "userId": 1,
+  "recipientName": "John Doe",
+  "phoneNumber": "010-1234-5678",
+  "address": "123 Main St",
+  "addressDetail": "Apt 101",
+  "zipCode": "12345",
+  "totalPrice": 100000,
+  "orderItems": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 50000
+    }
+  ]
+}
+2. 주문 상세 조회
+URL: /order/{orderId}
+Method: GET
+Response:
+json
+코드 복사
+{
+  "orderId": 1,
+  "userId": 1,
+  "recipientName": "John Doe",
+  "phoneNumber": "010-1234-5678",
+  "address": "123 Main St",
+  "addressDetail": "Apt 101",
+  "zipCode": "12345",
+  "totalPrice": 100000,
+  "shipmentStatus": "PENDING",
+  "paymentCompleted": true,
+  "orderItems": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "price": 50000
+    }
+  ]
+}
+3. 주문 결제 완료 및 배송 준비 상태로 업데이트
+URL: /order/{orderId}/complete-payment
+Method: POST
+Query Parameters:
+paymentMethod: CARD
+amount: 100000
+Response:
+json
+코드 복사
+{
+  "message": "Order payment completed and shipment created."
+}
+4. 배송 상태 업데이트
+URL: /order/{orderId}/shipment
+Method: PUT
+Request Body:
+json
+코드 복사
+{
+  "status": "SHIPPED",
+  "trackingNumber": "123456789",
+  "courierCompany": "FedEx"
+}
+Response:
+json
+코드 복사
+{
+  "message": "Shipment status updated successfully."
+}
+5. 결제 환불 처리
+URL: /order/{orderId}/refund
+Method: POST
+Response:
+json
+코드 복사
+{
+  "message": "Payment refunded successfully."
+}
+6. 주문 목록 조회 (필터링 지원)
+URL: /order/user/{userId}
+Method: GET
+Query Parameters:
+shipmentStatus (Optional): DELIVERED
+includePayments (Optional): true
+Response:
+json
+코드 복사
+[
+  {
+    "orderId": 1,
+    "userId": 1,
+    "recipientName": "John Doe",
+    "totalPrice": 100000,
+    "shipmentStatus": "DELIVERED",
+    "paymentCompleted": true
+  }
+]
+7. 특정 주문의 결제 정보 조회
+URL: /order/{orderId}/payment
+Method: GET
+Response:
+json
+코드 복사
+{
+  "paymentId": 1,
+  "paymentMethod": "CARD",
+  "amount": 100000,
+  "paymentDate": "2024-11-29",
+  "isSuccessful": true
+}
+8. 특정 주문의 배송 정보 조회
+URL: /order/{orderId}/shipment
+Method: GET
+Response:
+json
+코드 복사
+{
+  "shipmentId": 1,
+  "trackingNumber": "123456789",
+  "courierCompany": "FedEx",
+  "shipmentStatus": "SHIPPED",
+  "shippedAt": "2024-11-29",
+  "deliveredAt": null
+}
+오늘 나눈 대화 요약
 
 
 
