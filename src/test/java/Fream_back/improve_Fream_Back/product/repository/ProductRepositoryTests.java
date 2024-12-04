@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.product.repository;
 
 import Fream_back.improve_Fream_Back.product.dto.*;
+import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.ProductImage;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;

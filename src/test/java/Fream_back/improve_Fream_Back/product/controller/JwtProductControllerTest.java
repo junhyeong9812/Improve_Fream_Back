@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.product.controller;
 
 import Fream_back.improve_Fream_Back.product.dto.*;
+import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
 import Fream_back.improve_Fream_Back.user.dto.UserSignupDto;
 import Fream_back.improve_Fream_Back.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +16,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;

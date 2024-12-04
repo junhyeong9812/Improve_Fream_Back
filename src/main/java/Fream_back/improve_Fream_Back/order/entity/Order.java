@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "orders")
 @EntityListeners(AuditingEntityListener.class)
 public class Order extends BaseTimeEntity {
 

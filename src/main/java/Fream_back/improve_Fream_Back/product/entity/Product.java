@@ -65,6 +65,15 @@ public class Product extends BaseTimeEntity {
         this.description = description;
     }
 
+    @PrePersist
+    private void generateSku() {
+        if (this.sku == null) {
+            this.sku = brand.substring(0, 3).toUpperCase() + "-" +
+                    name.substring(0, 3).toUpperCase() + "-" +
+                    UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        }
+    }
+
     // 연관관계 편의 메서드 - UserProduct 추가
     public void addUserProduct(UserProduct userProduct) {
         this.userProducts.add(userProduct);

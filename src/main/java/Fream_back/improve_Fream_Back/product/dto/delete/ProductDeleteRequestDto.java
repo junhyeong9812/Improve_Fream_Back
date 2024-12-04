@@ -1,4 +1,4 @@
-package Fream_back.improve_Fream_Back.product.dto;
+package Fream_back.improve_Fream_Back.product.dto.delete;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

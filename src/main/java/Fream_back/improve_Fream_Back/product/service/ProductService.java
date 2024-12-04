@@ -3,6 +3,8 @@ package Fream_back.improve_Fream_Back.product.service;
 import Fream_back.improve_Fream_Back.Category.dto.MainCategoryDto;
 import Fream_back.improve_Fream_Back.Category.dto.SubCategoryDto;
 import Fream_back.improve_Fream_Back.product.dto.*;
+import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
+import Fream_back.improve_Fream_Back.product.dto.delete.ProductDeleteRequestDto;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,7 +90,7 @@ public class ProductService {
         Product product = Product.builder()
                 .name(productDto.getName())
                 .brand(productDto.getBrand())
-                .sku(productDto.getSku())
+//                .sku(productDto.getSku())
                 .mainCategory(mainCategory)
                 .subCategory(subCategory)
                 .initialPrice(productDto.getInitialPrice())

@@ -1,5 +1,7 @@
-package Fream_back.improve_Fream_Back.product.dto;
+package Fream_back.improve_Fream_Back.product.dto.create;
 
+import Fream_back.improve_Fream_Back.product.dto.ProductImageDto;
+import Fream_back.improve_Fream_Back.product.dto.ProductSizeAndColorQuantityDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +19,7 @@ import java.util.Set;
 public class ProductCreateRequestDto {
     private String name;
     private String brand;
-    private String sku;
+//    private String sku;
     private Long mainCategoryId;
     private Long subCategoryId;
     private BigDecimal initialPrice;
