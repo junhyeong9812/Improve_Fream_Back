@@ -83,7 +83,6 @@ public class ProductControllerTest {
         ProductCreateRequestDto productDto = ProductCreateRequestDto.builder()
                 .name("Product Name")
                 .brand("Brand")
-                .sku("123456")
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
                 .initialPrice(BigDecimal.valueOf(100.0))

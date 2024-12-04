@@ -80,7 +80,6 @@ public class ProductServiceTest {
         ProductCreateRequestDto productDto = ProductCreateRequestDto.builder()
                 .name("Product Name")
                 .brand("Brand")
-                .sku("123456")
                 .initialPrice(BigDecimal.valueOf(100.0))
                 .description("Product Description")
                 .releaseDate(LocalDate.parse("2023-12-31"))

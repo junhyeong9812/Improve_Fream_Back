@@ -69,7 +69,6 @@ public class JwtProductControllerTest {
         ProductCreateRequestDto productDto = ProductCreateRequestDto.builder()
                 .name("Test Product")
                 .brand("Test Brand")
-                .sku("SKU12345")
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
                 .initialPrice(new BigDecimal("10000"))

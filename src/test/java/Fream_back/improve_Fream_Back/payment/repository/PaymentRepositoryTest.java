@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.user.entity.User;
 
+import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +25,9 @@ class PaymentRepositoryTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     void 결제_생성_및_조회() {
@@ -51,6 +55,7 @@ class PaymentRepositoryTest {
                 .password("password")
                 .nickname("nickname")
                 .build();
+        userRepository.save(user);
 
         Order order = Order.builder()
                 .user(user)

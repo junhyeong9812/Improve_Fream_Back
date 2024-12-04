@@ -38,8 +38,8 @@ class OrderRepositoryTest {
         // Given
         User user = createUser();
         Delivery delivery = createDelivery();
-        OrderItem orderItem1 = createOrderItem("Product A", "Brand A", "SKU123", new BigDecimal("100.00"), 2);
-        OrderItem orderItem2 = createOrderItem("Product B", "Brand B", "SKU456", new BigDecimal("200.00"), 1);
+        OrderItem orderItem1 = createOrderItem("Product A", "Brand A", "SKU-123", new BigDecimal("100.00"), 2);
+        OrderItem orderItem2 = createOrderItem("Product B", "Brand B", "SKU-456", new BigDecimal("200.00"), 1);
 
         Order order = Order.createOrderFromDelivery(user, delivery, List.of(orderItem1, orderItem2));
         orderRepository.save(order);

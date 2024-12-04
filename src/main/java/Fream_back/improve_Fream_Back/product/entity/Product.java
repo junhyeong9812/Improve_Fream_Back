@@ -65,12 +65,11 @@ public class Product extends BaseTimeEntity {
         this.description = description;
     }
 
-    @PrePersist
-    private void generateSku() {
+    @PostPersist
+    public void assignSku() {
+        // SKU가 아직 없는 경우 ID를 기반으로 생성
         if (this.sku == null) {
-            this.sku = brand.substring(0, 3).toUpperCase() + "-" +
-                    name.substring(0, 3).toUpperCase() + "-" +
-                    UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            this.sku = "SKU-" + this.id; // SKU 형식: "SKU-<ID>"
         }
     }
 

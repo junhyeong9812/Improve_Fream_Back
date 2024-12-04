@@ -15,6 +15,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
@@ -42,6 +44,14 @@ public class ProductRepositoryTests {
     @Autowired
     private FileStorageUtil fileStorageUtil;
 
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public FileStorageUtil fileStorageUtil() {
+            return new FileStorageUtil();
+        }
+    }
+
     @Test
     @DisplayName("프로덕트 생성 테스트")
     public void testCreateProduct() throws IOException {
@@ -54,7 +64,6 @@ public class ProductRepositoryTests {
         ProductCreateRequestDto createRequestDto = ProductCreateRequestDto.builder()
                 .name("티셔츠")
                 .brand("브랜드A")
-                .sku("SKU1234")
                 .mainCategoryId(1L)
                 .subCategoryId(2L)
                 .initialPrice(new BigDecimal("29900"))
@@ -231,7 +240,6 @@ public class ProductRepositoryTests {
         return Product.builder()
                 .name(dto.getName())
                 .brand(dto.getBrand())
-                .sku(dto.getSku())
                 .initialPrice(dto.getInitialPrice())
                 .description(dto.getDescription())
                 .build();

@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
 import Fream_back.improve_Fream_Back.shipment.entity.Shipment;
 import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
 import Fream_back.improve_Fream_Back.user.entity.User;
+import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,9 @@ class ShipmentRepositoryTest {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     void 배송_생성_및_조회() {
@@ -45,12 +49,14 @@ class ShipmentRepositoryTest {
         assertEquals(ShipmentStatus.SHIPPED, foundShipment.get().getShipmentStatus());
     }
 
+
     private Order createOrder() {
         User user = User.builder()
                 .loginId("user")
                 .password("password")
                 .nickname("nickname")
                 .build();
+        userRepository.save(user);
 
         Order order = Order.builder()
                 .user(user)
