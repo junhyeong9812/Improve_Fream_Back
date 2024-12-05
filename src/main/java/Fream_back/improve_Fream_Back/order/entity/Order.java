@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class Order extends BaseTimeEntity {
 
     private boolean paymentCompleted; // 결제 완료 여부
 
-    private Double totalPrice; // 주문 총 가격
+    private BigDecimal totalPrice; // 주문 총 가격
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Shipment shipment; // 배송 정보
@@ -94,7 +95,7 @@ public class Order extends BaseTimeEntity {
                 .addressDetail(delivery.getAddressDetail())
                 .zipCode(delivery.getZipCode())
                 .paymentCompleted(false)
-                .totalPrice(0.0) // 초기값
+                .totalPrice(BigDecimal.ZERO) // 초기값
                 .build();
 
         // 주문 항목 추가
@@ -108,7 +109,7 @@ public class Order extends BaseTimeEntity {
     // 총 가격 계산 메서드
     private void calculateTotalPrice() {
         this.totalPrice = orderItems.stream()
-                .mapToDouble(orderItem -> orderItem.getPrice().doubleValue() * orderItem.getQuantity())
-                .sum();
+                .map(orderItem -> orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

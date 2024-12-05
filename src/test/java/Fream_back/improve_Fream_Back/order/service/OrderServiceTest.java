@@ -133,7 +133,7 @@ class OrderServiceTest {
 
         assertThat(responseDto.getUserId()).isEqualTo(testUser.getId());
         assertThat(responseDto.getRecipientName()).isEqualTo(testDelivery.getRecipientName());
-        assertThat(responseDto.getTotalPrice()).isEqualTo(200.0);
+        assertThat(responseDto.getTotalPrice()).isEqualTo(BigDecimal.valueOf(200.0)); // 변경
     }
 
     @Test
@@ -154,7 +154,7 @@ class OrderServiceTest {
                 .recipientName(testDelivery.getRecipientName())
                 .address(testDelivery.getAddress())
                 .addressDetail(testDelivery.getAddressDetail())
-                .totalPrice(200.0)
+                .totalPrice(BigDecimal.valueOf(200.0)) // 변경
                 .orderItems(List.of(orderItem))
                 .build();
 
@@ -167,7 +167,7 @@ class OrderServiceTest {
         verify(orderRepository, times(1)).findOrderDetailsById(orderId);
         assertThat(responseDto.getOrderId()).isEqualTo(orderId);
         assertThat(responseDto.getRecipientName()).isEqualTo(testDelivery.getRecipientName());
-        assertThat(responseDto.getTotalPrice()).isEqualTo(200.0);
+        assertThat(responseDto.getTotalPrice()).isEqualTo(BigDecimal.valueOf(200.0)); // 변경
     }
 
     @Test
@@ -190,5 +190,39 @@ class OrderServiceTest {
         // Then
         verify(orderRepository, times(1)).findById(orderId);
         verify(orderRepository, times(1)).delete(order);
+    }
+
+    @Test
+    @DisplayName("중복 결제 방지 테스트")
+    void processPaymentAndShipment_duplicatePayment() {
+        // Given
+        Long orderId = 1L;
+        String paymentMethod = "Credit Card";
+        BigDecimal amount = BigDecimal.valueOf(200.0);
+
+        // 이미 결제 완료된 주문
+        Order order = Order.builder()
+                .id(orderId)
+                .user(testUser)
+                .recipientName(testDelivery.getRecipientName())
+                .address(testDelivery.getAddress())
+                .addressDetail(testDelivery.getAddressDetail())
+                .totalPrice(amount) // 변경
+                .paymentCompleted(true) // 결제 완료 상태
+                .build();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        // When & Then
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> orderService.processPaymentAndShipment(orderId, paymentMethod, amount)
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("이미 결제가 완료된 주문입니다.");
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(paymentService, never()).createPayment(any(Order.class), anyString(), any(BigDecimal.class));
+        verify(paymentService, never()).markPaymentAsSuccessful(anyLong());
+        verify(shipmentService, never()).createShipment(any(Order.class));
     }
 }

@@ -99,6 +99,10 @@ public class OrderService {
         // 주문 조회
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        // 중복 결제 방지
+        if (order.isPaymentCompleted()) {
+            throw new IllegalStateException("이미 결제가 완료된 주문입니다.");
+        }
 
         // 결제 생성 및 성공 처리
         Payment payment = paymentService.createPayment(order, paymentMethod, amount);

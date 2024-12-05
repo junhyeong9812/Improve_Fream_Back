@@ -23,5 +23,5 @@ public class OrderResponseDto {
     private String address;
     private String addressDetail;
     private String zipCode;
-    private double totalPrice;
+    private BigDecimal totalPrice;
 }
