@@ -159,6 +159,37 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(deliveryRequest))
                 .andExpect(status().isOk());
+
+        // Order 생성 데이터 추가
+        String orderRequest = """
+        {
+            "userId": 1,
+            "deliveryId": 1,
+            "orderItems": [
+                {
+                    "productId": 1,
+                    "quantity": 2,
+                    "price": 100.00
+                }
+            ],
+            "delivery": {
+                "recipientName": "Test Recipient",
+                "phoneNumber": "010-1234-5678",
+                "address": "Test Address",
+                "addressDetail": "Test Address Detail",
+                "zipCode": "12345"
+            },
+            "payment": {
+                "paymentMethod": "Credit Card",
+                "amount": 200.00
+            }
+        }
+    """;
+
+        mockMvc.perform(post("/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(orderRequest))
+                .andExpect(status().isOk());
     }
 
 
