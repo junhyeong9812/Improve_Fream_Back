@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,7 +63,7 @@ class ShipmentRepositoryTest {
                 .user(user)
                 .recipientName("Recipient")
                 .address("Address")
-                .totalPrice(300.00)
+                .totalPrice(BigDecimal.valueOf(300.0))
                 .build();
         orderRepository.save(order);
         return order;

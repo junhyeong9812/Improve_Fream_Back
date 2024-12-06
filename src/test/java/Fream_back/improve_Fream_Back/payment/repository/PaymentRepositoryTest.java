@@ -61,7 +61,7 @@ class PaymentRepositoryTest {
                 .user(user)
                 .recipientName("Recipient")
                 .address("Address")
-                .totalPrice(300.00)
+                .totalPrice(BigDecimal.valueOf(300.0))
                 .build();
         orderRepository.save(order);
         return order;

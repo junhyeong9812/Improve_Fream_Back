@@ -134,6 +134,7 @@ public class ProductService {
 
         // 이미지 저장 처리
         productDto.getImages().forEach(imageDto -> {
+            System.out.println("imageDto.getImageUrl() = " + imageDto.getImageUrl());
             try {
                 String permanentPath = fileStorageUtil.moveToPermanentStorage(imageDto.getTemp_Url(), product.getId());
                 ProductImage productImage = ProductImage.builder()

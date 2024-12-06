@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.product.entity.size;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseEntity;
+import Fream_back.improve_Fream_Back.product.dto.ProductSizeAndColorQuantityDto;
 import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
@@ -68,5 +69,22 @@ public class ProductSizeAndColorQuantity extends BaseEntity {
     @Override
     public int hashCode() {
         return Objects.hash(sizeType, clothingSize, shoeSize, color, product);
+    }
+
+    private ProductSizeAndColorQuantity convertToEntity(ProductSizeAndColorQuantityDto dto, Product product) {
+        return ProductSizeAndColorQuantity.builder()
+                .product(product)
+                .sizeType(SizeType.valueOf(dto.getSizeType().toUpperCase()))
+                .clothingSize(dto.getClothingSizes() != null && !dto.getClothingSizes().isEmpty()
+                        ? ClothingSizeType.valueOf(dto.getClothingSizes().iterator().next().toUpperCase())
+                        : null)
+                .shoeSize(dto.getShoeSizes() != null && !dto.getShoeSizes().isEmpty()
+                        ? ShoeSizeType.valueOf(dto.getShoeSizes().iterator().next().toUpperCase())
+                        : null)
+                .color(dto.getColors() != null && !dto.getColors().isEmpty()
+                        ? Color.valueOf(dto.getColors().iterator().next().toUpperCase())
+                        : null)
+                .quantity(dto.getQuantity())
+                .build();
     }
 }

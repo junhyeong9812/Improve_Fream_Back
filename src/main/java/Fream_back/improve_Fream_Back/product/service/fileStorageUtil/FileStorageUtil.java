@@ -48,6 +48,11 @@ public class FileStorageUtil {
      * @throws IOException 파일 이동 실패 시 예외
      */
     public String moveToPermanentStorage(String tempFilePath, Long productId) throws IOException {
+        // tempFilePath null 체크
+        if (tempFilePath == null || tempFilePath.isBlank()) {
+            throw new IllegalArgumentException("tempFilePath cannot be null or empty.");
+        }
+
         String uniqueFileName = "product_" + productId + "_" + UUID.randomUUID() + ".jpg";
         Path permanentFilePath = Paths.get(IMAGE_DIR + uniqueFileName);
 
