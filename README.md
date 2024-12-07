@@ -112,9 +112,9 @@ Response (400 Bad Request)
 Invalid token.
 ```
 ## 1.3 아이디 찾기 (전화번호)
-- **URL: /api/users/find-loginId/phone
-- **Method: POST
-- **Description: 사용자의 전화번호로 loginId 조회.
+- **URLL**: /api/users/find-loginId/phone
+- **MethodL**: POST
+- **DescriptionL**: 사용자의 전화번호로 loginId 조회.
 ### Request Body
 ```json
 {
@@ -132,9 +132,9 @@ Response (404 Not Found)
 null
 ```
 ## 1.4 아이디 찾기 (이메일)
-- **URL: /api/users/find-loginId/email
-- **Method: POST
-- **Description: 사용자의 이메일로 loginId 조회.
+- **URLL**: /api/users/find-loginId/email
+- **MethodL**: POST
+- **DescriptionL**: 사용자의 이메일로 loginId 조회.
 ### Request Body
 ```json
 {
@@ -152,9 +152,9 @@ Response (404 Not Found)
 null
 ```
 ## 1.5 비밀번호 재설정 요청
-- **URL: /api/users/password-reset/request
-- **Method: POST
-- **Description: 비밀번호 재설정을 위한 사용자 검증 요청.
+- **URLL**: /api/users/password-reset/request
+- **MethodL**: POST
+- **DescriptionL**: 비밀번호 재설정을 위한 사용자 검증 요청.
 ### Request Body
 ```json
 {
@@ -172,9 +172,9 @@ Response (404 Not Found)
 User not found or invalid details.
 ```
 ## 1.6 비밀번호 업데이트
-- **URL: /api/users/password-reset/update
-- **Method: POST
-- **Description: 사용자 비밀번호 변경.
+- **URLL**: /api/users/password-reset/update
+- **MethodL**: POST
+- **DescriptionL**: 사용자 비밀번호 변경.
 ### Request Body
 ```json
 {
@@ -191,9 +191,9 @@ Response (404 Not Found)
 User not found.
 ```
 ## 1.7 로그인 아이디 중복 확인
-- **URL: /api/users/check-duplicate
-- **Method: GET
-- **Description: 로그인 ID의 중복 여부 확인.
+- **URLL**: /api/users/check-duplicate
+- **MethodL**: GET
+- **DescriptionL**: 로그인 ID의 중복 여부 확인.
 Query Parameters
 loginId: string
 Response (200 OK)
@@ -202,9 +202,9 @@ Response (200 OK)
 "duplicate": 중복됨.
 ```
 ## 1.8 회원가입
-- **URL: /api/users/signup
-- **Method: POST
-- **Description: 새로운 사용자 등록.
+- **URLL**: /api/users/signup
+- **MethodL**: POST
+- **DescriptionL**: 새로운 사용자 등록.
 ### Request Body
 ```json
 {
@@ -232,9 +232,9 @@ Response (200 OK)
 ```
 ### 2. 배송지(Delivery) API
 ## 2.1 배송지 추가
-- **URL: /api/deliveries/add
-- **Method: POST
-- **Description: 배송지 추가 요청.
+- **URLL**: /api/deliveries/add
+- **MethodL**: POST
+- **DescriptionL**: 배송지 추가 요청.
 ### Request Body
 ```json
 {
@@ -251,9 +251,9 @@ Response (200 OK)
 배송지가 성공적으로 추가되었습니다.
 ```
 ## 2.2 배송지 목록 조회
-- **URL: /api/deliveries/list
-- **Method: GET
-- **Description: 특정 사용자의 모든 배송지 목록 조회.
+- **URLL**: /api/deliveries/list
+- **MethodL**: GET
+- **DescriptionL**: 특정 사용자의 모든 배송지 목록 조회.
 Query Parameters
 loginId: string
 Response (200 OK)
@@ -271,9 +271,9 @@ Response (200 OK)
 ]
 ```
 ## 2.3 배송지 수정
-- **URL: /api/deliveries/update
-- **Method: PUT
-- **Description: 배송지 수정 요청.
+- **URLL**: /api/deliveries/update
+- **MethodL**: PUT
+- **DescriptionL**: 배송지 수정 요청.
 ### Request Body
 ```json
 {
@@ -291,9 +291,9 @@ Response (200 OK)
 배송지 정보가 성공적으로 수정되었습니다.
 ```
 ## 2.4 배송지 삭제
-- **URL: /api/deliveries/delete
-- **Method: DELETE
-- **Description: 특정 배송지 삭제.
+- **URLL**: /api/deliveries/delete
+- **MethodL**: DELETE
+- **DescriptionL**: 특정 배송지 삭제.
 ### Request Body
 ```json
 {
@@ -306,9 +306,9 @@ Response (200 OK)
 ```
 ### 3. 상품(Product) API
 ## 3.1 임시 URL 생성
-- **URL: /api/products/temporary-url
-- **Method: POST
-- **Description: 이미지 업로드 후 임시 URL 생성.
+- **URLL**: /api/products/temporary-url
+- **MethodL**: POST
+- **DescriptionL**: 이미지 업로드 후 임시 URL 생성.
 Request Parameters
 file: <image_file>
 Response (200 OK)
@@ -317,9 +317,9 @@ Response (200 OK)
 temp/<file_path>
 ```
 3.2 상품 생성
-URL: /api/products
-Method: POST
-Description: 새로운 상품 등록.
+URLL**: /api/products
+MethodL**: POST
+DescriptionL**: 새로운 상품 등록.
 ### Request Body
 ```json
 {
@@ -355,9 +355,9 @@ Response (200 OK)
 }
 ```
 ## 3.3 상품 수정
-- **URL: /api/products/{productId}
-- **Method: PUT
-- **Description: 상품 정보 수정.
+- **URLL**: /api/products/{productId}
+- **MethodL**: PUT
+- **DescriptionL**: 상품 정보 수정.
 ### Request Body
 ```json
 {
@@ -379,17 +379,17 @@ Response (200 OK)
 }
 ```
 ## 3.4 상품 삭제
-- **URL: /api/products/{productId}
-- **Method: DELETE
-- **Description: 상품 삭제 요청.
+- **URLL**: /api/products/{productId}
+- **MethodL**: DELETE
+- **DescriptionL**: 상품 삭제 요청.
 Response (200 OK)
 text
 코드 복사
 상품이 성공적으로 삭제되었습니다.
 ## 3.5 단일 상품 조회
-URL: /api/products/{productId}
-Method: GET
-Description: 상품 상세 조회.
+URLL**: /api/products/{productId}
+MethodL**: GET
+DescriptionL**: 상품 상세 조회.
 Response (200 OK)
   ```json
 {
@@ -402,9 +402,9 @@ Response (200 OK)
 }
 ```
 ## 3.6 필터링된 상품 조회
-- **URL: /api/products/filter
-- **Method: GET
-- **Description: 필터 조건에 따른 상품 목록 조회.
+- **URLL**: /api/products/filter
+- **MethodL**: GET
+- **DescriptionL**: 필터 조건에 따른 상품 목록 조회.
 Query Parameters
 mainCategoryId
 subCategoryId
@@ -427,6 +427,232 @@ Response (200 OK)
   }
 ]
 ```
+
+### 4. 주문(Order) API
+## 4.1 주문 생성
+- **URLL**: /order
+- **MethodL**: POST
+- **DescriptionL**: 사용자가 주문을 생성합니다.
+### Request Body
+```json
+{
+  "userId": 1,
+  "deliveryId": 2,
+  "orderItems": [
+    {
+      "productId": 10,
+      "quantity": 2,
+      "price": 100.00
+    }
+  ],
+  "delivery": {
+    "recipientName": "John Doe",
+    "phoneNumber": "010-1234-5678",
+    "address": "123 Test St",
+    "addressDetail": "Apt 101",
+    "zipCode": "12345"
+  },
+  "payment": {
+    "paymentMethod": "Credit Card",
+    "amount": 200.00
+  }
+}
+```
+### Response (200 OK)
+```json
+{
+  "orderId": 1,
+  "userId": 1,
+  "orderItems": [...],
+  "shipmentStatus": "Ready",
+  "trackingNumber": null,
+  "courierCompany": null,
+  "totalPrice": 200.00
+}
+```
+## 4.2 주문 상세 조회
+- **URLL**: /order/{orderId}
+- **MethodL**: GET
+- **DescriptionL**: 특정 주문의 상세 정보를 조회합니다.
+### Response (200 OK)
+```json
+{
+  "orderId": 1,
+  "userId": 1,
+  "orderItems": [...],
+  "shipmentStatus": "Shipped",
+  "trackingNumber": "123456",
+  "courierCompany": "FedEx",
+  "totalPrice": 200.00
+}
+```
+## 4.3 결제 완료 및 배송 준비 상태 업데이트
+- **URLL**: /order/{orderId}/complete-payment
+- **MethodL**: POST
+- **DescriptionL**: 주문 결제를 완료하고 배송 준비 상태로 업데이트합니다.
+### Request Parameters
+```makefile
+paymentMethod=Credit Card
+amount=200.00
+```
+Response (200 OK)
+```text
+Order payment completed and shipment created.
+```
+## 4.4 배송 상태 업데이트
+- **URLL**: /order/{orderId}/shipment
+- **MethodL**: PUT
+- **DescriptionL**: 특정 주문의 배송 상태를 업데이트합니다.
+### Request Body
+```json
+{
+  "shipmentStatus": "Delivered",
+  "trackingNumber": "123456",
+  "courierCompany": "FedEx"
+}
+```
+### Response (200 OK)
+lua
+```text
+Shipment status updated successfully.
+```
+## 4.5 결제 환불 처리
+- **URLL**: /order/{orderId}/refund
+- **MethodL**: POST
+- **DescriptionL**: 특정 주문의 결제를 환불합니다.
+### Response (200 OK)
+```
+Payment refunded successfully.
+```
+## 4.6 주문 목록 조회
+- **URL: /order/user/{userId}
+- **Method: GET
+- **Description: 특정 사용자의 주문 목록을 조회합니다.
+### Request Parameters
+makefile
+```
+shipmentStatus=Shipped
+includePayments=true
+```
+### Response (200 OK)
+```json
+[
+  {
+    "orderId": 1,
+    "userId": 1,
+    "orderItems": [...],
+    "shipmentStatus": "Shipped",
+    "totalPrice": 200.00
+  },
+  ...
+]
+```
+### 5. 스타일(Style) API
+## 5.1 임시 저장
+- **URLL**: /styles/upload-temp
+- **MethodL**: POST
+- **DescriptionL**: 스타일 관련 파일을 임시로 저장합니다.
+### Request Parameters
+makefile
+```
+file=<MultipartFile>
+```
+### Response (200 OK)
+```json
+temp/1234567890_dummy-image.jpg
+```
+## 5.2 스타일 생성
+- **URLL**: /styles/create
+- **MethodL**: POST
+- **DescriptionL**: 새로운 스타일을 생성합니다.
+### Request Body
+```json
+{
+  "userId": 1,
+  "orderItemId": 10,
+  "content": "Amazing product!",
+  "rating": 5,
+  "tempFilePath": "temp/1234567890_dummy-image.jpg"
+}
+```
+### Response (200 OK)
+```
+1
+```
+## 5.3 스타일 수정
+- **URLL**: /styles/{styleId}/update
+- **MethodL**: PUT
+- **DescriptionL**: 특정 스타일을 수정합니다.
+### Request Body
+```json
+{
+  "userId": 1,
+  "content": "Updated content!",
+  "rating": 4,
+  "tempFilePath": "temp/updated-image.jpg"
+}
+```
+### Response (200 OK)
+```
+1
+```
+## 5.4 스타일 삭제
+- **URLL**: /styles/{styleId}/delete
+- **MethodL**: DELETE
+- **DescriptionL**: 특정 스타일을 삭제합니다.
+### Request Parameters
+makefile
+```
+userId=1
+```
+### Response (200 OK)
+```
+스타일이 성공적으로 삭제되었습니다.
+```
+## 5.5 스타일 검색
+- **URLL**: /styles/search
+- **MethodL**: POST
+- **DescriptionL**: 특정 조건에 맞는 스타일을 검색합니다.
+### Request Body
+```json
+{
+  "userId": 1,
+  "productId": 10,
+  "keyword": "cool"
+}
+```
+### Response (200 OK)
+```json
+[
+  {
+    "id": 1,
+    "content": "Amazing style!",
+    "rating": 5,
+    "imageUrl": "images/style_1.jpg",
+    "createdDate": "2024-12-07T22:10:00"
+  },
+  ...
+]
+```
+## 5.6 스타일 상세 조회
+- **URLL**: /styles/{styleId}
+- **MethodL**: GET
+- **DescriptionL**: 특정 스타일의 상세 정보를 조회합니다.
+### Response (200 OK)
+```json
+{
+  "id": 1,
+  "content": "Amazing style!",
+  "rating": 5,
+  "imageUrl": "images/style_1.jpg",
+  "userNickname": "John Doe",
+  "productId": 10,
+  "productName": "Cool Shoes",
+  "productBrand": "Nike",
+  "productImageUrl": "images/product_10.jpg"
+}
+```
+
 
 
 
