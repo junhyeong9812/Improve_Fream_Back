@@ -1,9 +1,9 @@
 package Fream_back.improve_Fream_Back.style.controller;
 
+import Fream_back.improve_Fream_Back.style.dto.StyleCreateDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleResponseDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleSearchDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleUpdateDto;
-import Fream_back.improve_Fream_Back.style.entity.Style;
 import Fream_back.improve_Fream_Back.style.service.StyleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +23,7 @@ public class StyleController {
 
     // 임시 저장 엔드포인트
     @PostMapping("/upload-temp")
-    public ResponseEntity<?> uploadTempFile(@RequestParam MultipartFile file) {
+    public ResponseEntity<?> uploadTempFile(@RequestParam("file") MultipartFile file) {
         try {
             String tempFilePath = styleService.saveTemporaryFile(file);
             return ResponseEntity.ok(tempFilePath);
@@ -33,13 +33,15 @@ public class StyleController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createStyle(@RequestParam Long userId,
-                                         @RequestParam Long orderItemId,
-                                         @RequestParam String content,
-                                         @RequestParam(required = false) Integer rating,
-                                         @RequestParam MultipartFile file) {
+    public ResponseEntity<?> createStyle(@RequestBody StyleCreateDto createDto) {
         try {
-            Long styleId = styleService.createStyle(userId, orderItemId, content, rating, file);
+            Long styleId = styleService.createStyle(
+                    createDto.getUserId(),
+                    createDto.getOrderItemId(),
+                    createDto.getContent(),
+                    createDto.getRating(),
+                    createDto.getTempFilePath()
+            );
             return ResponseEntity.ok(styleId);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

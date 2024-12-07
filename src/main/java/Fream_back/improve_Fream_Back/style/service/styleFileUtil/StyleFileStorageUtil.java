@@ -10,8 +10,8 @@ import java.util.UUID;
 @Component
 public class StyleFileStorageUtil {
 
-    private static final String TEMP_DIR = "styleTemp/";
-    private static final String IMAGE_DIR = "styleImages/";
+    private static final String STYLE_TEMP_DIR = "styleTemp/";
+    private static final String STYLE_IMAGE_DIR = "styleImages/";
 
     /**
      * 임시 파일 저장 메서드
@@ -31,7 +31,7 @@ public class StyleFileStorageUtil {
         }
 
         String uniqueFileName = UUID.randomUUID() + extension;
-        Path tempFilePath = Paths.get(TEMP_DIR + uniqueFileName);
+        Path tempFilePath = Paths.get( STYLE_TEMP_DIR + uniqueFileName);
 
         // 디렉토리가 없으면 생성
         if (!Files.exists(tempFilePath.getParent())) {
@@ -40,8 +40,7 @@ public class StyleFileStorageUtil {
 
         // 파일 저장
         file.transferTo(tempFilePath.toFile());
-
-        return TEMP_DIR + uniqueFileName;
+        return  STYLE_TEMP_DIR + uniqueFileName;
     }
 
     /**
@@ -66,7 +65,7 @@ public class StyleFileStorageUtil {
         }
 
         String uniqueFileName = "style_" + styleId + "_" + UUID.randomUUID() + extension;
-        Path permanentFilePath = Paths.get(IMAGE_DIR + uniqueFileName);
+        Path permanentFilePath = Paths.get( STYLE_IMAGE_DIR + uniqueFileName);
 
         // 디렉토리가 없으면 생성
         if (!Files.exists(permanentFilePath.getParent())) {
@@ -77,7 +76,7 @@ public class StyleFileStorageUtil {
         Path tempPath = Paths.get(tempFilePath);
         Files.move(tempPath, permanentFilePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return IMAGE_DIR + uniqueFileName;
+        return  STYLE_IMAGE_DIR + uniqueFileName;
     }
 
     /**

@@ -28,6 +28,7 @@ public class ProductController {
      */
     @PostMapping("/temporary-url")
     public ResponseEntity<String> createTemporaryUrl(@RequestParam("file") MultipartFile file) {
+//        String tempUrl = productService.createTemporaryUrl(file);
         String tempUrl = productService.createTemporaryUrl(file);
         return ResponseEntity.ok(tempUrl);
     }

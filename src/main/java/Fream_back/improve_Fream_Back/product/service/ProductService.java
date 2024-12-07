@@ -66,7 +66,9 @@ public class ProductService {
      */
     public String createTemporaryUrl(MultipartFile file) {
         try {
-            return fileStorageUtil.saveTemporaryFile(file);
+            String tempFilePath = fileStorageUtil.saveTemporaryFile(file);
+            return tempFilePath;
+//            return fileStorageUtil.saveTemporaryFile(file);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save temporary file", e);
         }
@@ -131,10 +133,10 @@ public class ProductService {
                 }
             });
         });
-
+        System.out.println("soutv_productDto = " + productDto);
         // 이미지 저장 처리
         productDto.getImages().forEach(imageDto -> {
-            System.out.println("imageDto.getImageUrl() = " + imageDto.getImageUrl());
+            System.out.println("imageDto.getImageUrl() = " + imageDto.getTemp_Url());
             try {
                 String permanentPath = fileStorageUtil.moveToPermanentStorage(imageDto.getTemp_Url(), product.getId());
                 ProductImage productImage = ProductImage.builder()

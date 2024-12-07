@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.order.entity.Order;
 import Fream_back.improve_Fream_Back.order.entity.OrderItem;
 import Fream_back.improve_Fream_Back.order.repository.OrderItemRepository;
 import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
+import Fream_back.improve_Fream_Back.style.dto.StyleCreateDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleResponseDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleSearchDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleUpdateDto;
@@ -107,26 +108,52 @@ class StyleServiceTest {
     @DisplayName("스타일 생성 - 성공적으로 스타일 ID 반환")
     void createStyle_ShouldReturnStyleId() throws Exception {
         // Given
+        Long userId = 1L;
+        Long orderItemId = 1L;
         String content = "Test Content";
         Integer rating = 5;
         String tempFilePath = "temp/path/file.jpg";
         String finalFilePath = "final/path/file.jpg";
 
-        MultipartFile mockFile = mock(MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("file.jpg");
-        when(fileStorageUtil.saveTemporaryFile(mockFile)).thenReturn(tempFilePath);
-        when(fileStorageUtil.moveToPermanentStorage(tempFilePath, testOrderItem.getId())).thenReturn(finalFilePath);
+        StyleCreateDto createDto = new StyleCreateDto(
+                userId,
+                orderItemId,
+                content,
+                rating,
+                tempFilePath
+        );
+
+        Style mockStyle = Style.builder()
+                .id(1L)
+                .user(testUser)
+                .orderItem(testOrderItem)
+                .content(content)
+                .rating(rating)
+                .imageUrl(finalFilePath)
+                .build();
+
+        // Mock 설정
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        when(orderItemRepository.findById(orderItemId)).thenReturn(Optional.of(testOrderItem));
+        when(styleRepository.save(any(Style.class))).thenReturn(mockStyle);
+        when(fileStorageUtil.moveToPermanentStorage(tempFilePath, mockStyle.getId())).thenReturn(finalFilePath);
 
         // When
-        Long styleId = styleService.createStyle(testUser.getId(), testOrderItem.getId(), content, rating, mockFile);
+        Long styleId = styleService.createStyle(
+                createDto.getUserId(),
+                createDto.getOrderItemId(),
+                createDto.getContent(),
+                createDto.getRating(),
+                createDto.getTempFilePath()
+        );
 
         // Then
         assertNotNull(styleId);
-        Style createdStyle = styleRepository.findById(styleId).orElse(null);
-        assertNotNull(createdStyle);
-        assertEquals(content, createdStyle.getContent());
-        assertEquals(rating, createdStyle.getRating());
+        assertEquals(mockStyle.getId(), styleId);
+        verify(styleRepository, times(1)).save(any(Style.class));
+        verify(fileStorageUtil, times(1)).moveToPermanentStorage(tempFilePath, mockStyle.getId());
     }
+
 
     @Test
     @DisplayName("스타일 수정 - 성공적으로 수정된 스타일 ID 반환")
@@ -182,21 +209,40 @@ class StyleServiceTest {
     void getStyleById_ShouldReturnStyleResponseDto() {
         // Given
         Style style = Style.builder()
+                .id(1L) // Mock 데이터 ID 설정
                 .user(testUser)
                 .orderItem(testOrderItem)
                 .content("Test Content")
                 .rating(5)
                 .build();
-        styleRepository.save(style);
+
+        StyleResponseDto expectedResponse = new StyleResponseDto(
+                style.getId(),
+                style.getContent(),
+                style.getRating(),
+                "image.jpg", // Mock 이미지 URL
+                null, // Mock 비디오 URL
+                LocalDateTime.now(), // 생성일
+                testUser.getNickname(),
+                testOrderItem.getId(), // Mock Product ID
+                "Test Product", // Mock Product Name
+                "Test Brand", // Mock Product Brand
+                "thumb.jpg" // Mock Product Thumbnail
+        );
+
+        // Mock 설정
+        when(styleRepository.save(any(Style.class))).thenReturn(style);
+        when(styleRepository.findStyleById(style.getId())).thenReturn(expectedResponse);
 
         // When
         StyleResponseDto result = styleService.getStyleById(style.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(style.getId(), result.getId());
-        assertEquals(style.getContent(), result.getContent());
-        assertEquals(testUser.getNickname(), result.getUserNickname());
+        assertEquals(expectedResponse.getId(), result.getId());
+        assertEquals(expectedResponse.getContent(), result.getContent());
+        assertEquals(expectedResponse.getUserNickname(), result.getUserNickname());
+        verify(styleRepository, times(1)).findStyleById(style.getId());
     }
 
     @Test

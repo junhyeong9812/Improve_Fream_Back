@@ -4,6 +4,10 @@ spring:
     username: sa
     password:   # 비밀번호가 있을 경우 추가
     driver-class-name: org.h2.Driver
+  servlet:
+    multipart:
+      max-file-size: 1GB  # 업로드 가능한 최대 파일 크기
+      max-request-size: 1GB  # 요청의 전체 크기
 
   jpa:
     hibernate:

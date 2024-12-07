@@ -25,14 +25,14 @@ public class StyleService {
     private final StyleRepository styleRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
-    private final StyleFileStorageUtil fileStorageUtil;
+    private final StyleFileStorageUtil StylefileStorageUtil;
 
     public StyleService(StyleRepository styleRepository, UserRepository userRepository,
-                        OrderItemRepository orderItemRepository, StyleFileStorageUtil fileStorageUtil) {
+                        OrderItemRepository orderItemRepository, StyleFileStorageUtil StylefileStorageUtil) {
         this.styleRepository = styleRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
-        this.fileStorageUtil = fileStorageUtil;
+        this.StylefileStorageUtil = StylefileStorageUtil;
     }
     /**
      * 파일 임시 저장 로직
@@ -47,11 +47,10 @@ public class StyleService {
         }
 
         // 파일을 임시 디렉토리에 저장
-        return fileStorageUtil.saveTemporaryFile(file);
+        return StylefileStorageUtil.saveTemporaryFile(file);
     }
-
-    public Long createStyle(Long userId, Long orderItemId, String content, Integer rating,
-                             MultipartFile file) throws IOException {
+    //style저장
+    public Long createStyle(Long userId, Long orderItemId, String content, Integer rating, String tempFilePath) throws IOException {
         // 유저와 주문 상품 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
@@ -61,17 +60,6 @@ public class StyleService {
         // 주문 상품의 주문이 결제 완료되었는지 확인
         if (!orderItem.getOrder().isPaymentCompleted()) {
             throw new IllegalStateException("결제가 완료되지 않은 주문에 대해서는 스타일을 작성할 수 없습니다.");
-        }
-
-        // 파일 처리
-        String tempFilePath = fileStorageUtil.saveTemporaryFile(file);
-        String finalFilePath;
-
-        // 파일 확장자 확인
-        String originalFileName = file.getOriginalFilename();
-        String extension = "";
-        if (originalFileName != null && originalFileName.contains(".")) {
-            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
         }
 
         // Style 엔티티 생성 및 저장
@@ -84,19 +72,67 @@ public class StyleService {
         Style savedStyle = styleRepository.save(style);
 
         // 파일을 영구 저장소로 이동
-        finalFilePath = fileStorageUtil.moveToPermanentStorage(tempFilePath, savedStyle.getId());
+        String finalFilePath = StylefileStorageUtil.moveToPermanentStorage(tempFilePath, savedStyle.getId());
 
         // 이미지 또는 비디오 URL 설정
-        if (extension.equals(".jpg") || extension.equals(".jpeg") || extension.equals(".png") || extension.equals(".gif")) {
+        if (finalFilePath.endsWith(".jpg") || finalFilePath.endsWith(".jpeg") || finalFilePath.endsWith(".png") || finalFilePath.endsWith(".gif")) {
             savedStyle.updateStyle(content, rating, finalFilePath, null);
-        } else if (extension.equals(".mp4") || extension.equals(".avi") || extension.equals(".mov")) {
+        } else if (finalFilePath.endsWith(".mp4") || finalFilePath.endsWith(".avi") || finalFilePath.endsWith(".mov")) {
             savedStyle.updateStyle(content, rating, null, finalFilePath);
         } else {
             throw new IllegalArgumentException("지원하지 않는 파일 형식입니다.");
         }
 
-        return  savedStyle.getId();
+        return savedStyle.getId();
     }
+
+//    public Long createStyle(Long userId, Long orderItemId, String content, Integer rating,
+//                             MultipartFile file) throws IOException {
+//        // 유저와 주문 상품 조회
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+//        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문 상품입니다."));
+//
+//        // 주문 상품의 주문이 결제 완료되었는지 확인
+//        if (!orderItem.getOrder().isPaymentCompleted()) {
+//            throw new IllegalStateException("결제가 완료되지 않은 주문에 대해서는 스타일을 작성할 수 없습니다.");
+//        }
+//
+//        // 파일 처리
+//        String tempFilePath = fileStorageUtil.saveTemporaryFile(file);
+//        String finalFilePath;
+//
+//        // 파일 확장자 확인
+//        String originalFileName = file.getOriginalFilename();
+//        String extension = "";
+//        if (originalFileName != null && originalFileName.contains(".")) {
+//            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+//        }
+//
+//        // Style 엔티티 생성 및 저장
+//        Style style = Style.builder()
+//                .user(user)
+//                .orderItem(orderItem)
+//                .content(content)
+//                .rating(rating)
+//                .build();
+//        Style savedStyle = styleRepository.save(style);
+//
+//        // 파일을 영구 저장소로 이동
+//        finalFilePath = fileStorageUtil.moveToPermanentStorage(tempFilePath, savedStyle.getId());
+//
+//        // 이미지 또는 비디오 URL 설정
+//        if (extension.equals(".jpg") || extension.equals(".jpeg") || extension.equals(".png") || extension.equals(".gif")) {
+//            savedStyle.updateStyle(content, rating, finalFilePath, null);
+//        } else if (extension.equals(".mp4") || extension.equals(".avi") || extension.equals(".mov")) {
+//            savedStyle.updateStyle(content, rating, null, finalFilePath);
+//        } else {
+//            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다.");
+//        }
+//
+//        return  savedStyle.getId();
+//    }
     // 수정 로직
     public Long updateStyle(Long styleId, StyleUpdateDto updateDto) throws IOException {
         // 스타일 조회
@@ -113,14 +149,14 @@ public class StyleService {
         if (updateDto.getTempFilePath() != null && !updateDto.getTempFilePath().isBlank()) {
             // 기존 파일 삭제
             if (style.getImageUrl() != null) {
-                fileStorageUtil.deleteFile(style.getImageUrl());
+                StylefileStorageUtil.deleteFile(style.getImageUrl());
             }
             if (style.getVideoUrl() != null) {
-                fileStorageUtil.deleteFile(style.getVideoUrl());
+                StylefileStorageUtil.deleteFile(style.getVideoUrl());
             }
 
             // 새 파일 이동
-            newFilePath = fileStorageUtil.moveToPermanentStorage(updateDto.getTempFilePath(), style.getId());
+            newFilePath = StylefileStorageUtil.moveToPermanentStorage(updateDto.getTempFilePath(), style.getId());
         }
 
         // 파일 타입에 따라 업데이트
@@ -155,10 +191,10 @@ public class StyleService {
 
         // 관련 파일 삭제
         if (style.getImageUrl() != null) {
-            fileStorageUtil.deleteFile(style.getImageUrl());
+            StylefileStorageUtil.deleteFile(style.getImageUrl());
         }
         if (style.getVideoUrl() != null) {
-            fileStorageUtil.deleteFile(style.getVideoUrl());
+            StylefileStorageUtil.deleteFile(style.getVideoUrl());
         }
 
         // 스타일 삭제

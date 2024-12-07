@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.style.dto.StyleSearchDto;
 import Fream_back.improve_Fream_Back.style.entity.Style;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
