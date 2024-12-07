@@ -413,7 +413,7 @@ size
 brand
 sortBy
 Response (200 OK)
-  ```json
+```json
 [
   {
     "id": 1,
@@ -427,7 +427,7 @@ Response (200 OK)
   }
 ]
 ```
-이 명세서를 Markdown 형식으로 사용하면 바로 문서화할 수 있습니다! 추가 요청이 있으면 말씀해주세요.
+
 
 
 ---
@@ -762,8 +762,7 @@ Query Parameters:
 shipmentStatus (Optional): DELIVERED
 includePayments (Optional): true
 Response:
-json
-코드 복사
+```json
 [
   {
     "orderId": 1,
@@ -774,12 +773,12 @@ json
     "paymentCompleted": true
   }
 ]
+```
 7. 특정 주문의 결제 정보 조회
 URL: /order/{orderId}/payment
 Method: GET
 Response:
-json
-코드 복사
+```json
 {
   "paymentId": 1,
   "paymentMethod": "CARD",
@@ -787,6 +786,7 @@ json
   "paymentDate": "2024-11-29",
   "isSuccessful": true
 }
+```
 8. 특정 주문의 배송 정보 조회
 URL: /order/{orderId}/shipment
 Method: GET
