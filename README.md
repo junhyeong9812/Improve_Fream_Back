@@ -254,11 +254,14 @@ SpringDataJpa
 
 ```
 - Status Code: **404 Not Found**
-- ```json
+-
+```json
 
 ```
 
-Order API
+
+
+### Order API
 1. 주문 생성
 URL: /order
 Method: POST
