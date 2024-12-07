@@ -29,16 +29,17 @@ SpringDataJpa
 
 - 2차 프로젝트 :24년 11월 25일~ 24년 12월 6일
 - 2차 프로젝트 :
-  -주문,결제내역,쉽먼트,스타일 엔티티 구현
-  -주문 생성
-  -주문 상세 조회
-  -주문 결제 완료 및 배송 준비 상태로 업데이트
-  -배송 상태 업데이트
-  -결제 환불 처리
-  -주문 목록 조회 (필터링 지원)
-  -주문 결제 및 배송 정보 조회
-  -특정 주문의 결제 정보 조회
-  -특정 주문의 배송 정보 조회
+
+  - 주문,결제내역,쉽먼트,스타일 엔티티 구현
+  - 주문 생성
+  - 주문 상세 조회
+  - 주문 결제 완료 및 배송 준비 상태로 업데이트
+  - 배송 상태 업데이트
+  - 결제 환불 처리
+  - 주문 목록 조회 (필터링 지원)
+  - 주문 결제 및 배송 정보 조회
+  - 특정 주문의 결제 정보 조회
+  - 특정 주문의 배송 정보 조회
   - style 구현을 통한 짧은 영상 및 사진 공유 api 구현(완)
 
 - 2차 프로렉트 미완성 부분 정리 :
@@ -66,6 +67,368 @@ SpringDataJpa
 
 
 # API 명세서
+### 1. 사용자(User) API
+## 1.1 로그인
+- **URL**: /api/users/login
+- **Method**: POST
+- **Description**: 사용자의 loginId와 password로 로그인. 성공 시 JWT 토큰 발급 및 사용자 정보를 반환.
+### Request Body
+```json
+{
+  "loginId": "string",
+  "password": "string"
+}
+```
+### Response (200 OK)
+```json
+{
+  "message": "Login successful.",
+  "loginId": "string",
+  "nickname": "string",
+  "token": null
+}
+```
+### Response (401 Unauthorized)
+```json
+{
+  "message": "Invalid credentials.",
+  "loginId": null,
+  "nickname": null,
+  "token": null
+}
+```
+## 1.2 로그아웃
+- **URL**: /api/users/logout
+- **Method**: POST
+- **Description**: 현재 사용 중인 JWT 토큰을 무효화.
+Headers
+Authorization: Bearer <token>
+Response (200 OK)
+```text
+Logout successful.
+```
+Response (400 Bad Request)
+``` text
+Invalid token.
+```
+## 1.3 아이디 찾기 (전화번호)
+- **URL: /api/users/find-loginId/phone
+- **Method: POST
+- **Description: 사용자의 전화번호로 loginId 조회.
+### Request Body
+```json
+{
+  "phoneNumber": "string"
+}
+```
+Response (200 OK)
+```json
+{
+  "loginId": "string"
+}
+```
+Response (404 Not Found)
+```json
+null
+```
+## 1.4 아이디 찾기 (이메일)
+- **URL: /api/users/find-loginId/email
+- **Method: POST
+- **Description: 사용자의 이메일로 loginId 조회.
+### Request Body
+```json
+{
+  "email": "string"
+}
+```
+Response (200 OK)
+```json
+{
+  "loginId": "string"
+}
+```
+Response (404 Not Found)
+``` json
+null
+```
+## 1.5 비밀번호 재설정 요청
+- **URL: /api/users/password-reset/request
+- **Method: POST
+- **Description: 비밀번호 재설정을 위한 사용자 검증 요청.
+### Request Body
+```json
+{
+  "loginId": "string",
+  "phoneNumber": "string",
+  "email": "string"
+}
+```
+Response (200 OK)
+```text
+User validated for password reset.
+```
+Response (404 Not Found)
+``` text
+User not found or invalid details.
+```
+## 1.6 비밀번호 업데이트
+- **URL: /api/users/password-reset/update
+- **Method: POST
+- **Description: 사용자 비밀번호 변경.
+### Request Body
+```json
+{
+  "loginId": "string",
+  "newPassword": "string"
+}
+```
+Response (200 OK)
+``` text
+Password updated successfully.
+```
+Response (404 Not Found)
+``` text
+User not found.
+```
+## 1.7 로그인 아이디 중복 확인
+- **URL: /api/users/check-duplicate
+- **Method: GET
+- **Description: 로그인 ID의 중복 여부 확인.
+Query Parameters
+loginId: string
+Response (200 OK)
+```text
+"ok": 중복되지 않음.
+"duplicate": 중복됨.
+```
+## 1.8 회원가입
+- **URL: /api/users/signup
+- **Method: POST
+- **Description: 새로운 사용자 등록.
+### Request Body
+```json
+{
+  "loginId": "string",
+  "password": "string",
+  "nickname": "string",
+  "realName": "string",
+  "phoneNumber": "string",
+  "email": "string",
+  "phoneNotificationConsent": false,
+  "emailNotificationConsent": false
+}
+```
+Response (200 OK)
+```json
+{
+  "id": 1,
+  "loginId": "string",
+  "nickname": "string",
+  "realName": "string",
+  "phoneNumber": "string",
+  "email": "string",
+  "role": "USER"
+}
+```
+### 2. 배송지(Delivery) API
+## 2.1 배송지 추가
+- **URL: /api/deliveries/add
+- **Method: POST
+- **Description: 배송지 추가 요청.
+### Request Body
+```json
+{
+  "recipientName": "string",
+  "phoneNumber": "string",
+  "address": "string",
+  "addressDetail": "string",
+  "zipCode": "string",
+  "isDefault": true
+}
+```
+Response (200 OK)
+``` text
+배송지가 성공적으로 추가되었습니다.
+```
+## 2.2 배송지 목록 조회
+- **URL: /api/deliveries/list
+- **Method: GET
+- **Description: 특정 사용자의 모든 배송지 목록 조회.
+Query Parameters
+loginId: string
+Response (200 OK)
+```json
+[
+  {
+    "id": 1,
+    "recipientName": "string",
+    "phoneNumber": "string",
+    "address": "string",
+    "addressDetail": "string",
+    "zipCode": "string",
+    "isDefault": true
+  }
+]
+```
+## 2.3 배송지 수정
+- **URL: /api/deliveries/update
+- **Method: PUT
+- **Description: 배송지 수정 요청.
+### Request Body
+```json
+{
+  "id": 1,
+  "recipientName": "string",
+  "phoneNumber": "string",
+  "address": "string",
+  "addressDetail": "string",
+  "zipCode": "string",
+  "isDefault": true
+}
+```
+Response (200 OK)
+``` text
+배송지 정보가 성공적으로 수정되었습니다.
+```
+## 2.4 배송지 삭제
+- **URL: /api/deliveries/delete
+- **Method: DELETE
+- **Description: 특정 배송지 삭제.
+### Request Body
+```json
+{
+  "id": 1
+}
+```
+Response (200 OK)
+``` text
+배송지가 성공적으로 삭제되었습니다.
+```
+### 3. 상품(Product) API
+## 3.1 임시 URL 생성
+- **URL: /api/products/temporary-url
+- **Method: POST
+- **Description: 이미지 업로드 후 임시 URL 생성.
+Request Parameters
+file: <image_file>
+Response (200 OK)
+```text
+
+temp/<file_path>
+```
+3.2 상품 생성
+URL: /api/products
+Method: POST
+Description: 새로운 상품 등록.
+### Request Body
+```json
+{
+  "name": "string",
+  "brand": "string",
+  "mainCategoryId": 1,
+  "subCategoryId": 2,
+  "initialPrice": 100.00,
+  "description": "string",
+  "releaseDate": "2024-12-01",
+  "images": [
+    {
+      "imageName": "string",
+      "temp_Url": "string",
+      "imageType": "string",
+      "isMainThumbnail": true
+    }
+  ],
+  "sizeAndColorQuantities": [
+    {
+      "sizeType": "string",
+      "clothingSizes": ["M", "L"],
+      "colors": ["RED", "BLUE"],
+      "quantity": 15
+    }
+  ]
+}
+```
+Response (200 OK)
+```json
+{
+  "id": 1
+}
+```
+## 3.3 상품 수정
+- **URL: /api/products/{productId}
+- **Method: PUT
+- **Description: 상품 정보 수정.
+### Request Body
+```json
+{
+  "name": "string",
+  "brand": "string",
+  "mainCategoryId": 1,
+  "subCategoryId": 2,
+  "initialPrice": 100.00,
+  "description": "string",
+  "releaseDate": "2024-12-01",
+  "images": [...],
+  "sizeAndColorQuantities": [...]
+}
+```
+Response (200 OK)
+```json
+{
+  "id": 1
+}
+```
+## 3.4 상품 삭제
+- **URL: /api/products/{productId}
+- **Method: DELETE
+- **Description: 상품 삭제 요청.
+Response (200 OK)
+text
+코드 복사
+상품이 성공적으로 삭제되었습니다.
+## 3.5 단일 상품 조회
+URL: /api/products/{productId}
+Method: GET
+Description: 상품 상세 조회.
+Response (200 OK)
+  ```json
+{
+  "id": 1,
+  "name": "string",
+  "brand": "string",
+  "description": "string",
+  "images": [...],
+  "sizeAndColorQuantities": [...]
+}
+```
+## 3.6 필터링된 상품 조회
+- **URL: /api/products/filter
+- **Method: GET
+- **Description: 필터 조건에 따른 상품 목록 조회.
+Query Parameters
+mainCategoryId
+subCategoryId
+color
+size
+brand
+sortBy
+Response (200 OK)
+  ```json
+[
+  {
+    "id": 1,
+    "name": "string",
+    "brand": "string",
+    "mainCategoryName": "string",
+    "subCategoryName": "string",
+    "colors": ["RED", "BLUE"],
+    "sizes": ["M", "L"],
+    "quantity": 15
+  }
+]
+```
+이 명세서를 Markdown 형식으로 사용하면 바로 문서화할 수 있습니다! 추가 요청이 있으면 말씀해주세요.
+
 
 ---
 
