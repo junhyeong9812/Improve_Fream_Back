@@ -1,8 +1,12 @@
 package Fream_back.improve_Fream_Back.style.controller;
 
+import Fream_back.improve_Fream_Back.style.dto.StyleResponseDto;
+import Fream_back.improve_Fream_Back.style.dto.StyleSearchDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleUpdateDto;
 import Fream_back.improve_Fream_Back.style.entity.Style;
 import Fream_back.improve_Fream_Back.style.service.StyleService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,8 +39,8 @@ public class StyleController {
                                          @RequestParam(required = false) Integer rating,
                                          @RequestParam MultipartFile file) {
         try {
-            Style style = styleService.createStyle(userId, orderItemId, content, rating, file);
-            return ResponseEntity.ok(style);
+            Long styleId = styleService.createStyle(userId, orderItemId, content, rating, file);
+            return ResponseEntity.ok(styleId);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -46,8 +50,8 @@ public class StyleController {
     public ResponseEntity<?> updateStyle(@PathVariable Long styleId,
                                          @RequestBody StyleUpdateDto updateDto) {
         try {
-            Style updatedStyle = styleService.updateStyle(styleId, updateDto);
-            return ResponseEntity.ok(updatedStyle);
+            Long updatedStyleId = styleService.updateStyle(styleId, updateDto);
+            return ResponseEntity.ok(updatedStyleId);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -59,6 +63,24 @@ public class StyleController {
         try {
             styleService.deleteStyle(styleId, userId);
             return ResponseEntity.ok("스타일이 성공적으로 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PostMapping("/search")
+    public Page<StyleResponseDto> searchStyles(
+            @RequestBody StyleSearchDto searchDto,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return styleService.getPagedStyles(searchDto, pageable);
+    }
+    @GetMapping("/{styleId}")
+    public ResponseEntity<?> getStyleById(@PathVariable Long styleId) {
+        try {
+            StyleResponseDto style = styleService.getStyleById(styleId);
+            return ResponseEntity.ok(style);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

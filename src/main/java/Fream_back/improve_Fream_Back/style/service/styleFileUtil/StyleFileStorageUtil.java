@@ -1,4 +1,4 @@
-package Fream_back.improve_Fream_Back.style.service.fileUtil;
+package Fream_back.improve_Fream_Back.style.service.styleFileUtil;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;

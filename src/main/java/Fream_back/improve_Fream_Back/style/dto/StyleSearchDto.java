@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StyleUpdateDto {
-    private Long userId;
-    private String content;
-    private Integer rating;
-    private String tempFilePath; // 새 파일 경로
+public class StyleSearchDto {
+    private Long userId;      // 검색할 사용자 ID
+    private Long productId;   // 검색할 상품 ID
+    private String keyword;   // 검색어
 }

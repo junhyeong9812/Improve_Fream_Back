@@ -2,12 +2,16 @@ package Fream_back.improve_Fream_Back.style.service;
 
 import Fream_back.improve_Fream_Back.order.entity.OrderItem;
 import Fream_back.improve_Fream_Back.order.repository.OrderItemRepository;
+import Fream_back.improve_Fream_Back.style.dto.StyleResponseDto;
+import Fream_back.improve_Fream_Back.style.dto.StyleSearchDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleUpdateDto;
 import Fream_back.improve_Fream_Back.style.entity.Style;
 import Fream_back.improve_Fream_Back.style.repository.StyleRepository;
-import Fream_back.improve_Fream_Back.style.service.fileUtil.StyleFileStorageUtil;
+import Fream_back.improve_Fream_Back.style.service.styleFileUtil.StyleFileStorageUtil;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,7 +50,7 @@ public class StyleService {
         return fileStorageUtil.saveTemporaryFile(file);
     }
 
-    public Style createStyle(Long userId, Long orderItemId, String content, Integer rating,
+    public Long createStyle(Long userId, Long orderItemId, String content, Integer rating,
                              MultipartFile file) throws IOException {
         // 유저와 주문 상품 조회
         User user = userRepository.findById(userId)
@@ -91,10 +95,10 @@ public class StyleService {
             throw new IllegalArgumentException("지원하지 않는 파일 형식입니다.");
         }
 
-        return savedStyle;
+        return  savedStyle.getId();
     }
     // 수정 로직
-    public Style updateStyle(Long styleId, StyleUpdateDto updateDto) throws IOException {
+    public Long updateStyle(Long styleId, StyleUpdateDto updateDto) throws IOException {
         // 스타일 조회
         Style style = styleRepository.findById(styleId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스타일입니다."));
@@ -135,7 +139,7 @@ public class StyleService {
             style.updateStyle(updateDto.getContent(), updateDto.getRating(), style.getImageUrl(), style.getVideoUrl());
         }
 
-        return style;
+        return style.getId();
     }
 
     // 삭제 로직
@@ -159,5 +163,15 @@ public class StyleService {
 
         // 스타일 삭제
         styleRepository.delete(style);
+    }
+
+    //스타일 목록 조회
+    public Page<StyleResponseDto> getPagedStyles(StyleSearchDto searchDto, Pageable pageable) {
+        return styleRepository.searchStyles(searchDto, pageable);
+    }
+
+    //단일 스타일 조회
+    public StyleResponseDto getStyleById(Long styleId) {
+        return styleRepository.findStyleById(styleId);
     }
 }
