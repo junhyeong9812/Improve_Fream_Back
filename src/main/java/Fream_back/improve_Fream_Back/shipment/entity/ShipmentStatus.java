@@ -8,5 +8,6 @@ public enum ShipmentStatus {
     OUT_FOR_DELIVERY, // 배달 중
     DELIVERED,     // 배송 완료
     RETURNED,      // 반송 처리됨
-    CANCELED       // 배송 취소됨
+    CANCELED,       // 배송 취소됨
+    REFUND_PENDING // 환불 대기 중
 }

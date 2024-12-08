@@ -1,8 +1,11 @@
 package Fream_back.improve_Fream_Back.order.controller;
 
 import Fream_back.improve_Fream_Back.order.dto.OrderCreateRequestDto;
+import Fream_back.improve_Fream_Back.order.dto.OrderDetailsDto;
 import Fream_back.improve_Fream_Back.order.dto.OrderResponseDto;
 import Fream_back.improve_Fream_Back.order.service.OrderService;
+import Fream_back.improve_Fream_Back.payment.dto.PaymentDetailsDto;
+import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.dto.PaymentResponseDto;
 import Fream_back.improve_Fream_Back.shipment.dto.ShipmentResponseDto;
 import Fream_back.improve_Fream_Back.shipment.dto.ShipmentUpdateRequestDto;
@@ -37,8 +40,8 @@ public class OrderController {
      * 주문 상세 조회
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponseDto> getOrderDetails(@PathVariable("orderId") Long orderId) {
-        OrderResponseDto responseDto = orderService.getOrderDetails(orderId);
+    public ResponseEntity<OrderDetailsDto> getOrderDetails(@PathVariable("orderId") Long orderId) {
+        OrderDetailsDto responseDto = orderService.getOrderDetailsWithPaymentAndShipment(orderId);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -48,10 +51,10 @@ public class OrderController {
     @PostMapping("/{orderId}/complete-payment")
     public ResponseEntity<String> completeOrderPayment(
             @PathVariable("orderId") Long orderId,
-            @RequestParam String paymentMethod,
-            @RequestParam BigDecimal amount
+            @RequestParam Long paymentId,
+            @RequestBody PaymentRequestDto paymentRequestDto
     ) {
-        orderService.processPaymentAndShipment(orderId, paymentMethod, amount);
+        orderService.processPaymentAndShipment(orderId, paymentId, paymentRequestDto);
         return ResponseEntity.ok("Order payment completed and shipment created.");
     }
 
@@ -71,9 +74,29 @@ public class OrderController {
      * 결제 환불 처리
      */
     @PostMapping("/{orderId}/refund")
-    public ResponseEntity<String> refundPayment(@PathVariable("orderId") Long orderId) {
-        paymentService.refundPayment(orderId);
-        return ResponseEntity.ok("Payment refunded successfully.");
+    public ResponseEntity<String> refundOrder(@PathVariable("orderId") Long orderId) {
+        orderService.cancelOrderWithRefund(orderId);
+        return ResponseEntity.ok("Order refund initiated successfully.");
+    }
+
+    /**
+     * 환불 대기 상태의 주문 처리
+     */
+    @PostMapping("/{orderId}/process-refund")
+    public ResponseEntity<String> processPendingRefund(@PathVariable("orderId") Long orderId) {
+        orderService.processRefundForPendingOrder(orderId);
+        return ResponseEntity.ok("Pending refund processed successfully.");
+    }
+
+    /**
+     * 환불 대기 주문 목록 조회
+     */
+    @GetMapping("/user/{userId}/refund-pending")
+    public ResponseEntity<List<OrderResponseDto>> getRefundPendingOrders(
+            @PathVariable("userId") Long userId
+    ) {
+        List<OrderResponseDto> orders = orderService.getRefundPendingOrders(userId);
+        return ResponseEntity.ok(orders);
     }
 
     /**
@@ -81,7 +104,7 @@ public class OrderController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponseDto>> getOrdersWithFilters(
-            @PathVariable("orderId") Long userId,
+            @PathVariable("userId") Long userId,
             @RequestParam(required = false) String shipmentStatus,
             @RequestParam(defaultValue = "false") boolean includePayments
     ) {
@@ -90,19 +113,11 @@ public class OrderController {
     }
 
     /**
-     * 주문 결제 및 배송 정보 조회
-     */
-    @GetMapping("/{orderId}/details")
-    public ResponseEntity<OrderResponseDto> getOrderDetailsWithPaymentAndShipment(@PathVariable("orderId") Long orderId) {
-        OrderResponseDto responseDto = orderService.getOrderDetailsWithPaymentAndShipment(orderId);
-        return ResponseEntity.ok(responseDto);
-    }
-    /**
      * 특정 주문의 결제 정보 조회
      */
     @GetMapping("/{orderId}/payment")
-    public ResponseEntity<PaymentResponseDto> getPaymentDetails(@PathVariable("orderId") Long orderId) {
-        PaymentResponseDto responseDto = paymentService.getPaymentDetailsByOrder(orderId);
+    public ResponseEntity<PaymentDetailsDto> getPaymentDetails(@PathVariable("orderId") Long orderId) {
+        PaymentDetailsDto responseDto = paymentService.getPaymentDetailsByOrder(orderId);
         return ResponseEntity.ok(responseDto);
     }
 

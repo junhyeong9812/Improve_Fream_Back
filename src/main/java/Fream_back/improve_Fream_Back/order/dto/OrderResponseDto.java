@@ -24,4 +24,5 @@ public class OrderResponseDto {
     private String addressDetail;
     private String zipCode;
     private BigDecimal totalPrice;
+    private Long paymentId; // 결제 ID 추가
 }
