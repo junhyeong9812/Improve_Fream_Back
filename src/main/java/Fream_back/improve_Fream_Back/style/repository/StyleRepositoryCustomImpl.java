@@ -27,6 +27,16 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
     public StyleRepositoryCustomImpl(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
+    /**
+     * [스타일 검색 로직]
+     * - `StyleSearchDto`를 기준으로 스타일 목록을 검색하고, 페이징 처리된 결과를 반환.
+     * - 스타일과 관련된 사용자, 상품, 이미지 정보를 조인하여 필요한 데이터를 포함.
+     * - 검색 조건에 따라 유저 ID, 상품 ID, 키워드 검색 지원.
+     *
+     * @param searchDto 검색 조건 DTO
+     * @param pageable 페이징 정보를 포함한 객체
+     * @return 페이징 처리된 스타일 응답 DTO 리스트
+     */
     @Override
     public Page<StyleResponseDto> searchStyles(StyleSearchDto searchDto, Pageable pageable) {
         List<StyleResponseDto> results = queryFactory
@@ -89,47 +99,5 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
                 : null;
     }
 
-//    @Override
-//    public Page<Style> searchStyles(StyleSearchDto searchDto, Pageable pageable) {
-//        List<Style> results = queryFactory
-//                .selectFrom(style)
-//                .leftJoin(style.orderItem, orderItem).fetchJoin()
-//                .leftJoin(orderItem.product, product).fetchJoin()
-//                .where(
-//                        userIdEq(searchDto.getUserId()),
-//                        productIdEq(searchDto.getProductId()),
-//                        keywordContains(searchDto.getKeyword())
-//                )
-//                .orderBy(style.createdDate.desc())
-//                .offset(pageable.getOffset())
-//                .limit(pageable.getPageSize())
-//                .fetch();
-//
-//        long total = queryFactory
-//                .select(style.count())
-//                .from(style)
-//                .where(
-//                        userIdEq(searchDto.getUserId()),
-//                        productIdEq(searchDto.getProductId()),
-//                        keywordContains(searchDto.getKeyword())
-//                )
-//                .fetchOne();
-//
-//        return new PageImpl<>(results, pageable, total);
-//    }
-//
-//    private BooleanExpression userIdEq(Long userId) {
-//        return userId != null ? style.user.id.eq(userId) : null;
-//    }
-//
-//    private BooleanExpression productIdEq(Long productId) {
-//        return productId != null ? orderItem.product.id.eq(productId) : null;
-//    }
-//
-//    private BooleanExpression keywordContains(String keyword) {
-//        return keyword != null && !keyword.isBlank()
-//                ? product.name.containsIgnoreCase(keyword)
-//                .or(product.brand.containsIgnoreCase(keyword))
-//                : null;
-//    }
+
 }

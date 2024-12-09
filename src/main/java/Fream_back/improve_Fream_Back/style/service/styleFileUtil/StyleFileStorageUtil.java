@@ -14,12 +14,9 @@ public class StyleFileStorageUtil {
     private static final String STYLE_IMAGE_DIR = "styleImages/";
 
     /**
-     * 임시 파일 저장 메서드
-     * 업로드된 MultipartFile을 임시 경로에 저장하고 경로를 반환합니다.
-     *
-     * @param file 업로드된 이미지 또는 동영상 파일
-     * @return 저장된 임시 파일 경로
-     * @throws IOException 파일 저장 실패 시 예외
+     * [임시 파일 저장 로직]
+     * - 업로드된 파일을 고유한 이름으로 임시 저장소에 저장.
+     * - 저장된 파일 경로를 반환.
      */
     public String saveTemporaryFile(MultipartFile file) throws IOException {
         String originalFileName = file.getOriginalFilename();
@@ -44,13 +41,10 @@ public class StyleFileStorageUtil {
     }
 
     /**
-     * 실제 파일 저장 메서드
-     * 임시 파일을 실제 경로로 이동합니다.
-     *
-     * @param tempFilePath 임시 파일 경로
-     * @param styleId      스타일 ID
-     * @return 최종 저장된 파일 경로
-     * @throws IOException 파일 이동 실패 시 예외
+     * [실제 파일 저장 로직]
+     * - 임시 파일을 실제 저장소로 이동.
+     * - 스타일 ID와 UUID를 사용해 고유 파일명을 생성 후 저장.
+     * - 최종 저장된 파일 경로를 반환.
      */
     public String moveToPermanentStorage(String tempFilePath, Long styleId) throws IOException {
         // tempFilePath null 체크
@@ -80,11 +74,9 @@ public class StyleFileStorageUtil {
     }
 
     /**
-     * 파일 삭제 메서드
-     * 주어진 경로의 파일을 삭제합니다.
-     *
-     * @param filePath 삭제할 파일의 경로
-     * @throws IOException 파일 삭제 실패 시 예외
+     * [파일 삭제 로직]
+     * - 지정된 파일 경로의 파일을 삭제.
+     * - 파일이 없으면 삭제하지 않고 종료.
      */
     public void deleteFile(String filePath) throws IOException {
         Path fileToDelete = Paths.get(filePath);
