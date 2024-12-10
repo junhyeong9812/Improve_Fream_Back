@@ -183,4 +183,10 @@ public class NoticeService {
         String lowerCasePath = filePath.toLowerCase();
         return lowerCasePath.endsWith(".mp4") || lowerCasePath.endsWith(".avi") || lowerCasePath.endsWith(".mov");
     }
+
+    //검색 쿼리
+    public Page<NoticeResponseDto> searchNotices(String keyword, Pageable pageable) {
+        return noticeRepository.searchNotices(keyword, pageable)
+                .map(this::toResponseDto);
+    }
 }

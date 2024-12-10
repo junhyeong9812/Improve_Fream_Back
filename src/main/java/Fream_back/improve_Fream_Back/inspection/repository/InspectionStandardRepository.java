@@ -9,14 +9,21 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface InspectionStandardRepository extends JpaRepository<InspectionStandard, Long> {
-    // 단일 조회 시 이미지까지 조인하여 가져오기
-    @Query("SELECT is FROM InspectionStandard is " +
-            "LEFT JOIN FETCH is.images " +
-            "WHERE is.id = :id")
+public interface InspectionStandardRepository extends JpaRepository<InspectionStandard, Long>, InspectionStandardRepositoryCustom {
+    // 단일 조회: InspectionStandard와 InspectionStandardImage를 조인하여 조회
+    @Query("""
+        SELECT DISTINCT is 
+        FROM InspectionStandard is 
+        LEFT JOIN InspectionStandardImage isi ON isi.inspectionStandard.id = is.id
+        WHERE is.id = :id
+    """)
     Optional<InspectionStandard> findWithImagesById(@Param("id") Long id);
 
-    // 페이징 목록 조회
-    @Query("SELECT is FROM InspectionStandard is")
+    // 페이징 처리: InspectionStandard와 InspectionStandardImage를 조인하여 조회
+    @Query("""
+        SELECT DISTINCT is 
+        FROM InspectionStandard is 
+        LEFT JOIN InspectionStandardImage isi ON isi.inspectionStandard.id = is.id
+    """)
     Page<InspectionStandard> findAllWithPaging(Pageable pageable);
 }

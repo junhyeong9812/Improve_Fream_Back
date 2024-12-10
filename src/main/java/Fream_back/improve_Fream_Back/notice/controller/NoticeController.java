@@ -70,4 +70,16 @@ public class NoticeController {
         NoticeResponseDto response = noticeService.getNotice(noticeId);
         return ResponseEntity.ok(response);
     }
+
+    // 공지사항 검색
+    @GetMapping("/search")
+    public ResponseEntity<Page<NoticeResponseDto>> searchNotices(
+            @RequestParam(required = false) String keyword,
+            Pageable pageable
+    ) {
+        Page<NoticeResponseDto> results = noticeService.searchNotices(keyword, pageable);
+        return ResponseEntity.ok(results);
+    }
+
+
 }

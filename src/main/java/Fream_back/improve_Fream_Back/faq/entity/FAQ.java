@@ -24,4 +24,10 @@ public class FAQ {
     @Lob
     @Column(nullable = false)
     private String answer; // 답변 (A)
+
+    public void update(FAQCategory category, String question, String answer) {
+        this.category = category;
+        this.question = question;
+        this.answer = answer;
+    }
 }
