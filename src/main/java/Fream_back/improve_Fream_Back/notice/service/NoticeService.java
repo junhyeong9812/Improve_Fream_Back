@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -189,4 +192,37 @@ public class NoticeService {
         return noticeRepository.searchNotices(keyword, pageable)
                 .map(this::toResponseDto);
     }
+
+    //파일 응답
+    public byte[] getFilePreview(String fileName) throws IOException {
+        Path filePath = fileStorageUtil.getFilePath(fileName);
+
+        if (!Files.exists(filePath)) {
+            throw new NoSuchFileException("파일을 찾을 수 없습니다: " + fileName);
+        }
+
+        return Files.readAllBytes(filePath);
+    }
+
+    //카테고리 필터링
+    public Page<NoticeResponseDto> getNoticesByCategory(NoticeCategory category, Pageable pageable) {
+        return noticeRepository.findByCategory(category, pageable)
+                .map(notice -> NoticeResponseDto.builder()
+                        .id(notice.getId())
+                        .title(notice.getTitle())
+                        .content(notice.getContent())
+                        .category(notice.getCategory().toString()) // Enum -> String 변환
+                        .createdDate(notice.getCreatedDate())
+                        .updatedDate(notice.getModifiedDate())
+                        .imageUrls(getImageUrls(notice.getId())) // 이미지 URL 리스트 추가
+                        .build());
+    }
+
+    // 이미지 URL 리스트를 반환하는 메서드 추가
+    private List<String> getImageUrls(Long noticeId) {
+        return noticeImageRepository.findAllByNoticeId(noticeId).stream()
+                .map(NoticeImage::getImageUrl)
+                .toList(); // NoticeImage에서 imageUrl만 추출
+    }
+
 }

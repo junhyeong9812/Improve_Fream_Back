@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.notice.repository;
 
 import Fream_back.improve_Fream_Back.notice.entity.Notice;
+import Fream_back.improve_Fream_Back.notice.entity.NoticeCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long>,NoticeRepo
         LEFT JOIN NoticeImage ni ON ni.notice.id = n.id
     """)
     Page<Notice> findAllWithPaging(Pageable pageable);
+
+    @Query("SELECT n FROM Notice n WHERE n.category = :category ORDER BY n.createdDate DESC")
+    Page<Notice> findByCategory(@Param("category") NoticeCategory category, Pageable pageable);
 }

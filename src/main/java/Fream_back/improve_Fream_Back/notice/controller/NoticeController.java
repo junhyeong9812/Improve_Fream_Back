@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.notice.dto.NoticeCreateRequestDto;
 import Fream_back.improve_Fream_Back.notice.dto.NoticeResponseDto;
 import Fream_back.improve_Fream_Back.notice.dto.NoticeUpdateRequestDto;
 import Fream_back.improve_Fream_Back.notice.entity.Notice;
+import Fream_back.improve_Fream_Back.notice.entity.NoticeCategory;
 import Fream_back.improve_Fream_Back.notice.repository.NoticeRepository;
 import Fream_back.improve_Fream_Back.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/notices")
@@ -57,13 +60,6 @@ public class NoticeController {
         return ResponseEntity.noContent().build();
     }
 
-    // 공지사항 목록 조회
-    @GetMapping
-    public ResponseEntity<Page<NoticeResponseDto>> getNotices(Pageable pageable) {
-        Page<NoticeResponseDto> notices = noticeService.getNotices(pageable);
-        return ResponseEntity.ok(notices);
-    }
-
     // 단일 공지사항 조회
     @GetMapping("/{noticeId}")
     public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable Long noticeId) {
@@ -79,6 +75,32 @@ public class NoticeController {
     ) {
         Page<NoticeResponseDto> results = noticeService.searchNotices(keyword, pageable);
         return ResponseEntity.ok(results);
+    }
+
+    // 파일 미리보기
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<byte[]> getFilePreview(@PathVariable String fileName) throws IOException {
+        byte[] fileData = noticeService.getFilePreview(fileName);
+
+        String mimeType = Files.probeContentType(Paths.get("notice/" + fileName));
+
+        return ResponseEntity.ok()
+                .header("Content-Type", mimeType)
+                .body(fileData);
+    }
+    @GetMapping
+    public ResponseEntity<Page<NoticeResponseDto>> getNoticesByCategory(
+            @RequestParam(name = "category",required = false) String category,
+            Pageable pageable
+    ) {
+        Page<NoticeResponseDto> notices;
+        if (category != null) {
+            NoticeCategory noticeCategory = NoticeCategory.valueOf(category); // String -> Enum 변환
+            notices = noticeService.getNoticesByCategory(noticeCategory, pageable);
+        } else {
+            notices = noticeService.getNotices(pageable);
+        }
+        return ResponseEntity.ok(notices);
     }
 
 

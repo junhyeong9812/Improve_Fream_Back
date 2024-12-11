@@ -53,13 +53,29 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())  // CSRF 비활성화
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("**","/api/deliveries/**").permitAll()  // 로그인과 회원가입은 허용
+                        .requestMatchers("/**","/api/deliveries/**").permitAll()  // 로그인과 회원가입은 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")  // ROLE_ADMIN만 접근 가능
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증된 사용자만 허용
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redisService), UsernamePasswordAuthenticationFilter.class);  // JwtAuthenticationFilter만 추가하고, 필터 순서 지정
         return http.build();
+    }
+
+    // CORS 설정
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 Origin
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
+        configuration.setAllowedHeaders(List.of("*")); // 허용할 요청 헤더
+        configuration.setAllowCredentials(true); // 쿠키 허용
+        configuration.setMaxAge(3600L); // 캐시 지속 시간 (초 단위)
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정 적용
+        return source;
     }
 
 //    @Bean

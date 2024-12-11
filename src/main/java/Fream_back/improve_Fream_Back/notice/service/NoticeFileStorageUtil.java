@@ -35,4 +35,8 @@ public class NoticeFileStorageUtil {
         Path path = Paths.get(filePath);
         Files.deleteIfExists(path);
     }
+    // 파일 경로 반환
+    public Path getFilePath(String fileName) {
+        return Paths.get(NOTICE_STORAGE_DIR + fileName);
+    }
 }
