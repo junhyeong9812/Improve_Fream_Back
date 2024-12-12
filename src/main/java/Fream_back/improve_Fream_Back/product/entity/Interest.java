@@ -1,7 +1,6 @@
-package Fream_back.improve_Fream_Back.interest.entity;
+package Fream_back.improve_Fream_Back.product.entity;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,12 +27,21 @@ public class Interest extends BaseTimeEntity {
 
 //    private LocalDateTime createdDate; // 관심 등록일
 
-    // 연관관계 메서드
+    // 편의 메서드
     public void assignUser(User user) {
         this.user = user;
+    }
+
+    public void unassignUser() {
+        this.user = null;
     }
 
     public void assignProduct(Product product) {
         this.product = product;
     }
+
+    public void unassignProduct() {
+        this.product = null;
+    }
+
 }

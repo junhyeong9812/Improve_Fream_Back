@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.user.entity;
 
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,36 +12,45 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Profile {
+public class Profile extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user; // 프로필 소유 사용자
 
+    @Column(nullable = false, unique = true)
     private String profileName; // 프로필 이름
-    private String bio; // 소개 글
-    private boolean profilePublic; // 공개 여부
+
+    private String bio; // 소개글
+    private boolean isPublic; // 프로필 공개 여부
     private String profileImageUrl; // 프로필 이미지 URL
 
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BlockedUser> blockedUsers = new ArrayList<>(); // 차단된 사용자 목록
+    private List<Follow> followers = new ArrayList<>(); // 팔로워 목록
 
-    // 연관관계 메서드
-    public void blockUser(BlockedUser blockedUser) {
-        this.blockedUsers.add(blockedUser);
-        blockedUser.assignProfile(this);
-    }
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followings = new ArrayList<>(); // 팔로잉 목록
 
-    public void unblockUser(BlockedUser blockedUser) {
-        this.blockedUsers.remove(blockedUser);
-    }
+    @OneToMany(mappedBy = "blockedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BlockedProfile> blockedByProfiles = new ArrayList<>(); // 나를 차단한 프로필 목록
 
-    // 프로필 이미지 URL 업데이트 메서드
-    public void updateProfileImageUrl(String profileImageUrl) {
-        this.profileImageUrl = profileImageUrl;
+    // **편의 메서드 - 값 업데이트**
+    public void updateProfile(String profileName, String bio, Boolean isPublic, String profileImageUrl) {
+        if (profileName != null) {
+            this.profileName = profileName;
+        }
+        if (bio != null) {
+            this.bio = bio;
+        }
+        if (isPublic != null) {
+            this.isPublic = isPublic;
+        }
+        if (profileImageUrl != null) {
+            this.profileImageUrl = profileImageUrl;
+        }
     }
 }

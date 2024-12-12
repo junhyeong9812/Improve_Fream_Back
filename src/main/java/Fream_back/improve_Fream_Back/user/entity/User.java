@@ -1,7 +1,10 @@
 package Fream_back.improve_Fream_Back.user.entity;
 
+import Fream_back.improve_Fream_Back.address.entity.Address;
 import Fream_back.improve_Fream_Back.base.entity.BaseEntity;
-import Fream_back.improve_Fream_Back.interest.entity.Interest;
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
+import Fream_back.improve_Fream_Back.payment.entity.PaymentInfo;
+import Fream_back.improve_Fream_Back.product.entity.Interest;
 import Fream_back.improve_Fream_Back.product.entity.UserProduct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,32 +16,30 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * User
- *
- * 사용자 정보를 관리하는 엔티티입니다.
- * 사용자명, 비밀번호, 역할(Role), 연락 정보 및 동의 여부를 포함합니다.
- */
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
-public class User extends BaseEntity {
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 사용자 ID (기본 키)
+    private Long id; // 사용자 ID
 
-    private String loginId; // 커뮤니티 아이디
+    @Column(nullable = false, unique = true)
+    private String email; // 이메일 주소
+
+    @Column(nullable = false)
     private String password; // 비밀번호
-    private String nickname; // 커뮤니티에서 사용할 별명
 
-    private String realName; // 유저의 본명
-    private String phoneNumber; // 연락처 전화번호
-    private String email; // 이메일
+    private String referralCode; // 추천인 코드
+
+    @Enumerated(EnumType.STRING)
+    private ShoeSize shoeSize; // 신발 사이즈 (Enum)
+
+    private boolean termsAgreement; // 이용약관 동의 여부
 
     private Boolean phoneNotificationConsent; // 전화 알림 수신 동의 여부
     private Boolean emailNotificationConsent; // 이메일 수신 동의 여부
@@ -46,59 +47,91 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role; // USER, ADMIN 등으로 역할 구분
 
-    @OneToMany(mappedBy = "seller")
-    private List<UserProduct> productsForSale; // 판매자로서 등록한 상품들
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profile profile; // 프로필 (1:1 관계)
 
-    @OneToMany(mappedBy = "user")
-    private List<Interest> interests; // 관심 상품 (찜)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Interest> interests = new ArrayList<>(); // 관심 상품 (다대다 중간 테이블)
 
-    @ElementCollection
-    private List<String> interestBrands; // 관심 브랜드 목록
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses = new ArrayList<>(); // 주소록
 
-    private boolean profilePublic; // 프로필 공개 여부 (true: 공개)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PaymentInfo> paymentInfos = new ArrayList<>(); // 결제 정보
 
-    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> following = new ArrayList<>(); // 내가 팔로우한 사용자들
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BankAccount bankAccount; // 판매 정산 계좌 (1:1 관계)
 
-    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followers = new ArrayList<>(); // 나를 팔로우한 사용자들
-
-    public User(String loginId, String password, String nickname, String realName, String phoneNumber,
-                String email, Boolean phoneNotificationConsent, Boolean emailNotificationConsent, Role role) {
-        this.loginId = loginId;
-        this.password = password;
-        this.nickname = nickname;
-        this.realName = realName;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.phoneNotificationConsent = phoneNotificationConsent;
-        this.emailNotificationConsent = emailNotificationConsent;
-        this.role = role;
+    // **편의 메서드 - 값 업데이트**
+    public void updateUser(String email, String password, ShoeSize shoeSize, Boolean phoneNotificationConsent, Boolean emailNotificationConsent) {
+        if (email != null) {
+            this.email = email;
+        }
+        if (password != null) {
+            this.password = password;
+        }
+        if (shoeSize != null) {
+            this.shoeSize = shoeSize;
+        }
+        if (phoneNotificationConsent != null) {
+            this.phoneNotificationConsent = phoneNotificationConsent;
+        }
+        if (emailNotificationConsent != null) {
+            this.emailNotificationConsent = emailNotificationConsent;
+        }
     }
-    // 연관관계 메서드
-    public void addInterestBrand(String brandName) {
-        interestBrands.add(brandName);
-    }
-
-    public void setProfilePublic(boolean isPublic) {
-        this.profilePublic = isPublic;
-    }
-    public void followUser(User user) {
-        Follow follow = Follow.builder().follower(this).following(user).build();
-        this.following.add(follow);
-    }
-
-    public void unfollowUser(Follow follow) {
-        this.following.remove(follow);
+    // 편의 메서드
+    public void assignBankAccount(BankAccount bankAccount) {
+        if (this.bankAccount != null) {
+            this.bankAccount.unassignUser();
+        }
+        this.bankAccount = bankAccount;
+        if (bankAccount != null) {
+            bankAccount.assignUser(this);
+        }
     }
 
-    // 연관관계 편의 메서드 - UserProduct 추가
-    public void addProductForSale(UserProduct userProduct) {
-        this.productsForSale.add(userProduct);
-        userProduct.assignSeller(this);
+    public void removeBankAccount() {
+        if (this.bankAccount != null) {
+            this.bankAccount.unassignUser();
+            this.bankAccount = null;
+        }
     }
-    // 비밀번호 업데이트 메서드
-    public void updatePassword(String newPassword) {
-        this.password = newPassword;
+
+    public void addPaymentInfo(PaymentInfo paymentInfo) {
+        this.paymentInfos.add(paymentInfo);
+        paymentInfo.assignUser(this);
     }
+
+    public void removePaymentInfo(PaymentInfo paymentInfo) {
+        this.paymentInfos.remove(paymentInfo);
+        paymentInfo.unassignUser();
+    }
+
+    public void addAddress(Address address) {
+        this.addresses.add(address);
+        address.assignUser(this);
+    }
+
+    public void removeAddress(Address address) {
+        this.addresses.remove(address);
+        address.unassignUser();
+    }
+
+    public void addInterest(Interest interest) {
+        this.interests.add(interest);
+        interest.assignUser(this);
+    }
+
+    public void removeInterest(Interest interest) {
+        this.interests.remove(interest);
+        interest.unassignUser();
+    }
+
 }
+
+
+
+
+
+
