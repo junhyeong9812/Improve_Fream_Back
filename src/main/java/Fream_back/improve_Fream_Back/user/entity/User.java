@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.user.entity;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseEntity;
+import Fream_back.improve_Fream_Back.interest.entity.Interest;
 import Fream_back.improve_Fream_Back.product.entity.UserProduct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,6 +49,20 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "seller")
     private List<UserProduct> productsForSale; // 판매자로서 등록한 상품들
 
+    @OneToMany(mappedBy = "user")
+    private List<Interest> interests; // 관심 상품 (찜)
+
+    @ElementCollection
+    private List<String> interestBrands; // 관심 브랜드 목록
+
+    private boolean profilePublic; // 프로필 공개 여부 (true: 공개)
+
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> following = new ArrayList<>(); // 내가 팔로우한 사용자들
+
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers = new ArrayList<>(); // 나를 팔로우한 사용자들
+
     public User(String loginId, String password, String nickname, String realName, String phoneNumber,
                 String email, Boolean phoneNotificationConsent, Boolean emailNotificationConsent, Role role) {
         this.loginId = loginId;
@@ -58,6 +74,22 @@ public class User extends BaseEntity {
         this.phoneNotificationConsent = phoneNotificationConsent;
         this.emailNotificationConsent = emailNotificationConsent;
         this.role = role;
+    }
+    // 연관관계 메서드
+    public void addInterestBrand(String brandName) {
+        interestBrands.add(brandName);
+    }
+
+    public void setProfilePublic(boolean isPublic) {
+        this.profilePublic = isPublic;
+    }
+    public void followUser(User user) {
+        Follow follow = Follow.builder().follower(this).following(user).build();
+        this.following.add(follow);
+    }
+
+    public void unfollowUser(Follow follow) {
+        this.following.remove(follow);
     }
 
     // 연관관계 편의 메서드 - UserProduct 추가

@@ -49,6 +49,11 @@ public class Product extends BaseTimeEntity {
     private String description; // 상품 설명
     private LocalDate releaseDate; // 출시일 추가
 
+    @Lob
+    private String detailInfo; // 상품 상세 정보
+
+    private Integer interestCount; // 관심(찜) 카운트
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<ProductSizeAndColorQuantity> sizeAndColorQuantities = new HashSet<>(); ; // 사이즈 및 색상별 수량 관리 목록

@@ -6,7 +6,8 @@ import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.*;
-;
+;import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,6 +34,13 @@ public class Style extends BaseTimeEntity {
     private String imageUrl; // 업로드된 사진 URL
     private String videoUrl; // 업로드된 동영상 URL
 
+    @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StyleLike> likes = new ArrayList<>(); // 스타일 좋아요
+
+    @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StyleComment> comments = new ArrayList<>(); // 스타일 댓글
+
+
     // 연관관계 편의 메서드
     public void assignOrderItem(OrderItem orderItem) {
         this.orderItem = orderItem;
@@ -40,6 +48,15 @@ public class Style extends BaseTimeEntity {
 
     public void assignUser(User user) {
         this.user = user;
+    }
+    public void addLike(StyleLike like) {
+        this.likes.add(like);
+        like.assignStyle(this);
+    }
+
+    public void addComment(StyleComment comment) {
+        this.comments.add(comment);
+        comment.assignStyle(this);
     }
 
     // 스타일 업데이트 메서드

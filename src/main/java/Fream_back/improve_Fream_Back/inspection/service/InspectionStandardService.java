@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.inspection.service;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardCreateRequestDto;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardResponseDto;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardUpdateRequestDto;
+import Fream_back.improve_Fream_Back.inspection.entity.InspectionCategory;
 import Fream_back.improve_Fream_Back.inspection.entity.InspectionStandard;
 import Fream_back.improve_Fream_Back.inspection.entity.InspectionStandardImage;
 import Fream_back.improve_Fream_Back.inspection.repository.InspectionStandardImageRepository;
@@ -75,6 +76,18 @@ public class InspectionStandardService {
         return toResponseDto(standard);
     }
 
+    // 카테고리별 검수 기준 조회
+    public Page<InspectionStandardResponseDto> getInspectionsByCategory(InspectionCategory category, Pageable pageable) {
+        return inspectionStandardRepository.findByCategory(category, pageable)
+                .map(entity -> toResponseDto(entity));
+    }
+
+    // 전체 검수 기준 조회
+    public Page<InspectionStandardResponseDto> getAllInspections(Pageable pageable) {
+        return inspectionStandardRepository.findAll(pageable)
+                .map(entity -> toResponseDto(entity));
+    }
+
     // 인스펙션 삭제
     public void deleteStandard(Long id) throws IOException {
         // 삭제 대상 InspectionStandard 조회
@@ -108,6 +121,7 @@ public class InspectionStandardService {
                 .imageUrls(imageUrls)
                 .build();
     }
+
 
     // 파일 저장
     private List<String> saveFiles(List<MultipartFile> files) throws IOException {

@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.inspection.repository;
 
+import Fream_back.improve_Fream_Back.inspection.entity.InspectionCategory;
 import Fream_back.improve_Fream_Back.inspection.entity.InspectionStandard;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,4 +27,7 @@ public interface InspectionStandardRepository extends JpaRepository<InspectionSt
         LEFT JOIN InspectionStandardImage isi ON isi.inspectionStandard.id = is.id
     """)
     Page<InspectionStandard> findAllWithPaging(Pageable pageable);
+
+    // JPQL로 카테고리별 검수 기준 조회
+    Page<InspectionStandard> findByCategory(InspectionCategory category, Pageable pageable);
 }

@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.inspection.controller;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardCreateRequestDto;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardResponseDto;
 import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardUpdateRequestDto;
+import Fream_back.improve_Fream_Back.inspection.entity.InspectionCategory;
 import Fream_back.improve_Fream_Back.inspection.service.InspectionStandardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -65,8 +66,21 @@ public class InspectionStandardController {
      * @return 페이징 처리된 검수 기준 리스트
      */
     @GetMapping
-    public ResponseEntity<Page<InspectionStandardResponseDto>> getStandards(Pageable pageable) {
-        Page<InspectionStandardResponseDto> standards = inspectionStandardService.getStandards(pageable); // getStandards 메서드 구현 필요
+    public ResponseEntity<Page<InspectionStandardResponseDto>> getInspections(
+            @RequestParam(name = "category", required = false) String category,
+            Pageable pageable
+    ) {
+        Page<InspectionStandardResponseDto> standards;
+
+        if (category != null) {
+            // 카테고리 String -> Enum 변환
+            InspectionCategory inspectionCategory = InspectionCategory.valueOf(category);
+            standards = inspectionStandardService.getInspectionsByCategory(inspectionCategory, pageable);
+        } else {
+            // 카테고리 필터 없이 전체 조회
+            standards = inspectionStandardService.getAllInspections(pageable);
+        }
+
         return ResponseEntity.ok(standards);
     }
 
