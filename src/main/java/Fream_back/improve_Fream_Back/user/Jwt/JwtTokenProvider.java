@@ -29,27 +29,27 @@ public class JwtTokenProvider {
 
     /**
      * JWT 토큰을 생성하는 메서드
-     * @param loginId JWT에 포함할 로그인 ID
+     * @param email JWT에 포함할 이메일
      * @return 생성된 JWT 토큰
      */
-    public String generateToken(String loginId) {
+    public String generateToken(String email) {
         // JWT 토큰을 생성하여 반환
         return JWT.create()
-                .withSubject(loginId)  // 로그인 ID를 JWT의 subject로 설정
+                .withSubject(email)  // 이메일을 JWT의 subject로 설정
                 .withIssuedAt(new Date())  // 발급 시간을 현재 시간으로 설정
                 .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))  // 만료 시간을 설정
                 .sign(Algorithm.HMAC512(secretKey));  // 서명 알고리즘과 비밀 키로 서명
     }
 
     /**
-     * JWT 토큰에서 로그인 ID를 추출하는 메서드
+     * JWT 토큰에서 이메일을 추출하는 메서드
      * @param token JWT 토큰
-     * @return JWT에서 추출한 로그인 ID
+     * @return JWT에서 추출한 이메일
      */
-    public String getLoginIdFromToken(String token) {
-        // 토큰을 파싱하여 로그인 ID를 추출
+    public String getEmailFromToken(String token) {
+        // 토큰을 파싱하여 이메일을 추출
         DecodedJWT decodedJWT = decodeToken(token);  // JWT 파싱
-        return decodedJWT.getSubject();  // 토큰의 subject (로그인 ID)를 반환
+        return decodedJWT.getSubject();  // 토큰의 subject (이메일)를 반환
     }
 
     /**
@@ -86,4 +86,3 @@ public class JwtTokenProvider {
                 .verify(token);  // 토큰을 검증하고 디코딩
     }
 }
-

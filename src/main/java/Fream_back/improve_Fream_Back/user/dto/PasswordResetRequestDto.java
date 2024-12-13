@@ -1,31 +1,18 @@
 package Fream_back.improve_Fream_Back.user.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class PasswordResetRequestDto {
-    private String loginId; // 아이디
-    private String phoneNumber; // 연락처 번호
-    private String email; // 이메일
+    private String email;
+    private String phoneNumber;
+    private String newPassword; // 새로운 비밀번호
+    private String confirmPassword; // 비밀번호 확인
 
-    private PasswordResetRequestDto(String loginId, String phoneNumber, String email) {
-        this.loginId = loginId;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
+    // 비밀번호와 확인용 비밀번호가 일치하는지 검증
+    public void validatePasswords() {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
     }
-
-    // 연락처로 생성하는 정적 팩토리 메서드
-    public static PasswordResetRequestDto fromPhoneNumber(String loginId, String phoneNumber) {
-        return new PasswordResetRequestDto(loginId, phoneNumber, null);
-    }
-
-    // 이메일로 생성하는 정적 팩토리 메서드
-    public static PasswordResetRequestDto fromEmail(String loginId, String email) {
-        return new PasswordResetRequestDto(loginId, null, email);
-    }
-
 }

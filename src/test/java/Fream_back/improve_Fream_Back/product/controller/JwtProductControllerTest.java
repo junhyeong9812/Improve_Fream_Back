@@ -2,7 +2,6 @@ package Fream_back.improve_Fream_Back.product.controller;
 
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
-import Fream_back.improve_Fream_Back.user.dto.UserSignupDto;
 import Fream_back.improve_Fream_Back.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

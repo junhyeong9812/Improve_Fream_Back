@@ -1,11 +1,9 @@
 package Fream_back.improve_Fream_Back.delivery.controller;
 
 
-import Fream_back.improve_Fream_Back.user.dto.UserSignupDto;
 import Fream_back.improve_Fream_Back.user.service.UserService;
 import Fream_back.improve_Fream_Back.delivery.dto.DeliveryDto;
 import Fream_back.improve_Fream_Back.delivery.service.DeliveryService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,10 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;

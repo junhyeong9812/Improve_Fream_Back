@@ -1,23 +1,22 @@
 package Fream_back.improve_Fream_Back.user.service;
+
 import Fream_back.improve_Fream_Back.user.dto.UserRegistrationDto;
-import Fream_back.improve_Fream_Back.user.entity.Profile;
 import Fream_back.improve_Fream_Back.user.entity.User;
-import Fream_back.improve_Fream_Back.user.entity.ShoeSize;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
+import Fream_back.improve_Fream_Back.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
-
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserCommandService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ProfileService profileService; // 프로필 서비스 주입
+    private final ProfileService profileService;
+    private final FileUtils fileUtils;
 
     @Transactional
     public User registerUser(UserRegistrationDto dto) {
@@ -47,6 +46,9 @@ public class UserService {
                 .emailNotificationConsent(dto.getOptionalPrivacyAgreement() != null ? dto.getOptionalPrivacyAgreement() : false)
                 .build();
 
+        // 개인정보 동의 설정
+        user.updateConsent(dto.getAdConsent(), dto.getOptionalPrivacyAgreement());
+
         // 사용자 저장
         userRepository.save(user);
 
@@ -55,4 +57,19 @@ public class UserService {
 
         return user;
     }
+
+    @Transactional
+    public void deleteAccount(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        // 프로필 이미지 삭제
+        if (user.getProfile() != null && user.getProfile().getProfileImageUrl() != null) {
+            fileUtils.deleteFile("profile_images", user.getProfile().getProfileImageUrl());
+        }
+
+        // 사용자 정보 삭제
+        userRepository.delete(user);
+    }
 }
+
