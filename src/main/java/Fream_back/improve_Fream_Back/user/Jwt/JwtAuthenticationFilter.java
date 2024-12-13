@@ -31,20 +31,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰 검증 후 Redis 화이트리스트에 존재하는지 확인
             if (redisService.isTokenInWhitelist(token)) {
-                String loginId = jwtTokenProvider.getLoginIdFromToken(token);
-                // 인증 객체에 권한 정보 추가 (예: roles, authorities)
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginId, null, null);
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                // 인증 객체에 이메일 설정
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
                 // 헤더에 토큰을 설정 (컨트롤러에서 사용할 수 있게)
                 request.setAttribute("Authorization", "Bearer " + token);
             } else {
                 // 화이트리스트에 없으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
                 // 헤더에 메시지 추가만 하고, 필터 체인 계속 진행
-                request.setAttribute("Authorization", "Token is not in the whitelist");
+//                request.setAttribute("Authorization", "Token is not in the whitelist");
+                // 화이트리스트에 없으면 인증 실패
+                SecurityContextHolder.clearContext();
             }
         } else {
             // 토큰이 없거나 유효하지 않으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
-            request.setAttribute("Authorization", "Invalid or expired token");
+//            request.setAttribute("Authorization", "Invalid or expired token");
+            // 토큰이 없거나 유효하지 않으면 인증 실패
+            SecurityContextHolder.clearContext();
         }
 
         // 필터 체인에서 다음 필터로 요청 전달

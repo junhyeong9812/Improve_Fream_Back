@@ -43,9 +43,9 @@ public class AllDenyJwtFilter extends OncePerRequestFilter {
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰 검증 후 Redis 화이트리스트에 존재하는지 확인
             if (redisService.isTokenInWhitelist(token)) {
-                String loginId = jwtTokenProvider.getLoginIdFromToken(token);
-                // 인증 객체에 권한 정보 추가 (예: roles, authorities)
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginId, null, null);
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                // 인증 객체에 이메일 설정
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
                 // 토큰이 화이트리스트에 없으면 인증 실패 (401 상태 코드)

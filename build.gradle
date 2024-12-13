@@ -60,6 +60,9 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+tasks.withType(JavaCompile) {
+	options.compilerArgs << "-parameters"
+}
 
 tasks.withType(Test) {
 	// 테스트를 실행하지 않도록 설정

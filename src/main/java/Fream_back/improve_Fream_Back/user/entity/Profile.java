@@ -31,12 +31,15 @@ public class Profile extends BaseTimeEntity {
     private boolean isPublic; // 프로필 공개 여부
     private String profileImageUrl; // 프로필 이미지 URL
 
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followers = new ArrayList<>(); // 팔로워 목록
+    @Builder.Default
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followings = new ArrayList<>(); // 내가 팔로우한 프로필들
 
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Follow> followings = new ArrayList<>(); // 팔로잉 목록
+    @Builder.Default
+    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followers = new ArrayList<>(); // 나를 팔로우한 프로필들
 
+    @Builder.Default
     @OneToMany(mappedBy = "blockedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BlockedProfile> blockedByProfiles = new ArrayList<>(); // 나를 차단한 프로필 목록
 
@@ -56,30 +59,26 @@ public class Profile extends BaseTimeEntity {
         }
     }
     // **연관관계 메서드**
-
-    // 팔로워 추가
     public void addFollower(Follow follow) {
-        this.followers.add(follow); // 팔로워 목록에 추가
-        follow.addFollowing(this.user); // Follow 엔티티에 팔로잉 설정
+        this.followers.add(follow);
+        follow.addFollowing(this);
     }
 
-    // 팔로워 삭제
-    public void removeFollower(Follow follow) {
-        this.followers.remove(follow); // 팔로워 목록에서 제거
-        follow.removeFollowing(); // Follow 엔티티에서 팔로잉 해제
-    }
-
-    // 팔로잉 추가
     public void addFollowing(Follow follow) {
-        this.followings.add(follow); // 팔로잉 목록에 추가
-        follow.addFollower(this.user); // Follow 엔티티에 팔로워 설정
+        this.followings.add(follow);
+        follow.addFollower(this);
     }
 
-    // 팔로잉 삭제
-    public void removeFollowing(Follow follow) {
-        this.followings.remove(follow); // 팔로잉 목록에서 제거
-        follow.removeFollower(); // Follow 엔티티에서 팔로워 해제
+    public void removeFollower(Follow follow) {
+        this.followers.remove(follow);
+        follow.addFollowing(null);
     }
+
+    public void removeFollowing(Follow follow) {
+        this.followings.remove(follow);
+        follow.addFollower(null);
+    }
+
 
     // 차단된 프로필 추가
     public void addBlockedProfile(BlockedProfile blockedProfile) {

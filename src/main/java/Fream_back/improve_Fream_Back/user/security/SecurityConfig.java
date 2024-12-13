@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  // CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/**","/api/deliveries/**").permitAll()  // 로그인과 회원가입은 허용
+                        .requestMatchers("/**", "/api/payment-info/test-payment").permitAll()  // 로그인과 회원가입은 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")  // ROLE_ADMIN만 접근 가능
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증된 사용자만 허용
                 )

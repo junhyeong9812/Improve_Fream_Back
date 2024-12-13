@@ -34,9 +34,11 @@ public class Style extends BaseTimeEntity {
     private String imageUrl; // 업로드된 사진 URL
     private String videoUrl; // 업로드된 동영상 URL
 
+    @Builder.Default
     @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StyleLike> likes = new ArrayList<>(); // 스타일 좋아요
 
+    @Builder.Default
     @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StyleComment> comments = new ArrayList<>(); // 스타일 댓글
 

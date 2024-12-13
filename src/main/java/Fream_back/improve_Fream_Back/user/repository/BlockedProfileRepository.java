@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.user.entity.BlockedProfile;
 import Fream_back.improve_Fream_Back.user.entity.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,5 +26,9 @@ public interface BlockedProfileRepository extends JpaRepository<BlockedProfile, 
 
     //이미 차단이 됬는 지 확인하는 로직
     Optional<BlockedProfile> findByProfileAndBlockedProfile(Profile profile, Profile blockedProfile);
+
+    //이메일을 통해 유저의 프로필을 조회하여 정보가져오기
+    @Query("SELECT bp FROM BlockedProfile bp JOIN bp.profile p WHERE p.user.email = :email")
+    List<BlockedProfile> findAllByProfileEmailWithBlocked(@Param("email") String email);
 }
 

@@ -1,0 +1,52 @@
+package Fream_back.improve_Fream_Back.user.controller;
+
+import Fream_back.improve_Fream_Back.user.dto.BankAccount.BankAccountDto;
+import Fream_back.improve_Fream_Back.user.dto.BankAccount.BankAccountInfoDto;
+import Fream_back.improve_Fream_Back.user.service.bankaccount.BankAccountCommandService;
+import Fream_back.improve_Fream_Back.user.service.bankaccount.BankAccountQueryService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/bank-account")
+@RequiredArgsConstructor
+public class BankAccountController {
+    private final BankAccountCommandService bankAccountCommandService;
+    private final BankAccountQueryService bankAccountQueryService;
+
+    // SecurityContextHolder에서 이메일 추출
+    private String extractEmailFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            return (String) authentication.getPrincipal(); // 이메일 반환
+        }
+        throw new IllegalStateException("인증된 사용자가 없습니다."); // 인증 실패 처리
+    }
+
+    // 입금 계좌 정보 생성 및 수정
+    @PostMapping
+    public ResponseEntity<String> createOrUpdateBankAccount(@RequestBody BankAccountDto dto) {
+        String email = extractEmailFromSecurityContext();
+        bankAccountCommandService.createOrUpdateBankAccount(email, dto);
+        return ResponseEntity.ok("판매 정산 계좌가 성공적으로 등록/수정되었습니다.");
+    }
+
+    // 입금 계좌 정보 조회
+    @GetMapping
+    public ResponseEntity<BankAccountInfoDto> getBankAccount() {
+        String email = extractEmailFromSecurityContext();
+        BankAccountInfoDto bankAccountInfo = bankAccountQueryService.getBankAccount(email);
+        return ResponseEntity.ok(bankAccountInfo);
+    }
+
+    // 입금 계좌 정보 삭제
+    @DeleteMapping
+    public ResponseEntity<String> deleteBankAccount() {
+        String email = extractEmailFromSecurityContext();
+        bankAccountCommandService.deleteBankAccount(email);
+        return ResponseEntity.ok("판매 정산 계좌가 성공적으로 삭제되었습니다.");
+    }
+}

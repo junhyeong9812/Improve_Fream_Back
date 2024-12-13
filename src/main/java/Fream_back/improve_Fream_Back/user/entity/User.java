@@ -62,22 +62,27 @@ public class User extends BaseTimeEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Profile profile; // 프로필 (1:1 관계)
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Interest> interests = new ArrayList<>(); // 관심 상품 (다대다 중간 테이블)
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>(); // 주소록
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PaymentInfo> paymentInfos = new ArrayList<>(); // 결제 정보
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private BankAccount bankAccount; // 판매 정산 계좌 (1:1 관계)
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Point> points = new ArrayList<>(); // 포인트 내역
 
     //추천인 로직
+    @Builder.Default
     @OneToMany(mappedBy = "referrer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<User> referredUsers = new ArrayList<>(); // 내가 추천한 사용자 리스트 (1:N 관계)
 

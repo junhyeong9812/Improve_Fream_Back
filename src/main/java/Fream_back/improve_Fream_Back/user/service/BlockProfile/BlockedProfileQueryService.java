@@ -16,7 +16,6 @@ import java.util.List;
 public class BlockedProfileQueryService {
 
     private final BlockedProfileRepository blockedProfileRepository;
-    private final ProfileQueryService profileQueryService;
 
     @Transactional(readOnly = true)
     public List<BlockedProfileDto> getBlockedProfiles(Profile profile) {
@@ -32,9 +31,7 @@ public class BlockedProfileQueryService {
 
     @Transactional(readOnly = true)
     public List<BlockedProfileDto> getBlockedProfiles(String email) {
-        Profile profile = profileQueryService.getProfileByEmail(email); // 단일 프로필 가져오기 로직 재사용
-
-        List<BlockedProfile> blockedProfiles = blockedProfileRepository.findAllByProfileWithBlocked(profile);
+        List<BlockedProfile> blockedProfiles = blockedProfileRepository.findAllByProfileEmailWithBlocked(email);
         return blockedProfiles.stream()
                 .map(bp -> new BlockedProfileDto(
                         bp.getBlockedProfile().getId(),
