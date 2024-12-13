@@ -4,6 +4,8 @@ Fream 리빌딩 프로젝트
 <br>
 기존 프로젝트 : https://github.com/junhyeong9812/fream_back
 <br>
+엔티티 설계 과정 : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
+<br>
 기본 API
 <br>
 SpringBoot3.1
