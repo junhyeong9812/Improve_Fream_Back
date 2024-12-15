@@ -56,6 +56,9 @@ dependencies {
 
 //test
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	//웹 소켓(알림 기능)
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 tasks.named('test') {
 	useJUnitPlatform()
