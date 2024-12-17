@@ -1,7 +1,6 @@
 package Fream_back.improve_Fream_Back.order.entity;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.style.entity.Style;
 import jakarta.persistence.*;
 import lombok.*;

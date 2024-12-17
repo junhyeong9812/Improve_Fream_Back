@@ -40,6 +40,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             Map<String, Object> attributes) throws Exception {
 
         try {
+            // JWT 토큰에서 이메일 추출
             String token = ((ServletServerHttpRequest) request).getServletRequest().getParameter("token");
             if (token == null || !jwtTokenProvider.validateToken(token)) {
                 throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
@@ -47,11 +48,14 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
             String email = jwtTokenProvider.getEmailFromToken(token);
 
-            User user = userRepository.findByEmail(email)
+            // 이메일이 존재하는지 확인
+            userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            attributes.put("userId", user.getId());
 
-            logger.info("WebSocket 핸드셰이크 성공: 사용자 ID = {}", user.getId());
+            // WebSocket 세션에 이메일 저장
+            attributes.put("email", email);
+
+            logger.info("WebSocket 핸드셰이크 성공: 사용자 Email = {}", email);
             return true;
         } catch (Exception e) {
             logger.error("WebSocket 핸드셰이크 실패: {}", e.getMessage(), e);
@@ -73,24 +77,36 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             return;
         }
 
-        Object attributeObject = ((ServletServerHttpRequest) request).getServletRequest().getAttribute("attributes");
-        if (attributeObject instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> attributes = (Map<String, Object>) attributeObject;
+        // 명시적으로 attributes를 Map으로 변환
+        if (request instanceof ServletServerHttpRequest) {
+            ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+            Object attributeObject = servletRequest.getServletRequest().getAttribute("attributes");
 
-            if (attributes.containsKey("userId")) {
-                Long userId = (Long) attributes.get("userId");
+            if (attributeObject instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> attributes = (Map<String, Object>) attributeObject;
 
-                String redisKey = "WebSocket:User:" + userId;
-                redisTemplate.opsForValue().set(redisKey, "CONNECTED");
-                redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES);
+                if (attributes.containsKey("email")) {
+                    String email = (String) attributes.get("email");
 
-                logger.info("WebSocket 연결 성공: 사용자 ID = {}", userId);
+                    String redisKey = "WebSocket:User:" + email;
+
+                    Long remainingTime = redisTemplate.getExpire(redisKey, TimeUnit.SECONDS); // TTL 확인
+                    if (remainingTime == null || remainingTime <= 600) { // 10분 이하이거나 없을 때 갱신
+                        redisTemplate.opsForValue().set(redisKey, "CONNECTED");
+                        redisTemplate.expire(redisKey, 30, TimeUnit.MINUTES);
+                        logger.info("Redis TTL 갱신: 사용자 Email = {}, 남은 TTL = {}초", email, remainingTime);
+                    }
+
+                    logger.info("WebSocket 연결 성공: 사용자 Email = {}", email);
+                } else {
+                    logger.warn("WebSocket 연결 성공했으나 'email'이 attributes에 없음.");
+                }
             } else {
-                logger.warn("WebSocket 연결 성공했으나 'userId'가 attributes에 없음.");
+                logger.error("WebSocket 연결 성공했으나 attributes가 Map 타입이 아님.");
             }
         } else {
-            logger.error("WebSocket 연결 성공했으나 attributes가 Map 타입이 아님.");
+            logger.error("WebSocket 요청이 ServletServerHttpRequest 타입이 아님.");
         }
     }
 }

@@ -1,17 +1,14 @@
 package Fream_back.improve_Fream_Back.user.entity;
 
 import Fream_back.improve_Fream_Back.address.entity.Address;
-import Fream_back.improve_Fream_Back.base.entity.BaseEntity;
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.payment.entity.PaymentInfo;
 import Fream_back.improve_Fream_Back.product.entity.Interest;
-import Fream_back.improve_Fream_Back.product.entity.UserProduct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
 import java.util.List;

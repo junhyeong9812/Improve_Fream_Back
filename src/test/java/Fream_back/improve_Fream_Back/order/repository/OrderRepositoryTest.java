@@ -4,7 +4,6 @@ package Fream_back.improve_Fream_Back.order.repository;
 import Fream_back.improve_Fream_Back.delivery.entity.Delivery;
 import Fream_back.improve_Fream_Back.order.entity.Order;
 import Fream_back.improve_Fream_Back.order.entity.OrderItem;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;

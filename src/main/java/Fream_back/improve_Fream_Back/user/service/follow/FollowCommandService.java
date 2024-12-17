@@ -1,5 +1,8 @@
 package Fream_back.improve_Fream_Back.user.service.follow;
 
+import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
+import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
+import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
 import Fream_back.improve_Fream_Back.user.entity.Follow;
 import Fream_back.improve_Fream_Back.user.entity.Profile;
 import Fream_back.improve_Fream_Back.user.repository.FollowRepository;
@@ -15,6 +18,7 @@ public class FollowCommandService {
 
     private final FollowRepository followRepository;
     private final ProfileRepository profileRepository;
+    private final NotificationCommandService notificationCommandService;
 
     @Transactional
     public void createFollow(String email, Long followingProfileId) {
@@ -33,6 +37,15 @@ public class FollowCommandService {
                 .build();
 
         followRepository.save(follow);
+
+        // 팔로우 알림 생성
+        String message = followerProfile.getName() + "님이 회원님을 팔로우 했습니다.";
+        notificationCommandService.createNotification(
+                followingProfile.getUser().getId(),
+                NotificationCategory.STYLE,
+                NotificationType.FOLLOW,
+                message
+        );
     }
 
     @Transactional

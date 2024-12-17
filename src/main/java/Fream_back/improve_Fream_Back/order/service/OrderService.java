@@ -14,7 +14,6 @@ import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.dto.PaymentResponseDto;
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.payment.service.PaymentService;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
 import Fream_back.improve_Fream_Back.shipment.dto.ShipmentResponseDto;
 import Fream_back.improve_Fream_Back.shipment.entity.Shipment;
@@ -26,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service

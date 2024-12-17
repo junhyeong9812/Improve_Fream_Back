@@ -1,6 +1,5 @@
 package Fream_back.improve_Fream_Back.product.repository;
 
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

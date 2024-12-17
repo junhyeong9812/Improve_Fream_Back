@@ -30,4 +30,6 @@ public interface InspectionStandardRepository extends JpaRepository<InspectionSt
 
     // JPQL로 카테고리별 검수 기준 조회
     Page<InspectionStandard> findByCategory(InspectionCategory category, Pageable pageable);
+
+
 }

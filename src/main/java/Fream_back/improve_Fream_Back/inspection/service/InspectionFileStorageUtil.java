@@ -5,20 +5,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class InspectionFileStorageUtil {
 
     private static final String INSPECTION_STORAGE_DIR = "Inspection/";
 
-    /**
-     * 파일 저장
-     *
-     * @param file 업로드된 MultipartFile 객체
-     * @return 저장된 파일 경로
-     * @throws IOException 파일 저장 중 오류 발생 시
-     */
+    // 파일 저장 (단일)
     public String saveFile(MultipartFile file) throws IOException {
         String originalFileName = file.getOriginalFilename();
         String extension = "";
@@ -30,24 +28,61 @@ public class InspectionFileStorageUtil {
         String uniqueFileName = UUID.randomUUID() + extension;
         Path filePath = Paths.get(INSPECTION_STORAGE_DIR + uniqueFileName);
 
-        // 디렉토리가 존재하지 않을 경우 생성
         if (!Files.exists(filePath.getParent())) {
             Files.createDirectories(filePath.getParent());
         }
 
-        // 파일 저장
         file.transferTo(filePath.toFile());
         return INSPECTION_STORAGE_DIR + uniqueFileName;
     }
 
-    /**
-     * 파일 삭제
-     *
-     * @param filePath 삭제할 파일 경로
-     * @throws IOException 파일 삭제 중 오류 발생 시
-     */
-    public void deleteFile(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        Files.deleteIfExists(path);
+    // 파일 저장 (다중)
+    public List<String> saveFiles(List<MultipartFile> files) throws IOException {
+        List<String> filePaths = new ArrayList<>();
+        for (MultipartFile file : files) {
+            filePaths.add(saveFile(file));
+        }
+        return filePaths;
+    }
+
+    // 파일 삭제 (다중)
+    public void deleteFiles(List<String> filePaths) throws IOException {
+        for (String filePath : filePaths) {
+            Path path = Paths.get(filePath);
+            Files.deleteIfExists(path);
+        }
+    }
+
+    // 파일 존재 여부 확인
+    public boolean hasFiles(List<MultipartFile> files) {
+        return files != null && !files.isEmpty();
+    }
+
+    // HTML content 내 이미지 경로 추출
+    public List<String> extractImagePaths(String content) {
+        String regex = "<img\\s+[^>]*src=\"([^\"]*)\"";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(content);
+        List<String> paths = new ArrayList<>();
+
+        while (matcher.find()) {
+            paths.add(matcher.group(1));
+        }
+        return paths;
+    }
+
+    // HTML content 내 이미지 경로 업데이트
+    public String updateImagePaths(String content, List<String> filePaths) {
+        String regex = "<img\\s+[^>]*src=\"([^\"]*)\"";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(content);
+        StringBuffer updatedContent = new StringBuffer();
+
+        int index = 0;
+        while (matcher.find() && index < filePaths.size()) {
+            matcher.appendReplacement(updatedContent, matcher.group(0).replace(matcher.group(1), filePaths.get(index++)));
+        }
+        matcher.appendTail(updatedContent);
+        return updatedContent.toString();
     }
 }

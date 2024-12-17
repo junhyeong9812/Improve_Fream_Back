@@ -3,7 +3,6 @@ package Fream_back.improve_Fream_Back.product.controller;
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.delete.ProductDeleteRequestDto;
-import Fream_back.improve_Fream_Back.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

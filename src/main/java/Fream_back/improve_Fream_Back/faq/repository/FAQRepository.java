@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.faq.repository;
 
 import Fream_back.improve_Fream_Back.faq.entity.FAQ;
+import Fream_back.improve_Fream_Back.faq.entity.FAQCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,7 @@ public interface FAQRepository extends JpaRepository<FAQ, Long>, FAQRepositoryCu
     // 페이징 처리된 FAQ 목록 조회
     @Query("SELECT DISTINCT f FROM FAQ f LEFT JOIN FAQImage i ON i.faq.id = f.id")
     Page<FAQ> findAllWithPaging(Pageable pageable);
+
+    // 카테고리별 FAQ 목록 조회
+    Page<FAQ> findByCategory(FAQCategory category, Pageable pageable);
 }

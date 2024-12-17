@@ -1,4 +1,4 @@
-//package Fream_back.improve_Fream_Back.config;
+package Fream_back.improve_Fream_Back.config.customWebSoket;
 //
 //import org.springframework.data.redis.core.RedisTemplate;
 //import org.springframework.stereotype.Component;
@@ -46,3 +46,37 @@
 //    }
 //}
 //
+
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.util.Map;
+
+public class CustomWebSocketHandler extends TextWebSocketHandler {
+
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public CustomWebSocketHandler(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        Map<String, Object> attributes = session.getAttributes();
+        if (attributes.containsKey("email")) {
+            String email = (String) attributes.get("email");
+
+            // Redis에서 해당 키 삭제
+            String redisKey = "WebSocket:User:" + email;
+            redisTemplate.delete(redisKey);
+
+            System.out.println("WebSocket 연결 종료: 사용자 Email = " + email);
+        } else {
+            System.out.println("WebSocket 연결 종료: 사용자 Email 정보 없음");
+        }
+    }
+}
+
+

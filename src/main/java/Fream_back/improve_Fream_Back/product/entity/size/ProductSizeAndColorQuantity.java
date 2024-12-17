@@ -2,7 +2,6 @@ package Fream_back.improve_Fream_Back.product.entity.size;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseEntity;
 import Fream_back.improve_Fream_Back.product.dto.ProductSizeAndColorQuantityDto;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ShoeSizeType;

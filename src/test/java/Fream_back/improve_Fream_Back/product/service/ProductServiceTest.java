@@ -5,7 +5,6 @@ import Fream_back.improve_Fream_Back.Category.entity.SubCategory;
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.dto.create.ProductCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.delete.ProductDeleteRequestDto;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ClothingSizeType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.Color;
 import Fream_back.improve_Fream_Back.product.entity.enumType.ShoeSizeType;

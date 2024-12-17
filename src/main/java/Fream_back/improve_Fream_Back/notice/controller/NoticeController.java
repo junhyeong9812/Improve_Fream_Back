@@ -3,10 +3,9 @@ package Fream_back.improve_Fream_Back.notice.controller;
 import Fream_back.improve_Fream_Back.notice.dto.NoticeCreateRequestDto;
 import Fream_back.improve_Fream_Back.notice.dto.NoticeResponseDto;
 import Fream_back.improve_Fream_Back.notice.dto.NoticeUpdateRequestDto;
-import Fream_back.improve_Fream_Back.notice.entity.Notice;
 import Fream_back.improve_Fream_Back.notice.entity.NoticeCategory;
-import Fream_back.improve_Fream_Back.notice.repository.NoticeRepository;
-import Fream_back.improve_Fream_Back.notice.service.NoticeService;
+import Fream_back.improve_Fream_Back.notice.service.NoticeCommandService;
+import Fream_back.improve_Fream_Back.notice.service.NoticeQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,12 +21,13 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class NoticeController {
 
-    private final NoticeService noticeService;
+    private final NoticeCommandService noticeCommandService;
+    private final NoticeQueryService noticeQueryService;
 
-    // 공지사항 생성
+    // 공지사항 생성 (쓰기 작업)
     @PostMapping
     public ResponseEntity<NoticeResponseDto> createNotice(@ModelAttribute NoticeCreateRequestDto requestDto) throws IOException {
-        NoticeResponseDto response = noticeService.createNotice(
+        NoticeResponseDto response = noticeCommandService.createNotice(
                 requestDto.getTitle(),
                 requestDto.getContent(),
                 requestDto.getCategory(),
@@ -36,13 +36,13 @@ public class NoticeController {
         return ResponseEntity.ok(response);
     }
 
-    // 공지사항 수정
+    // 공지사항 수정 (쓰기 작업)
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeResponseDto> updateNotice(
             @PathVariable Long noticeId,
             @ModelAttribute NoticeUpdateRequestDto requestDto
     ) throws IOException {
-        NoticeResponseDto response = noticeService.updateNotice(
+        NoticeResponseDto response = noticeCommandService.updateNotice(
                 noticeId,
                 requestDto.getTitle(),
                 requestDto.getContent(),
@@ -53,34 +53,50 @@ public class NoticeController {
         return ResponseEntity.ok(response);
     }
 
-    // 공지사항 삭제
+    // 공지사항 삭제 (쓰기 작업)
     @DeleteMapping("/{noticeId}")
     public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) throws IOException {
-        noticeService.deleteNotice(noticeId);
+        noticeCommandService.deleteNotice(noticeId);
         return ResponseEntity.noContent().build();
     }
 
-    // 단일 공지사항 조회
+    // 단일 공지사항 조회 (읽기 작업)
     @GetMapping("/{noticeId}")
     public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable Long noticeId) {
-        NoticeResponseDto response = noticeService.getNotice(noticeId);
+        NoticeResponseDto response = noticeQueryService.getNotice(noticeId);
         return ResponseEntity.ok(response);
     }
 
-    // 공지사항 검색
+    // 공지사항 검색 (읽기 작업)
     @GetMapping("/search")
     public ResponseEntity<Page<NoticeResponseDto>> searchNotices(
             @RequestParam(required = false) String keyword,
             Pageable pageable
     ) {
-        Page<NoticeResponseDto> results = noticeService.searchNotices(keyword, pageable);
+        Page<NoticeResponseDto> results = noticeQueryService.searchNotices(keyword, pageable);
         return ResponseEntity.ok(results);
     }
 
-    // 파일 미리보기
+    // 공지사항 카테고리별 조회 (읽기 작업)
+    @GetMapping
+    public ResponseEntity<Page<NoticeResponseDto>> getNoticesByCategory(
+            @RequestParam(name = "category", required = false) String category,
+            Pageable pageable
+    ) {
+        Page<NoticeResponseDto> notices;
+        if (category != null) {
+            NoticeCategory noticeCategory = NoticeCategory.valueOf(category); // String -> Enum 변환
+            notices = noticeQueryService.getNoticesByCategory(noticeCategory, pageable);
+        } else {
+            notices = noticeQueryService.getNotices(pageable);
+        }
+        return ResponseEntity.ok(notices);
+    }
+
+    // 파일 미리보기 (읽기 작업)
     @GetMapping("/files/{fileName}")
     public ResponseEntity<byte[]> getFilePreview(@PathVariable String fileName) throws IOException {
-        byte[] fileData = noticeService.getFilePreview(fileName);
+        byte[] fileData = noticeQueryService.getFilePreview(fileName);
 
         String mimeType = Files.probeContentType(Paths.get("notice/" + fileName));
 
@@ -88,20 +104,4 @@ public class NoticeController {
                 .header("Content-Type", mimeType)
                 .body(fileData);
     }
-    @GetMapping
-    public ResponseEntity<Page<NoticeResponseDto>> getNoticesByCategory(
-            @RequestParam(name = "category",required = false) String category,
-            Pageable pageable
-    ) {
-        Page<NoticeResponseDto> notices;
-        if (category != null) {
-            NoticeCategory noticeCategory = NoticeCategory.valueOf(category); // String -> Enum 변환
-            notices = noticeService.getNoticesByCategory(noticeCategory, pageable);
-        } else {
-            notices = noticeService.getNotices(pageable);
-        }
-        return ResponseEntity.ok(notices);
-    }
-
-
 }

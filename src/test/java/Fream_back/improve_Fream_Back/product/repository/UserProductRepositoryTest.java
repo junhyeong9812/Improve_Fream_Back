@@ -1,9 +1,5 @@
 package Fream_back.improve_Fream_Back.product.repository;
 
-import Fream_back.improve_Fream_Back.product.entity.Product;
-import Fream_back.improve_Fream_Back.product.entity.UserProduct;
-import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
-import Fream_back.improve_Fream_Back.product.repository.UserProductRepository;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.entity.Role;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;

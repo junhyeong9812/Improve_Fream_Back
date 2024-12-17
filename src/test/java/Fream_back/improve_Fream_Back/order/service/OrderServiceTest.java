@@ -9,7 +9,6 @@ import Fream_back.improve_Fream_Back.order.entity.OrderItem;
 import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
 import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.service.PaymentService;
-import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
 import Fream_back.improve_Fream_Back.shipment.service.ShipmentService;
 import Fream_back.improve_Fream_Back.user.entity.Role;
