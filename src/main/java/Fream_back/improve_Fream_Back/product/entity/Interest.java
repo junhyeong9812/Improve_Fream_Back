@@ -22,26 +22,37 @@ public class Interest extends BaseTimeEntity {
     private User user; // 관심 등록한 사용자
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product; // 관심 등록된 상품
+    @JoinColumn(name = "product_color_id")
+    private ProductColor productColor; // 관심 등록된 상품 색상
 
-//    private LocalDateTime createdDate; // 관심 등록일
-
-    // 편의 메서드
+    // 연관관계 편의 메서드
     public void assignUser(User user) {
+        if (this.user != null) {
+            this.user.getInterests().remove(this);
+        }
         this.user = user;
+        user.getInterests().add(this);
     }
 
     public void unassignUser() {
-        this.user = null;
+        if (this.user != null) {
+            this.user.getInterests().remove(this);
+            this.user = null;
+        }
     }
 
-    public void assignProduct(Product product) {
-        this.product = product;
+    public void assignProductColor(ProductColor productColor) {
+        if (this.productColor != null) {
+            this.productColor.getInterests().remove(this);
+        }
+        this.productColor = productColor;
+        productColor.getInterests().add(this);
     }
 
-    public void unassignProduct() {
-        this.product = null;
+    public void unassignProductColor() {
+        if (this.productColor != null) {
+            this.productColor.getInterests().remove(this);
+            this.productColor = null;
+        }
     }
-
 }
