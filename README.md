@@ -744,6 +744,42 @@ Authorization: Bearer <JWT Token>
   - 웹 소캣을 활용한 알림 기능 구현
 
 
+# 환경 설정
+이 프로젝트는 민감한 정보를 분리 관리하기 위해 **application.yml**과 application-<profile>.yml 파일을 사용합니다. 로컬 개발 환경에서는 기본적으로 application-local.yml을 사용하도록 설정되어 있습니다.
+
+## 1 필수 설정 파일
+1. application.yml
+- 기본 설정을 포함하며, Git에 포함되어 있습니다.
+- 프로파일에 따라 추가 설정 파일(application-local.yml, application-prod.yml)을 로드합니다.
+2. application-local.yml
+- 로컬 개발 환경에서 필요한 민감한 정보를 포함합니다.
+- 이 파일은 Git에 포함되지 않으며, 다음 경로에 생성해야 합니다:
+```
+src/main/resources/application-local.yml
+```
+##2 application-local.yml 샘플
+```
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: myuser
+    password: mypassword
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-email-password
+jwt:
+  secret: your-secret-key
+  expiration: 3600000      # JWT 만료 시간 (밀리초 단위, 예: 1시간)
+portone:
+  api-key: ${PORTONE_API_KEY} # 포트원의 API 키
+  api-secret: ${PORTONE_API_SECRET} # 포트원의 Secret 키
+
+```
+
+
+
 
 
 
