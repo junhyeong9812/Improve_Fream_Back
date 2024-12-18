@@ -330,6 +330,45 @@ Authorization: Bearer <JWT Token>
   "message": "회원 탈퇴 처리 중 문제가 발생했습니다."
 }
 ```
+## 1.9 비밀번호 찾기 - 이메일로 임시 비밀번호 전송
+- **URL: /api/users/reset-password-sandEmail**
+- **Method: POST**
+- **Description: 사용자의 이메일로 임시 비밀번호를 전송합니다. 임시 비밀번호는 랜덤으로 생성되며, 이메일 전송 후 암호화되어 저장됩니다.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Body
+```
+{
+  "email": "string",
+  "phoneNumber": "string"
+}
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "임시 비밀번호가 이메일로 전송되었습니다."
+}
+```
+### Response (404 Not Found)
+```
+{
+  "status": "error",
+  "message": "해당 이메일 및 전화번호로 사용자를 찾을 수 없습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "비밀번호 찾기 처리 중 문제가 발생했습니다."
+}
+```
+
+
+
 ## 2.1 프로필 조회
 - **URL: /api/profiles**
 - **Method: GET**
