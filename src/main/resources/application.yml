@@ -37,6 +37,3 @@ jwt:
   secret: your-secret-key  # JWT 서명에 사용할 비밀 키
   expiration: 3600000      # JWT 만료 시간 (밀리초 단위, 예: 1시간)
 
-imp:
-  key: 4555333718886873
-  secret: bAJaWBq6CWDYZn0HOXCi5cvDhTZLZrkVJUwWFBmHuvxGC5ZiFUqQz5qy2sOEd9yAOCIZ2vCwWxcRQCTC
