@@ -397,13 +397,9 @@ Authorization: Bearer <JWT Token>
 }
 ```
 ## 2.3 프로필 이미지 제공
-
-URL: /api/profiles/{profileId}/image
-
-Method: GET
-
-Description: 특정 프로필의 프로필 이미지를 제공.
-
+- **URL: /api/profiles/{profileId}/image**
+- **Method: GET**
+- **Description: 특정 프로필의 프로필 이미지를 제공.**
 ## Path Parameters
 ```
 profileId: 프로필 ID
@@ -427,80 +423,69 @@ Content-Type: 이미지 파일 형식 (e.g., image/jpeg)
 }
 ```
 
-3.1 팔로우 생성
+## 3.1 팔로우 생성
+- **URL: /api/follows/{profileId}**
+- **Method: POST**
+- **Description: 특정 프로필을 팔로우.
 
-URL: /api/follows/{profileId}
-
-Method: POST
-
-Description: 특정 프로필을 팔로우.
-
-Request Header
-
+### Request Header
+```
 Authorization: Bearer <JWT Token>
-
-Path Parameters
-
+```
+### Path Parameters
+```
 profileId: 팔로우할 프로필 ID
-
-Response (200 OK)
-
+```
+### Response (200 OK)
+```
 "팔로우가 성공적으로 추가되었습니다."
-
-Response (500 Internal Server Error)
-
+```
+### Response (500 Internal Server Error)
+```
 {
   "status": "error",
   "message": "팔로우 생성 중 문제가 발생했습니다."
 }
-
-3.2 팔로우 삭제
-
-URL: /api/follows/{profileId}
-
-Method: DELETE
-
-Description: 특정 프로필 팔로우를 취소.
-
-Request Header
-
+```
+## 3.2 팔로우 삭제
+- **URL: /api/follows/{profileId}**
+- **Method: DELETE**
+- **Description: 특정 프로필 팔로우를 취소.**
+### Request Header
+```
 Authorization: Bearer <JWT Token>
-
-Path Parameters
-
+```
+### Path Parameters
+```
 profileId: 취소할 팔로우 프로필 ID
-
-Response (200 OK)
-
+```
+### Response (200 OK)
+```
 "팔로우가 성공적으로 삭제되었습니다."
-
-Response (500 Internal Server Error)
-
+```
+### Response (500 Internal Server Error)
+```
 {
   "status": "error",
   "message": "팔로우 삭제 중 문제가 발생했습니다."
 }
-
-3.3 팔로워 목록 조회
-
-URL: /api/follows/followers
-
-Method: GET
-
-Description: 로그인 사용자의 팔로워 목록을 조회.
-
-Request Header
-
+```
+## 3.3 팔로워 목록 조회
+- **URL: /api/follows/followers**
+- **Method: GET**
+- **Description: 로그인 사용자의 팔로워 목록을 조회.**
+### Request Header
+```
 Authorization: Bearer <JWT Token>
-
-Query Parameters
-
+```
+### Query Parameters
+```
 page: 페이지 번호 (default: 0)
 
 size: 페이지 크기 (default: 20)
-
-Response (200 OK)
-
+```
+### Response (200 OK)
+```
 {
   "content": [
     {
@@ -514,34 +499,31 @@ Response (200 OK)
     "size": "number"
   }
 }
-
-Response (500 Internal Server Error)
-
+```
+### Response (500 Internal Server Error)
+```
 {
   "status": "error",
   "message": "팔로워 목록 조회 중 문제가 발생했습니다."
 }
+```
+## 3.4 팔로잉 목록 조회
+- **URL: /api/follows/followings**
+- **Method: GET**
+- **Description: 로그인 사용자의 팔로잉 목록을 조회.**
 
-3.4 팔로잉 목록 조회
-
-URL: /api/follows/followings
-
-Method: GET
-
-Description: 로그인 사용자의 팔로잉 목록을 조회.
-
-Request Header
-
+### Request Header
+```
 Authorization: Bearer <JWT Token>
-
-Query Parameters
-
+```
+### Query Parameters
+```
 page: 페이지 번호 (default: 0)
 
 size: 페이지 크기 (default: 20)
-
-Response (200 OK)
-
+```
+### Response (200 OK)
+```
 {
   "content": [
     {
@@ -555,8 +537,164 @@ Response (200 OK)
     "size": "number"
   }
 }
+```
+### Response (500 Internal Server Error)
 
-Response (500 Internal Server Error)
+
+## 4.1 프로필 차단
+- **URL: /api/profiles/blocked**
+- **Method: POST**
+- **Description: 특정 프로필을 차단.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Parameters
+```
+blockedProfileId: (Long) 차단할 프로필의 ID
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "프로필 차단이 완료되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "프로필 차단 중 문제가 발생했습니다."
+}
+```
+## 4.2 프로필 차단 해제
+- **URL: /api/profiles/blocked**
+- **Method: DELETE**
+- **Description: 특정 프로필에 대한 차단을 해제.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Parameters
+```
+blockedProfileId: (Long) 차단 해제할 프로필의 ID
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "프로필 차단이 해제되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "프로필 차단 해제 중 문제가 발생했습니다."
+}
+```
+## 4.3 차단된 프로필 목록 조회
+- **URL: /api/profiles/blocked**
+- **Method: GET**
+- **Description: 사용자가 차단한 프로필 목록을 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+[
+  {
+    "profileId": "number",
+    "profileName": "string",
+    "profileImageUrl": "string"
+  }
+]
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "차단된 프로필 목록 조회 중 문제가 발생했습니다."
+}
+```
+## 5.1 입금 계좌 정보 생성 및 수정
+- **URL: /api/bank-account**
+- **Method: POST**
+- **Description: 판매 정산 계좌 정보를 등록하거나 수정.**
+
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Body
+```
+{
+  "bankName": "string",
+  "accountNumber": "string",
+  "accountHolder": "string"
+}
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "판매 정산 계좌가 성공적으로 등록/수정되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 등록/수정 중 문제가 발생했습니다."
+}
+```
+## 5.2 입금 계좌 정보 조회
+- **URL: /api/bank-account**
+- **Method: GET**
+- **Description: 사용자의 판매 정산 계좌 정보를 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
+  "bankName": "string",
+  "accountNumber": "string",
+  "accountHolder": "string"
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 조회 중 문제가 발생했습니다."
+}
+```
+## 5.3 입금 계좌 정보 삭제
+- **URL: /api/bank-account**
+- **Method: DELETE**
+- **Description: 사용자의 판매 정산 계좌 정보를 삭제.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "판매 정산 계좌가 성공적으로 삭제되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 삭제 중 문제가 발생했습니다."
+}
+```
+
 
 
 
