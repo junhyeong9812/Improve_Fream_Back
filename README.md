@@ -771,6 +771,7 @@ spring:
     password: your-email-password
 jwt:
   secret: your-secret-key
+  expiration: 3600000      # JWT 만료 시간 (밀리초 단위, 예: 1시간)
 portone:
   api-key: ${PORTONE_API_KEY} # 포트원의 API 키
   api-secret: ${PORTONE_API_SECRET} # 포트원의 Secret 키
