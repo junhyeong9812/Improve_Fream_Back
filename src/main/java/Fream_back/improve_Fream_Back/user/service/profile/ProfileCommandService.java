@@ -8,6 +8,7 @@ import Fream_back.improve_Fream_Back.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
 
@@ -50,16 +51,24 @@ public class ProfileCommandService {
     }
 
     @Transactional
-    public void updateProfile(String email, ProfileUpdateDto dto) {
+    public void updateProfile(String email, ProfileUpdateDto dto, MultipartFile profileImage) {
         Profile profile = profileRepository.findByUser_Email(email)
                 .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
 
         // 이미지 변경
-        if (dto.getProfileImage() != null) {
+        if (profileImage != null && !profileImage.isEmpty()) {
+            // 기존 이미지 삭제
             if (profile.getProfileImageUrl() != null) {
                 fileUtils.deleteFile("profile_images", profile.getProfileImageUrl());
             }
-            profile.updateProfile(null, null, null, dto.getProfileImage());
+
+            // 새로운 이미지 저장
+            String savedFilePath = fileUtils.saveFile(
+                    "profile_images",
+                    "profile_" + profile.getId() + "_",
+                    profileImage
+            );
+            profile.updateProfile(null, null, null, savedFilePath);
         }
 
         // 프로필 이름, 소개글, 공개 여부 업데이트

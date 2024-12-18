@@ -6,1063 +6,707 @@ Fream 리빌딩 프로젝트
 <br>
 엔티티 설계 과정 : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
 <br>
-기본 API
-<br>
-SpringBoot3.1
-SpringDataJpa
-<br>
-- 1차 프로젝트 :24년 11월 11일~ 24년 11월 22일
-- 1차 프로젝트 :
-  - 로그인 
-  - 회원가입
-  - 사용자 아이디 찾기
-  - 비밀번호 재설정
-  - jwt 설정
-  - 배송지 추가
-  - 배송지 삭제
-  - 배송지 수정
-  - 배송지 조회
-  - 상품 이미지 임시 url생성
-  - 상품 생성
-  - 상품 수정
-  - 상품 삭제
-  - 상품 단일 조회
-  - 상품 필터링 조회
 
-- 2차 프로젝트 :24년 11월 25일~ 24년 12월 6일
-- 2차 프로젝트 :
+### 개요
+```
+이번 프로젝트는 기존에 진행했던 KREAM 리셀 사이트 클론 프로젝트에서의 경험과 아쉬움을 바탕으로, 처음부터 다시 설계하고 구현하는 **리셀 플랫폼 리빌딩 프로젝트**입니다. KREAM은 e-Commerce의 기본적인 요소와 커뮤니티 기능(스타일 공유, 댓글, 추천 등)을 모두 갖춘 플랫폼으로, 웹 개발에 필요한 주요 기술을 종합적으로 익히기에 적합한 프로젝트입니다.
 
-  - 주문,결제내역,쉽먼트,스타일 엔티티 구현
-  - 주문 생성
-  - 주문 상세 조회
-  - 주문 결제 완료 및 배송 준비 상태로 업데이트
-  - 배송 상태 업데이트
-  - 결제 환불 처리
-  - 주문 목록 조회 (필터링 지원)
-  - 주문 결제 및 배송 정보 조회
-  - 특정 주문의 결제 정보 조회
-  - 특정 주문의 배송 정보 조회
-  - style 구현을 통한 짧은 영상 및 사진 공유 api 구현(완)
-  - portone연동을 통한 실제 구매 및 판매(완)
-  - 오더엔티티 portone api에 맞도록 재구성(완)
-  - 
-- 2차 프로렉트 미완성 부분 정리 :
-  - 사이트 접속 통계 수집 api 구현(미완)
- 
-- 3차 프로젝트 :24년 12월 9일~24년 12월 13일
-- 프론트 엔드 프로젝트 시작 : 24년 12월 9일
-- 3차 프로젝트 :
-  - portone연동을 통한 실제 구매 및 판매(완)
-  - 오더엔티티 portone api에 맞도록 재구성(완)
-  - User엔티티 재설계
-### 재설계 이유
-    ```
-    기존의 흐름을 단순히 머리로 생각한 부분을 고려해서 구현해보았지만 실제 Kream사이트를 보고 
-    프론트엔드 개발을 하며 프론트 구조를 뜯어보고 확인하면서 각 엔티티별 기능 및 필요한 기능에 대한 재정립을 해보았을 때
-    기존의 구조는 Kream의 구조가 아닌 단순히 e커머스의 기본 구조밖에 안되며 
-    위에서 1차 2차 개발을 통해 만든 내용 자체가 하나하나 확인하며 체크했을 때 너무도 다르다는 것을 확인했고 
-    실제로 API요청을 통한 동작은 전부 테스트 해보았지만 위 구조는 현재 하려는 Kream사이트의 구조와 다르고 각각의 연관관계 및 
-    로직의 설계가 동작만하고 미흡한 부분이 많은 것을 확인 
-    하나의 서비스 구조에 모든 구조를 다 넣어놔서 코드 파악도 힘들 뿐더러 기능별 분리가 제대로 되어 있지 않았다.
-    그래서 다시 차근차근 프론트엔드를 만들며 
-    https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
-    여기에 구조들을 뜯어보며 백엔드 기능을 다시 재구성하고 다시 하나하나씩 만들었을 때 
-    기존에 1차 2차에서 만들었던 기능을 토대로 다시 만드는 부분이기에 확실히 시스템적으로 흐름도 안정적이고 코드도 기능별로 기존보다  
-    훨씬 잘 나눠져서 유지보수 하기도 편해져서 전체 구조를 다시 재설계하려고 한다.
-    ```
-    
- 
-- 3차 프로젝트 미완성
-  - 사이트 접속 통계 수집 api 구현(미완)
-  - 도커 및 마이크로서비스 아키텍처 도입(미완)
-  - AWS 배포(미완)
-  - 추가적인 성능 최적화(미완)
-  - Elasticsearch 도입해보기(미완)
-  - 대규모 트래픽 처리를 위한 로드 밸런싱 및 캐싱 전략 도입(미완)
+이번 프로젝트는 다음과 같은 기술 스택을 활용하여 개발 중입니다:
 
--  4차 프로젝트 :24년 12월 16일~24년 12월 20일
--  4차 프로젝트 예정 
-  - 알림 엔티티 설계 (완)
-  - 웹 소캣을 활용한 알림 기능 구현 (완)
-  - 공지사항 관련 엔티티 및 기능 구현 (완)
-  - product 구조 재설계(미완)
-  - order 구조 재설계(미완)
-  - style 구조 재설계(미완)
+1. **백엔드**: Spring Boot, JPA, H2 Database
+2. **프론트엔드**: React.js, TypeScript
+3. **데이터 관리**: DTO를 활용한 데이터 독립성 확보, QueryDSL을 통한 효율적 조회
+4. **구조 설계**: 도메인 주도 설계(DDD)를 통해 유지보수성과 확장성을 고려한 모듈화
+```
+
+### 기획의도
+```
+기존 프로젝트에서 발견했던 한계점을 해결하고, 더 깊이 있는 학습을 통해 실무 수준의 결과물을 만들어내고자 이번 프로젝트를 시작했습니다.
+
+**기존 한계점**
+
+- **설계와 구조의 한계**
+    - API가 엔티티에 종속적이어서 확장성과 유지보수성이 부족했습니다.
+    - 이를 개선하기 위해 DTO를 적극 활용하고, API 설계를 데이터 흐름 중심으로 개선했습니다.
+- **기능적 부족**
+    - 데이터 조회 성능 최적화 미흡(N+1 문제 등)
+    - 이번 프로젝트에서는 QueryDSL과 JPA를 통해 효율적인 데이터 처리 및 조회 구조를 설계했습니다.
+- **실무적 배포 경험 부족**
+    - 클라우드와 컨테이너 기반 환경에서의 운영 경험이 부족했습니다.
+    - 이번 프로젝트에서는 AWS 배포 및 Docker를 활용한 컨테이너화까지 학습 및 적용할 예정입니다.
+```
+
+### 프로젝트 목표
+- **e-Commerce와 커뮤니티 기능의 통합 플랫폼 구현**
+- **유지보수성과 확장성을 고려한 모듈화된 백엔드 설계**
+- **실무에서 요구되는 성능 최적화 및 보안 강화 기술 적용**
+
+재설계 이전 :https://unleashed-moon-059.notion.site/160256e3f89b809ab490c949fd5c3875
+## 구현 이후 재설계를 한 이유
+```
+기존의 흐름을 단순히 머리로 생각한 부분을 고려해서 구현해보았지만 실제 Kream사이트를 보고
+프론트엔드 개발을 하며 프론트 구조를 뜯어보고 확인하면서 각 엔티티별 기능 및 필요한 기능에 대한 재정립을 해보았을 때
+기존의 구조는 Kream의 구조가 아닌 단순히 e커머스의 기본 구조밖에 안되며
+위에서 1차 2차 개발을 통해 만든 내용 자체가 하나하나 확인하며 체크했을 때 너무도 다르다는 것을 확인했고
+실제로 API요청을 통한 동작은 전부 테스트 해보았지만 위 구조는 현재 하려는 Kream사이트의 구조와 다르고 각각의 연관관계 및
+로직의 설계가 동작만하고 미흡한 부분이 많은 것을 확인
+하나의 서비스 구조에 모든 구조를 다 넣어놔서 코드 파악도 힘들 뿐더러 기능별 분리가 제대로 되어 있지 않았다.
+그래서 다시 차근차근 프론트엔드를 만들며
+<https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0>
+여기에 구조들을 뜯어보며 백엔드 기능을 다시 재구성하고 다시 하나하나씩 만들었을 때
+기존에 1차 2차에서 만들었던 기능을 토대로 다시 만드는 부분이기에 확실히 시스템적으로 흐름도 안정적이고 코드도 기능별로 기존보다
+훨씬 잘 나눠져서 유지보수 하기도 편해져서 전체 구조를 다시 재설계하려고 한다.
+```
+# 설계 개요
+
+- **도메인 중심 설계**
+    - **User, Product, Order, Style 등의 도메인을 중심으로 모듈화된 아키텍처 설계**
+- **데이터 최적화**
+    - **QueryDSL과 페이징 처리로 대량 데이터 조회 성능 개선**
+    - **Lazy Loading 및 Fetch Join 전략으로 N+1 문제 해결**
+- **보안 강화**
+    - **JWT와 Spring Security를 활용한 인증 및 권한 관리**
+    - **Redis를 이용한 토큰 화이트리스트 관리**
+- **배포 및 운영**
+    - **AWS와 Docker를 통한 안정적인 배포 환경 구축**
+    - **향후 Kubernetes를 통해 마이크로서비스 아키텍처 적용 예정**
 
 
+## 재설계 1차 프로젝트 : 12월 9일~ 12월 13일
+  - **사용자 도메인**
+    ![image](https://github.com/user-attachments/assets/8b089d5f-132f-467b-8339-8b7d88df610c)
 
-
-
-<br>
-기본 ERD구조
-<br>
-<img src="https://github.com/user-attachments/assets/c040190e-b830-451d-a873-f0c0640dc05f"/>
-<br>
-
-
-
-# API 명세서
-### 1. 사용자(User) API
+# 사용자 관련 기능 및 API 명세서
 ## 1.1 로그인
-- **URL**: /api/users/login
-- **Method**: POST
-- **Description**: 사용자의 loginId와 password로 로그인. 성공 시 JWT 토큰 발급 및 사용자 정보를 반환.
+- **URL: /api/users/login**
+- **Method: POST**
+- **Description: 사용자의 email과 password로 로그인. 성공 시 JWT 토큰 발급.**
 ### Request Body
-```json
+```
 {
-  "loginId": "string",
+  "email": "string",
   "password": "string"
 }
 ```
+
 ### Response (200 OK)
-```json
+```
 {
-  "message": "Login successful.",
-  "loginId": "string",
-  "nickname": "string",
-  "token": null
+  "token": "string"
 }
 ```
+<br>
 ### Response (401 Unauthorized)
-```json
+```
 {
-  "message": "Invalid credentials.",
-  "loginId": null,
-  "nickname": null,
-  "token": null
+  "status": "error",
+  "message": "Invalid credentials."
 }
 ```
-## 1.2 로그아웃
-- **URL**: /api/users/logout
-- **Method**: POST
-- **Description**: 현재 사용 중인 JWT 토큰을 무효화.
-Headers
-Authorization: Bearer <token>
-Response (200 OK)
-```text
-Logout successful.
-```
-Response (400 Bad Request)
-``` text
-Invalid token.
-```
-## 1.3 아이디 찾기 (전화번호)
-- **URLL**: /api/users/find-loginId/phone
-- **MethodL**: POST
-- **DescriptionL**: 사용자의 전화번호로 loginId 조회.
+## 1.2 회원가입
+- **URL: /api/users/register**
+- **Method: POST**
+- **Description: 회원 정보를 받아 사용자 등록.**
+
 ### Request Body
-```json
+```
+{
+  "email": "string",
+  "password": "string",
+  "phoneNumber": "string",
+  "referralCode": "string",
+  "shoeSize": "string",
+  "isOver14": true,
+  "termsAgreement": true,
+  "privacyAgreement": true,
+  "optionalPrivacyAgreement": true,
+  "adConsent": true
+}
+```
+### Response (201 Created)
+```
+{
+  "status": "success",
+  "userEmail": "string"
+}
+```
+### Response (400 Bad Request)
+```
+{
+  "status": "error",
+  "message": "Invalid input."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "회원가입 처리 중 문제가 발생했습니다."
+}
+```
+## 1.3 이메일 찾기
+- **URL: /api/users/find-email**
+- **Method: POST**
+- **Description: 사용자의 전화번호로 이메일을 조회.**
+### Request Body
+```
 {
   "phoneNumber": "string"
 }
 ```
-Response (200 OK)
-```json
-{
-  "loginId": "string"
-}
+### Response (200 OK)
 ```
-Response (404 Not Found)
-```json
-null
-```
-## 1.4 아이디 찾기 (이메일)
-- **URLL**: /api/users/find-loginId/email
-- **MethodL**: POST
-- **DescriptionL**: 사용자의 이메일로 loginId 조회.
-### Request Body
-```json
 {
   "email": "string"
 }
 ```
-Response (200 OK)
-```json
+### Response (404 Not Found)
+```
 {
-  "loginId": "string"
+  "status": "error",
+  "message": "이메일을 찾을 수 없습니다."
 }
 ```
-Response (404 Not Found)
-``` json
-null
+### Response (500 Internal Server Error)
 ```
-## 1.5 비밀번호 재설정 요청
-- **URLL**: /api/users/password-reset/request
-- **MethodL**: POST
-- **DescriptionL**: 비밀번호 재설정을 위한 사용자 검증 요청.
-### Request Body
-```json
 {
-  "loginId": "string",
-  "phoneNumber": "string",
-  "email": "string"
+  "status": "error",
+  "message": "이메일 찾기 처리 중 문제가 발생했습니다."
 }
 ```
-Response (200 OK)
-```text
-User validated for password reset.
-```
-Response (404 Not Found)
-``` text
-User not found or invalid details.
-```
-## 1.6 비밀번호 업데이트
-- **URLL**: /api/users/password-reset/update
-- **MethodL**: POST
-- **DescriptionL**: 사용자 비밀번호 변경.
+### 1.4 비밀번호 초기화 가능 여부 확인
+- **URL: /api/users/reset-password**
+- **Method: POST**
+- **Description: 이메일과 전화번호를 통해 비밀번호 초기화 가능 여부 확인.**
 ### Request Body
-```json
+```
 {
-  "loginId": "string",
-  "newPassword": "string"
-}
-```
-Response (200 OK)
-``` text
-Password updated successfully.
-```
-Response (404 Not Found)
-``` text
-User not found.
-```
-## 1.7 로그인 아이디 중복 확인
-- **URLL**: /api/users/check-duplicate
-- **MethodL**: GET
-- **DescriptionL**: 로그인 ID의 중복 여부 확인.
-Query Parameters
-loginId: string
-Response (200 OK)
-```text
-"ok": 중복되지 않음.
-"duplicate": 중복됨.
-```
-## 1.8 회원가입
-- **URLL**: /api/users/signup
-- **MethodL**: POST
-- **DescriptionL**: 새로운 사용자 등록.
-### Request Body
-```json
-{
-  "loginId": "string",
-  "password": "string",
-  "nickname": "string",
-  "realName": "string",
-  "phoneNumber": "string",
   "email": "string",
-  "phoneNotificationConsent": false,
-  "emailNotificationConsent": false
-}
-```
-Response (200 OK)
-```json
-{
-  "id": 1,
-  "loginId": "string",
-  "nickname": "string",
-  "realName": "string",
-  "phoneNumber": "string",
-  "email": "string",
-  "role": "USER"
-}
-```
-### 2. 배송지(Delivery) API
-## 2.1 배송지 추가
-- **URLL**: /api/deliveries/add
-- **MethodL**: POST
-- **DescriptionL**: 배송지 추가 요청.
-### Request Body
-```json
-{
-  "recipientName": "string",
-  "phoneNumber": "string",
-  "address": "string",
-  "addressDetail": "string",
-  "zipCode": "string",
-  "isDefault": true
-}
-```
-Response (200 OK)
-``` text
-배송지가 성공적으로 추가되었습니다.
-```
-## 2.2 배송지 목록 조회
-- **URLL**: /api/deliveries/list
-- **MethodL**: GET
-- **DescriptionL**: 특정 사용자의 모든 배송지 목록 조회.
-Query Parameters
-loginId: string
-Response (200 OK)
-```json
-[
-  {
-    "id": 1,
-    "recipientName": "string",
-    "phoneNumber": "string",
-    "address": "string",
-    "addressDetail": "string",
-    "zipCode": "string",
-    "isDefault": true
-  }
-]
-```
-## 2.3 배송지 수정
-- **URLL**: /api/deliveries/update
-- **MethodL**: PUT
-- **DescriptionL**: 배송지 수정 요청.
-### Request Body
-```json
-{
-  "id": 1,
-  "recipientName": "string",
-  "phoneNumber": "string",
-  "address": "string",
-  "addressDetail": "string",
-  "zipCode": "string",
-  "isDefault": true
-}
-```
-Response (200 OK)
-``` text
-배송지 정보가 성공적으로 수정되었습니다.
-```
-## 2.4 배송지 삭제
-- **URLL**: /api/deliveries/delete
-- **MethodL**: DELETE
-- **DescriptionL**: 특정 배송지 삭제.
-### Request Body
-```json
-{
-  "id": 1
-}
-```
-Response (200 OK)
-``` text
-배송지가 성공적으로 삭제되었습니다.
-```
-### 3. 상품(Product) API
-## 3.1 임시 URL 생성
-- **URLL**: /api/products/temporary-url
-- **MethodL**: POST
-- **DescriptionL**: 이미지 업로드 후 임시 URL 생성.
-Request Parameters
-file: <image_file>
-Response (200 OK)
-```text
-
-temp/<file_path>
-```
-3.2 상품 생성
-URLL**: /api/products
-MethodL**: POST
-DescriptionL**: 새로운 상품 등록.
-### Request Body
-```json
-{
-  "name": "string",
-  "brand": "string",
-  "mainCategoryId": 1,
-  "subCategoryId": 2,
-  "initialPrice": 100.00,
-  "description": "string",
-  "releaseDate": "2024-12-01",
-  "images": [
-    {
-      "imageName": "string",
-      "temp_Url": "string",
-      "imageType": "string",
-      "isMainThumbnail": true
-    }
-  ],
-  "sizeAndColorQuantities": [
-    {
-      "sizeType": "string",
-      "clothingSizes": ["M", "L"],
-      "colors": ["RED", "BLUE"],
-      "quantity": 15
-    }
-  ]
-}
-```
-Response (200 OK)
-```json
-{
-  "id": 1
-}
-```
-## 3.3 상품 수정
-- **URLL**: /api/products/{productId}
-- **MethodL**: PUT
-- **DescriptionL**: 상품 정보 수정.
-### Request Body
-```json
-{
-  "name": "string",
-  "brand": "string",
-  "mainCategoryId": 1,
-  "subCategoryId": 2,
-  "initialPrice": 100.00,
-  "description": "string",
-  "releaseDate": "2024-12-01",
-  "images": [...],
-  "sizeAndColorQuantities": [...]
-}
-```
-Response (200 OK)
-```json
-{
-  "id": 1
-}
-```
-## 3.4 상품 삭제
-- **URLL**: /api/products/{productId}
-- **MethodL**: DELETE
-- **DescriptionL**: 상품 삭제 요청.
-Response (200 OK)
-text
-코드 복사
-상품이 성공적으로 삭제되었습니다.
-## 3.5 단일 상품 조회
-URLL**: /api/products/{productId}
-MethodL**: GET
-DescriptionL**: 상품 상세 조회.
-Response (200 OK)
-  ```json
-{
-  "id": 1,
-  "name": "string",
-  "brand": "string",
-  "description": "string",
-  "images": [...],
-  "sizeAndColorQuantities": [...]
-}
-```
-## 3.6 필터링된 상품 조회
-- **URLL**: /api/products/filter
-- **MethodL**: GET
-- **DescriptionL**: 필터 조건에 따른 상품 목록 조회.
-Query Parameters
-mainCategoryId
-subCategoryId
-color
-size
-brand
-sortBy
-Response (200 OK)
-```json
-[
-  {
-    "id": 1,
-    "name": "string",
-    "brand": "string",
-    "mainCategoryName": "string",
-    "subCategoryName": "string",
-    "colors": ["RED", "BLUE"],
-    "sizes": ["M", "L"],
-    "quantity": 15
-  }
-]
-```
-
-### 4. 주문(Order) API
-## 4.1 주문 생성
-- **URLL**: /order
-- **MethodL**: POST
-- **DescriptionL**: 사용자가 주문을 생성합니다.
-### Request Body
-```json
-{
-  "userId": 1,
-  "deliveryId": 2,
-  "orderItems": [
-    {
-      "productId": 10,
-      "quantity": 2,
-      "price": 100.00
-    }
-  ],
-  "delivery": {
-    "recipientName": "John Doe",
-    "phoneNumber": "010-1234-5678",
-    "address": "123 Test St",
-    "addressDetail": "Apt 101",
-    "zipCode": "12345"
-  },
-  "payment": {
-    "paymentMethod": "Credit Card",
-    "amount": 200.00
-  }
-}
-```
-### Response (200 OK)
-```json
-{
-  "orderId": 1,
-  "userId": 1,
-  "orderItems": [...],
-  "shipmentStatus": "Ready",
-  "trackingNumber": null,
-  "courierCompany": null,
-  "totalPrice": 200.00
-}
-```
-## 4.2 주문 상세 조회
-- **URLL**: /order/{orderId}
-- **MethodL**: GET
-- **DescriptionL**: 특정 주문의 상세 정보를 조회합니다.
-### Response (200 OK)
-```json
-{
-  "orderId": 1,
-  "userId": 1,
-  "orderItems": [...],
-  "shipmentStatus": "Shipped",
-  "trackingNumber": "123456",
-  "courierCompany": "FedEx",
-  "totalPrice": 200.00
-}
-```
-## 4.3 결제 완료 및 배송 준비 상태 업데이트
-- **URLL**: /order/{orderId}/complete-payment
-- **MethodL**: POST
-- **DescriptionL**: 주문 결제를 완료하고 배송 준비 상태로 업데이트합니다.
-### Request Parameters
-```makefile
-paymentMethod=Credit Card
-amount=200.00
-```
-Response (200 OK)
-```text
-Order payment completed and shipment created.
-```
-## 4.4 배송 상태 업데이트
-- **URLL**: /order/{orderId}/shipment
-- **MethodL**: PUT
-- **DescriptionL**: 특정 주문의 배송 상태를 업데이트합니다.
-### Request Body
-```json
-{
-  "shipmentStatus": "Delivered",
-  "trackingNumber": "123456",
-  "courierCompany": "FedEx"
-}
-```
-### Response (200 OK)
-lua
-```text
-Shipment status updated successfully.
-```
-## 4.5 결제 환불 처리
-- **URLL**: /order/{orderId}/refund
-- **MethodL**: POST
-- **DescriptionL**: 특정 주문의 결제를 환불합니다.
-### Response (200 OK)
-```
-Payment refunded successfully.
-```
-## 4.6 주문 목록 조회
-- **URL: /order/user/{userId}
-- **Method: GET
-- **Description: 특정 사용자의 주문 목록을 조회합니다.
-### Request Parameters
-makefile
-```
-shipmentStatus=Shipped
-includePayments=true
-```
-### Response (200 OK)
-```json
-[
-  {
-    "orderId": 1,
-    "userId": 1,
-    "orderItems": [...],
-    "shipmentStatus": "Shipped",
-    "totalPrice": 200.00
-  },
-  ...
-]
-```
-### 5. 스타일(Style) API
-## 5.1 임시 저장
-- **URLL**: /styles/upload-temp
-- **MethodL**: POST
-- **DescriptionL**: 스타일 관련 파일을 임시로 저장합니다.
-### Request Parameters
-makefile
-```
-file=<MultipartFile>
-```
-### Response (200 OK)
-```json
-temp/1234567890_dummy-image.jpg
-```
-## 5.2 스타일 생성
-- **URLL**: /styles/create
-- **MethodL**: POST
-- **DescriptionL**: 새로운 스타일을 생성합니다.
-### Request Body
-```json
-{
-  "userId": 1,
-  "orderItemId": 10,
-  "content": "Amazing product!",
-  "rating": 5,
-  "tempFilePath": "temp/1234567890_dummy-image.jpg"
-}
-```
-### Response (200 OK)
-```
-1
-```
-## 5.3 스타일 수정
-- **URLL**: /styles/{styleId}/update
-- **MethodL**: PUT
-- **DescriptionL**: 특정 스타일을 수정합니다.
-### Request Body
-```json
-{
-  "userId": 1,
-  "content": "Updated content!",
-  "rating": 4,
-  "tempFilePath": "temp/updated-image.jpg"
-}
-```
-### Response (200 OK)
-```
-1
-```
-## 5.4 스타일 삭제
-- **URLL**: /styles/{styleId}/delete
-- **MethodL**: DELETE
-- **DescriptionL**: 특정 스타일을 삭제합니다.
-### Request Parameters
-makefile
-```
-userId=1
-```
-### Response (200 OK)
-```
-스타일이 성공적으로 삭제되었습니다.
-```
-## 5.5 스타일 검색
-- **URLL**: /styles/search
-- **MethodL**: POST
-- **DescriptionL**: 특정 조건에 맞는 스타일을 검색합니다.
-### Request Body
-```json
-{
-  "userId": 1,
-  "productId": 10,
-  "keyword": "cool"
-}
-```
-### Response (200 OK)
-```json
-[
-  {
-    "id": 1,
-    "content": "Amazing style!",
-    "rating": 5,
-    "imageUrl": "images/style_1.jpg",
-    "createdDate": "2024-12-07T22:10:00"
-  },
-  ...
-]
-```
-## 5.6 스타일 상세 조회
-- **URLL**: /styles/{styleId}
-- **MethodL**: GET
-- **DescriptionL**: 특정 스타일의 상세 정보를 조회합니다.
-### Response (200 OK)
-```json
-{
-  "id": 1,
-  "content": "Amazing style!",
-  "rating": 5,
-  "imageUrl": "images/style_1.jpg",
-  "userNickname": "John Doe",
-  "productId": 10,
-  "productName": "Cool Shoes",
-  "productBrand": "Nike",
-  "productImageUrl": "images/product_10.jpg"
-}
-```
-
-
-
-
----
-
-## 1. 로그인 엔드포인트
-- **URL**: `/api/users/login`
-- **Method**: `POST`
-- **Description**: 사용자의 `loginId`와 `password`로 로그인. 성공 시 쿠키에 `loginId`를 저장하고 사용자 정보를 반환.
-
-### Request Body
-```json
-{
-  "loginId": "string",
-  "password": "string"
-}
-```
-
-### Response
-- Status Code: **200 OK**
-  ```json
-  {
-  "message": "Login successful.",
-  "loginId": "string",
-  "nickname": "string"
-}
-```
-
-- Status Code: **401 Unauthorized**
-```json
-  {
-  "message": "Invalid credentials.",
-  "loginId": null,
-  "nickname": null
-}
-```
-
-## 2. 전화번호로 아이디 찾기
-- **URL**: `/api/users/find-loginId/phone`
-- **Method**: `POST`
-- **Description**: 전화번호로 `loginId` 조회.
-
-### Request Body
-```json
-{
   "phoneNumber": "string"
 }
 ```
-
-### Response
-- Status Code: **200 OK**
-```json
+### Response (200 OK)
+```
 {
-  "username": "string"
+  "status": "ok"
 }
-
 ```
-- Status Code: **404 Not Found**
-- ```json
-  {
-  "error": "User not found"
+### Response (404 Not Found)
+```
+{
+  "status": "error",
+  "message": "해당 이메일 및 전화번호로 사용자를 찾을 수 없습니다."
 }
-
 ```
-
----
-
-## 3. 이메일로 아이디 찾기
-- **URL**: `/api/users/find-loginId/email`
-- **Method**: `POST`
-- **Description**: 이메일로 `loginId` 조회.
-
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "비밀번호 찾기 처리 중 문제가 발생했습니다."
+}
+```
+### 1.5 비밀번호 변경
+- **URL: /api/users/reset**
+- **Method: POST**
+- **Description: 새로운 비밀번호를 설정.**
 ### Request Body
-```json
-{
-  "email": "string"
-}
-
 ```
-### Response
-- Status Code: **200 OK**
-```json
 {
-  "username": "string"
-}
-
-```
-- Status Code: **404 Not Found**
-- ```json
-  {
-  "error": "User not found"
-}
-
-```
-
----
-
-## 4. 비밀번호 재설정 요청
-- **URL**: `/api/users/password-reset/request`
-- **Method**: `POST`
-- **Description**: 비밀번호 재설정 요청을 위한 사용자 정보 인증.
-
-### Request Body
-```json
-{
-  "loginId": "string",
+  "email": "string",
   "phoneNumber": "string",
-  "email": "string"
-}
-
-```
-### Response
-- Status Code: **200 OK**
-```json
-"User validated for password reset."
-```
-- Status Code: **404 Not Found**
-- ```json
-"User not found or invalid details."
-```
-
----
-
-## 5. 비밀번호 업데이트
-- **URL**: `/api/users/password-reset/update`
-- **Method**: `POST`
-- **Description**: 비밀번호 업데이트.
-
-### Request Body
-```json
-{
-  "loginId": "string",
-  "newPassword": "string"
+  "newPassword": "string",
+  "confirmPassword": "string"
 }
 ```
-### Response
-- Status Code: **200 OK**
-```json
-"Password updated successfully."
+### Response (200 OK)
 ```
-- Status Code: **404 Not Found**
-- ```json
-"User not found."
+"비밀번호가 성공적으로 변경되었습니다."
+```
+### Response (400 Bad Request)
+```
+"비밀번호와 비밀번호 확인이 일치하지 않습니다."
+```
+### Response (500 Internal Server Error)
+```
+"비밀번호 변경 중 문제가 발생했습니다."
 ```
 
----
-
-## 6. 로그인 아이디 중복 확인
-- **URL**: `/api/users/check-duplicate`
-- **Method**: `GET`
-- **Description**: 로그인 아이디 중복 확인.
-
-### Query Parameter
-- `loginId` (string): 확인할 로그인 아이디.
-
-### Response
-- **Status Code**: `200 OK`
-  - 중복 시: `"duplicate"`
-  - 중복이 아닐 시: `"ok"`
-
----
-
-## 7. 회원 가입
-- **URL**: `/api/users/signup`
-- **Method**: `POST`
-- **Description**: 회원 가입을 위한 사용자 등록.
-
+## 1.6 로그인 정보 변경
+- **URL: /api/users/update-login-info**
+- **Method: PUT**
+- **Description: 사용자의 로그인 정보를 업데이트.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
 ### Request Body
-```json
+```
 {
-  "loginId": "string",
+  "newEmail": "string",
   "password": "string",
-  "nickname": "string",
-  "realName": "string",
-  "phoneNumber": "string",
+  "newPassword": "string",
+  "newPhoneNumber": "string",
+  "newShoeSize": "string",
+  "adConsent": true,
+  "privacyConsent": true,
+  "smsConsent": true,
+  "emailConsent": true
+}
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "로그인 정보가 성공적으로 변경되었습니다."
+}
+```
+### Response (400 Bad Request)
+```
+{
+  "status": "error",
+  "message": "잘못된 입력 값입니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "로그인 정보 변경 처리 중 문제가 발생했습니다."
+}
+```
+## 1.7 로그인 정보 조회
+- **URL: /api/users/login-info**
+- **Method: GET**
+- **Description: 사용자의 로그인 정보를 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
   "email": "string",
-  "phoneNotificationConsent": boolean,
-  "emailNotificationConsent": boolean
-}
-```
-### Response
-- Status Code: **200 OK**
-```json
-{
-  "id": "number",
-  "loginId": "string",
-  "nickname": "string",
-  "realName": "string",
   "phoneNumber": "string",
-  "email": "string",
-  "phoneNotificationConsent": boolean,
-  "emailNotificationConsent": boolean,
-  "role": "USER"
+  "shoeSize": "string",
+  "optionalPrivacyAgreement": true,
+  "smsConsent": true,
+  "emailConsent": true
 }
 ```
-- Status Code: **404 Not Found**
-- ```json
-
+### Response (404 Not Found)
 ```
-
-
-
-
-
-### Request Body
-```json
-
+null
 ```
-### Response
-- Status Code: **200 OK**
-```json
-
+### Response (500 Internal Server Error)
 ```
-- Status Code: **404 Not Found**
--
-```json
-
+null
 ```
-
-
-
-### Order API
-1. 주문 생성
-URL: /order
-Method: POST
-Request Body:
-json
-코드 복사
+## 1.8 회원 탈퇴
+- **URL: /api/users/delete-account**
+- **Method: DELETE**
+- **Description: 사용자의 계정을 삭제.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
 {
-  "userId": 1,
-  "delivery": {
-    "recipientName": "John Doe",
-    "phoneNumber": "010-1234-5678",
-    "address": "123 Main St",
-    "addressDetail": "Apt 101",
-    "zipCode": "12345"
-  },
-  "orderItems": [
+  "status": "success",
+  "message": "회원 탈퇴가 완료되었습니다."
+}
+```
+### Response (404 Not Found)
+```
+{
+  "status": "error",
+  "message": "사용자를 찾을 수 없습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "회원 탈퇴 처리 중 문제가 발생했습니다."
+}
+```
+## 2.1 프로필 조회
+- **URL: /api/profiles**
+- **Method: GET**
+- **Description: 사용자의 프로필 정보를 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
+  "profileImage": "string",
+  "profileName": "string",
+  "realName": "string",
+  "bio": "string",
+  "isPublic": true,
+  "blockedProfiles": [
     {
-      "productId": 1,
-      "quantity": 2,
-      "price": 50000
+      "profileId": "number",
+      "profileName": "string",
+      "profileImageUrl": "string"
     }
   ]
 }
-Response:
-json
-코드 복사
+```
+### Response (500 Internal Server Error)
+```
 {
-  "orderId": 1,
-  "userId": 1,
-  "recipientName": "John Doe",
-  "phoneNumber": "010-1234-5678",
-  "address": "123 Main St",
-  "addressDetail": "Apt 101",
-  "zipCode": "12345",
-  "totalPrice": 100000,
-  "orderItems": [
+  "status": "error",
+  "message": "프로필 정보를 불러오는 중 문제가 발생했습니다."
+}
+```
+## 2.2 프로필 업데이트
+-**URL: /api/profiles**
+-**Method: PUT**
+-** Description: 사용자의 프로필 정보를 업데이트. 이미지 파일은 Multipart 형식으로 받음.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Body (Multipart Form Data)
+```
+{
+  "profileImage": "file (binary)",
+  "dto": {
+    "profileName": "string",
+    "realName": "string",
+    "bio": "string",
+    "isPublic": "boolean"
+  }
+}
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "프로필이 성공적으로 업데이트되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "프로필 업데이트 중 문제가 발생했습니다."
+}
+```
+## 2.3 프로필 이미지 제공
+- **URL: /api/profiles/{profileId}/image**
+- **Method: GET**
+- **Description: 특정 프로필의 프로필 이미지를 제공.**
+## Path Parameters
+```
+profileId: 프로필 ID
+```
+### Response (200 OK)
+```
+Content-Type: 이미지 파일 형식 (e.g., image/jpeg)
+```
+### Response (404 Not Found)
+```
+{
+  "status": "error",
+  "message": "이미지 파일이 존재하지 않습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "프로필 이미지를 불러오는 중 문제가 발생했습니다."
+}
+```
+
+## 3.1 팔로우 생성
+- **URL: /api/follows/{profileId}**
+- **Method: POST**
+- **Description: 특정 프로필을 팔로우.
+
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Path Parameters
+```
+profileId: 팔로우할 프로필 ID
+```
+### Response (200 OK)
+```
+"팔로우가 성공적으로 추가되었습니다."
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "팔로우 생성 중 문제가 발생했습니다."
+}
+```
+## 3.2 팔로우 삭제
+- **URL: /api/follows/{profileId}**
+- **Method: DELETE**
+- **Description: 특정 프로필 팔로우를 취소.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Path Parameters
+```
+profileId: 취소할 팔로우 프로필 ID
+```
+### Response (200 OK)
+```
+"팔로우가 성공적으로 삭제되었습니다."
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "팔로우 삭제 중 문제가 발생했습니다."
+}
+```
+## 3.3 팔로워 목록 조회
+- **URL: /api/follows/followers**
+- **Method: GET**
+- **Description: 로그인 사용자의 팔로워 목록을 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Query Parameters
+```
+page: 페이지 번호 (default: 0)
+
+size: 페이지 크기 (default: 20)
+```
+### Response (200 OK)
+```
+{
+  "content": [
     {
-      "productId": 1,
-      "quantity": 2,
-      "price": 50000
+      "profileId": "number",
+      "profileName": "string",
+      "profileImageUrl": "string"
     }
-  ]
+  ],
+  "pageable": {
+    "page": "number",
+    "size": "number"
+  }
 }
-2. 주문 상세 조회
-URL: /order/{orderId}
-Method: GET
-Response:
-json
-코드 복사
+```
+### Response (500 Internal Server Error)
+```
 {
-  "orderId": 1,
-  "userId": 1,
-  "recipientName": "John Doe",
-  "phoneNumber": "010-1234-5678",
-  "address": "123 Main St",
-  "addressDetail": "Apt 101",
-  "zipCode": "12345",
-  "totalPrice": 100000,
-  "shipmentStatus": "PENDING",
-  "paymentCompleted": true,
-  "orderItems": [
+  "status": "error",
+  "message": "팔로워 목록 조회 중 문제가 발생했습니다."
+}
+```
+## 3.4 팔로잉 목록 조회
+- **URL: /api/follows/followings**
+- **Method: GET**
+- **Description: 로그인 사용자의 팔로잉 목록을 조회.**
+
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Query Parameters
+```
+page: 페이지 번호 (default: 0)
+
+size: 페이지 크기 (default: 20)
+```
+### Response (200 OK)
+```
+{
+  "content": [
     {
-      "productId": 1,
-      "quantity": 2,
-      "price": 50000
+      "profileId": "number",
+      "profileName": "string",
+      "profileImageUrl": "string"
     }
-  ]
+  ],
+  "pageable": {
+    "page": "number",
+    "size": "number"
+  }
 }
-3. 주문 결제 완료 및 배송 준비 상태로 업데이트
-URL: /order/{orderId}/complete-payment
-Method: POST
-Query Parameters:
-paymentMethod: CARD
-amount: 100000
-Response:
-json
-코드 복사
+```
+### Response (500 Internal Server Error)
+
+
+## 4.1 프로필 차단
+- **URL: /api/profiles/blocked**
+- **Method: POST**
+- **Description: 특정 프로필을 차단.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Parameters
+```
+blockedProfileId: (Long) 차단할 프로필의 ID
+```
+### Response (200 OK)
+```
 {
-  "message": "Order payment completed and shipment created."
+  "status": "success",
+  "message": "프로필 차단이 완료되었습니다."
 }
-4. 배송 상태 업데이트
-URL: /order/{orderId}/shipment
-Method: PUT
-Request Body:
-json
-코드 복사
+```
+### Response (500 Internal Server Error)
+```
 {
-  "status": "SHIPPED",
-  "trackingNumber": "123456789",
-  "courierCompany": "FedEx"
+  "status": "error",
+  "message": "프로필 차단 중 문제가 발생했습니다."
 }
-Response:
-json
-코드 복사
+```
+## 4.2 프로필 차단 해제
+- **URL: /api/profiles/blocked**
+- **Method: DELETE**
+- **Description: 특정 프로필에 대한 차단을 해제.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Parameters
+```
+blockedProfileId: (Long) 차단 해제할 프로필의 ID
+```
+### Response (200 OK)
+```
 {
-  "message": "Shipment status updated successfully."
+  "status": "success",
+  "message": "프로필 차단이 해제되었습니다."
 }
-5. 결제 환불 처리
-URL: /order/{orderId}/refund
-Method: POST
-Response:
-json
-코드 복사
+```
+### Response (500 Internal Server Error)
+```
 {
-  "message": "Payment refunded successfully."
+  "status": "error",
+  "message": "프로필 차단 해제 중 문제가 발생했습니다."
 }
-6. 주문 목록 조회 (필터링 지원)
-URL: /order/user/{userId}
-Method: GET
-Query Parameters:
-shipmentStatus (Optional): DELIVERED
-includePayments (Optional): true
-Response:
-```json
+```
+## 4.3 차단된 프로필 목록 조회
+- **URL: /api/profiles/blocked**
+- **Method: GET**
+- **Description: 사용자가 차단한 프로필 목록을 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
 [
   {
-    "orderId": 1,
-    "userId": 1,
-    "recipientName": "John Doe",
-    "totalPrice": 100000,
-    "shipmentStatus": "DELIVERED",
-    "paymentCompleted": true
+    "profileId": "number",
+    "profileName": "string",
+    "profileImageUrl": "string"
   }
 ]
 ```
-7. 특정 주문의 결제 정보 조회
-URL: /order/{orderId}/payment
-Method: GET
-Response:
-```json
+### Response (500 Internal Server Error)
+```
 {
-  "paymentId": 1,
-  "paymentMethod": "CARD",
-  "amount": 100000,
-  "paymentDate": "2024-11-29",
-  "isSuccessful": true
+  "status": "error",
+  "message": "차단된 프로필 목록 조회 중 문제가 발생했습니다."
 }
 ```
-8. 특정 주문의 배송 정보 조회
-URL: /order/{orderId}/shipment
-Method: GET
-Response:
-json
-코드 복사
+## 5.1 입금 계좌 정보 생성 및 수정
+- **URL: /api/bank-account**
+- **Method: POST**
+- **Description: 판매 정산 계좌 정보를 등록하거나 수정.**
+
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Request Body
+```
 {
-  "shipmentId": 1,
-  "trackingNumber": "123456789",
-  "courierCompany": "FedEx",
-  "shipmentStatus": "SHIPPED",
-  "shippedAt": "2024-11-29",
-  "deliveredAt": null
+  "bankName": "string",
+  "accountNumber": "string",
+  "accountHolder": "string"
 }
-오늘 나눈 대화 요약
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "판매 정산 계좌가 성공적으로 등록/수정되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 등록/수정 중 문제가 발생했습니다."
+}
+```
+## 5.2 입금 계좌 정보 조회
+- **URL: /api/bank-account**
+- **Method: GET**
+- **Description: 사용자의 판매 정산 계좌 정보를 조회.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
+  "bankName": "string",
+  "accountNumber": "string",
+  "accountHolder": "string"
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 조회 중 문제가 발생했습니다."
+}
+```
+## 5.3 입금 계좌 정보 삭제
+- **URL: /api/bank-account**
+- **Method: DELETE**
+- **Description: 사용자의 판매 정산 계좌 정보를 삭제.**
+### Request Header
+```
+Authorization: Bearer <JWT Token>
+```
+### Response (200 OK)
+```
+{
+  "status": "success",
+  "message": "판매 정산 계좌가 성공적으로 삭제되었습니다."
+}
+```
+### Response (500 Internal Server Error)
+```
+{
+  "status": "error",
+  "message": "입금 계좌 정보 삭제 중 문제가 발생했습니다."
+}
+```
+
+
+
+
+
+
+  - 고객센터 도메인
+
+  - 웹 소캣을 활용한 알림 기능 구현
+
+
+
+
 
 
 

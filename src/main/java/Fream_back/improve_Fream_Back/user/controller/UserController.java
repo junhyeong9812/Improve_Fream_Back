@@ -88,6 +88,22 @@ public class UserController {
                     .body(Map.of("status", "error", "message", "비밀번호 찾기 처리 중 문제가 발생했습니다."));
         }
     }
+    // 비밀번호 찾기 - 사용자 확인
+    @PostMapping("/reset-password-sandEmail")
+    public ResponseEntity<Map<String, String>> resetPasswordToEmail(@RequestBody PasswordResetRequestDto dto) {
+        try {
+            boolean eligible = passwordResetService.checkPasswordResetAndSendEmail(dto.getEmail(), dto.getPhoneNumber());
+            if (eligible) {
+                return ResponseEntity.ok(Map.of("status", "success", "message", "임시 비밀번호가 이메일로 전송되었습니다."));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("status", "error", "message", "해당 이메일 및 전화번호로 사용자를 찾을 수 없습니다."));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "비밀번호 찾기 처리 중 문제가 발생했습니다."));
+        }
+    }
 
     // 비밀번호 변경
     @PostMapping("/reset")

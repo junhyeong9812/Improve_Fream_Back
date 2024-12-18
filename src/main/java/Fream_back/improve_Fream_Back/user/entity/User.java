@@ -111,6 +111,9 @@ public class User extends BaseTimeEntity {
             this.gender = gender;
         }
     }
+    public void updatePassword(String newPassword) {
+        this.password = newPassword; // 비밀번호는 반드시 해싱하여 저장해야 함
+    }
     // **개인정보 동의 업데이트 메서드**
     public void updateConsent(Boolean adConsent, Boolean optionalPrivacyAgreement) {
         if (adConsent != null && adConsent) {

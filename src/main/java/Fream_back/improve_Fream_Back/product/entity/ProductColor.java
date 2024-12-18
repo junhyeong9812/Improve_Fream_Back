@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.product.entity;
 
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductColor {
+public class ProductColor extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 색상 ID

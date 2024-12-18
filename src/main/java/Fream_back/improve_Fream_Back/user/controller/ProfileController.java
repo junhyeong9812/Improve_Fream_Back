@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,10 +44,12 @@ public class ProfileController {
         return ResponseEntity.ok(profileInfo);
     }
 
-    @PutMapping
-    public ResponseEntity<String> updateProfile(@RequestBody ProfileUpdateDto dto) {
+    @PutMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<String> updateProfile(
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestPart(value = "dto") ProfileUpdateDto dto) {
         String email = extractEmailFromSecurityContext();
-        profileCommandService.updateProfile(email, dto);
+        profileCommandService.updateProfile(email, dto, profileImage);
         return ResponseEntity.ok("프로필이 성공적으로 업데이트되었습니다.");
     }
 

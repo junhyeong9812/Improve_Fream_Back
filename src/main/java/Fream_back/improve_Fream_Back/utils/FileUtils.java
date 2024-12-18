@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -13,21 +14,23 @@ import java.util.UUID;
 public class FileUtils {
 
     // 파일 저장
-    public String saveFile(String directory, String fileName, MultipartFile file) throws IOException {
-        // 경로 확인 및 디렉토리 생성
-        File dir = new File(directory);
-        if (!dir.exists()) {
-            dir.mkdirs();
+    public String saveFile(String directory, String prefix, MultipartFile file) {
+        try {
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename.substring(originalFilename.lastIndexOf(".")); // 확장자 추출
+            String uniqueFilename = prefix + UUID.randomUUID() + extension; // 고유 파일명 생성
+            Path filePath = Paths.get(directory, uniqueFilename);
+
+            // 디렉토리가 없으면 생성
+            Files.createDirectories(filePath.getParent());
+
+            // 파일 저장
+            file.transferTo(filePath.toFile());
+
+            return uniqueFilename; // 저장된 파일 이름 반환
+        } catch (IOException e) {
+            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
         }
-
-        // 고유 파일명 생성
-        String uniqueFileName = generateUniqueFileName(fileName);
-
-        // 파일 저장
-        String fullPath = directory + File.separator + uniqueFileName;
-        file.transferTo(new File(fullPath));
-
-        return uniqueFileName; // 저장된 파일명 반환
     }
 
     // 파일 삭제

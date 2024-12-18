@@ -3,10 +3,13 @@ package Fream_back.improve_Fream_Back.user.service;
 import Fream_back.improve_Fream_Back.user.dto.PasswordResetRequestDto;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
+import Fream_back.improve_Fream_Back.utils.PasswordUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +17,7 @@ public class PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // 암호화를 위한 PasswordEncoder
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public boolean checkPasswordResetEligibility(String email, String phoneNumber) {
@@ -35,4 +39,25 @@ public class PasswordResetService {
         // 더티체크에 의해 비밀번호 자동 저장
         return true; // 정상적으로 변경된 경우 true 반환
     }
+    @Transactional
+    public boolean checkPasswordResetAndSendEmail(String email, String phoneNumber) {
+        return userRepository.findByEmailAndPhoneNumber(email, phoneNumber).map(user -> {
+            // 1. 랜덤 비밀번호 생성
+            String newPassword = PasswordUtils.generateRandomPassword();
+
+            // 2. 임시 비밀번호 암호화 및 저장
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            user.updatePassword(encodedPassword);
+
+            // 3. 이메일 전송
+            String emailContent = String.format(
+                    "안녕하세요,\n\n새로운 임시 비밀번호는 다음과 같습니다: %s\n\n로그인 후 반드시 비밀번호를 변경해주세요.",
+                    newPassword
+            );
+            emailService.sendEmail(user.getEmail(), "임시 비밀번호 안내", emailContent);
+
+            return true;
+        }).orElse(false);
+    }
+
 }
