@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.user.service;
 
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;

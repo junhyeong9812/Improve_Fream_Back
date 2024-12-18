@@ -27,6 +27,8 @@ public class Notification extends BaseTimeEntity {
     private NotificationType type; // 세부 유형
 
     private String message; // 알림 메시지
+
+    @Builder.Default
     private boolean isRead = false; // 읽음 여부
 
     @ManyToOne(fetch = FetchType.LAZY)

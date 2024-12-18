@@ -45,18 +45,21 @@ public class PasswordResetService {
             // 1. 랜덤 비밀번호 생성
             String newPassword = PasswordUtils.generateRandomPassword();
 
-            // 2. 임시 비밀번호 암호화 및 저장
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            user.updatePassword(encodedPassword);
-
-            // 3. 이메일 전송
+            // 2. 이메일 전송
             String emailContent = String.format(
                     "안녕하세요,\n\n새로운 임시 비밀번호는 다음과 같습니다: %s\n\n로그인 후 반드시 비밀번호를 변경해주세요.",
                     newPassword
             );
-            emailService.sendEmail(user.getEmail(), "임시 비밀번호 안내", emailContent);
+            try {
+                emailService.sendEmail(user.getEmail(), "임시 비밀번호 안내", emailContent);
 
-            return true;
+                // 3. 임시 비밀번호 암호화 및 저장
+                String encodedPassword = passwordEncoder.encode(newPassword);
+                user.updatePassword(encodedPassword);
+                return true;
+            } catch (Exception e) {
+                throw new RuntimeException("이메일 전송 실패로 인해 비밀번호가 업데이트되지 않았습니다.", e);
+            }
         }).orElse(false);
     }
 
