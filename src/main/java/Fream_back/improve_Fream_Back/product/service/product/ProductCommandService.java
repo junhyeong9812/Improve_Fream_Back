@@ -1,12 +1,10 @@
-package Fream_back.improve_Fream_Back.product.service;
+package Fream_back.improve_Fream_Back.product.service.product;
 
 import Fream_back.improve_Fream_Back.product.dto.ProductCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductCreateResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.service.brand.BrandEntityService;
-import Fream_back.improve_Fream_Back.product.service.brand.BrandQueryService;
 import Fream_back.improve_Fream_Back.product.service.category.CategoryEntityService;
-import Fream_back.improve_Fream_Back.product.service.category.CategoryQueryService;
 import Fream_back.improve_Fream_Back.product.service.collection.CollectionCommandService;
 import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
