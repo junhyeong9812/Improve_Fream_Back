@@ -32,12 +32,15 @@ public class ProductColor {
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductSize> sizes; // 사이즈 정보
 
+    @Builder.Default
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> productImages = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductDetailImage> productDetailImages = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Interest> interests = new ArrayList<>();
 

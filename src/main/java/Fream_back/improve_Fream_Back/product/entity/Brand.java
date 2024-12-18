@@ -18,4 +18,11 @@ public class Brand {
 
     @Column(nullable = false)
     private String name; // 브랜드명
+
+    // 필요한 필드만 변경
+    public void updateName(String name) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+    }
 }
