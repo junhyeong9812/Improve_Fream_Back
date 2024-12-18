@@ -39,4 +39,9 @@ public class CollectionCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 컬렉션입니다."));
         collectionRepository.delete(collection);
     }
+
+    public Collection createOrGetCollection(String name) {
+        return collectionRepository.findByName(name)
+                .orElseGet(() -> collectionRepository.save(Collection.builder().name(name).build()));
+    }
 }
