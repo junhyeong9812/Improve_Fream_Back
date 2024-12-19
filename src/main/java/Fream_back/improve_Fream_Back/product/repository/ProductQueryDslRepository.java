@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.product.repository;
 
+import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.Product;
 import Fream_back.improve_Fream_Back.product.entity.QProduct;
@@ -10,8 +11,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -58,17 +57,28 @@ public class ProductQueryDslRepository {
             Integer maxPrice,
             String sortField,
             String sortOrder,
+            String interested,
             Pageable pageable) {
 
         QProduct product = QProduct.product; // Product 엔티티
         QProductColor productColor = QProductColor.productColor; // ProductColor 엔티티
         QProductSize productSize = QProductSize.productSize; // ProductSize 엔티티
+        QInterest interest = QInterest.interest;
 
         // QueryDSL 쿼리 생성
-        JPQLQuery<Tuple> query = queryFactory.select(product, productColor.thumbnailImage.imageUrl, productSize.purchasePrice.min())
+        JPQLQuery<Tuple> query = queryFactory.select(
+                        product,
+                        productColor.id,                         // 컬러 ID 추가
+                        productColor.thumbnailImage.imageUrl,   // 썸네일
+                        productColor.colorName,                 // 색상명
+                        productSize.purchasePrice.min(),         // 가장 낮은 구매가
+                        productColor.interests.size().sum().as("interestCount") // 관심 수 추가
+                            //size().sum은 테스트 해보고 문제가 생긴다면 .count로 변경
+                )
                 .from(product)
                 .leftJoin(product.colors, productColor).fetchJoin()
                 .leftJoin(productColor.sizes, productSize).fetchJoin()
+                .leftJoin(productColor.interests, interest)
                 .where(
                         buildKeywordPredicate(keyword, product, productColor, productSize),
                         buildCategoryPredicate(categoryIds, product),
@@ -82,13 +92,31 @@ public class ProductQueryDslRepository {
                 .distinct();
 
         // 정렬 조건 적용
-        if ("price".equals(sortField)) {
-            query.orderBy("asc".equals(sortOrder) ? productSize.purchasePrice.asc() : productSize.purchasePrice.desc());
-        } else if ("releaseDate".equals(sortField)) {
-            query.orderBy("asc".equals(sortOrder) ? product.releaseDate.asc() : product.releaseDate.desc());
+//        if ("price".equals(sortField)) {
+//            query.orderBy("asc".equals(sortOrder) ? productSize.purchasePrice.asc() : productSize.purchasePrice.desc());
+//        } else if ("releaseDate".equals(sortField)) {
+//            query.orderBy("asc".equals(sortOrder) ? product.releaseDate.asc() : product.releaseDate.desc());
+//        } else if ("interestCount".equals(sortField) || ("asc".equals(interested) || "desc".equals(interested))) {
+//            query.orderBy("asc".equals(interested)
+//                    ? productColor.interests.size().sum().asc()
+//                    : productColor.interests.size().sum().desc());
+//        } else {
+//            query.orderBy(product.id.asc());
+//        }
+        //만약 Equals로 잘못보낸다 싶으면
+        //equals()와 equalsIgnoreCase() 이그놀로 변경할 필요성이 존재
+        if ("price".equalsIgnoreCase(sortField)) {
+            query.orderBy("asc".equalsIgnoreCase(sortOrder) ? productSize.purchasePrice.asc() : productSize.purchasePrice.desc());
+        } else if ("releaseDate".equalsIgnoreCase(sortField)) {
+            query.orderBy("asc".equalsIgnoreCase(sortOrder) ? product.releaseDate.asc() : product.releaseDate.desc());
+        } else if ("interestCount".equalsIgnoreCase(sortField) || "asc".equalsIgnoreCase(interested) || "desc".equalsIgnoreCase(interested)) {
+            query.orderBy("asc".equalsIgnoreCase(interested)
+                    ? productColor.interests.size().sum().asc()
+                    : productColor.interests.size().sum().desc());
         } else {
             query.orderBy(product.id.asc());
         }
+
         // 페이징 처리
         List<Tuple> results = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -98,33 +126,11 @@ public class ProductQueryDslRepository {
         List<ProductSearchResponseDto> content = results.stream()
                 .map(tuple -> {
                     Product productEntity = tuple.get(product);
+                    Long colorId = tuple.get(productColor.id);                   // 컬러 ID 추가
                     String thumbnailImageUrl = tuple.get(productColor.thumbnailImage.imageUrl);
-                    String colorName = tuple.get(productColor.colorName); // 색상명 추가
-
-                    // color 필터가 없는 경우, 기본 색상의 대표 이미지와 색상명을 가져옴
-                    if (thumbnailImageUrl == null || colorName == null) {
-                        Tuple defaultColorTuple = queryFactory.select(
-                                        productColor.thumbnailImage.imageUrl,
-                                        productColor.colorName
-                                )
-                                .from(productColor)
-                                .where(productColor.product.eq(productEntity))
-                                .fetchFirst();
-
-                        if (defaultColorTuple != null) {
-                            thumbnailImageUrl = defaultColorTuple.get(productColor.thumbnailImage.imageUrl);
-                            colorName = defaultColorTuple.get(productColor.colorName);
-                        }
-                    }
-
-                    // 해당 색상의 사이즈 중 가장 낮은 구매가를 가져옴
+                    String colorName = tuple.get(productColor.colorName);
                     Integer lowestPrice = tuple.get(productSize.purchasePrice.min());
-                    if (lowestPrice == null) {
-                        lowestPrice = queryFactory.select(productSize.purchasePrice.min())
-                                .from(productSize)
-                                .where(productSize.productColor.eq(productColor))
-                                .fetchFirst();
-                    }
+                    Long interestCount = tuple.get(productColor.interests.size().sum()).longValue(); // 관심 수 추가 (Integer -> Long 변환)
 
                     return ProductSearchResponseDto.builder()
                             .id(productEntity.getId())
@@ -132,17 +138,34 @@ public class ProductQueryDslRepository {
                             .englishName(productEntity.getEnglishName())
                             .releasePrice(productEntity.getReleasePrice())
                             .thumbnailImageUrl(thumbnailImageUrl)
-                            .price(lowestPrice) // 가장 싼 구매가 추가
-                            .colorName(colorName) // 색상명 추가
+                            .price(lowestPrice)
+                            .colorName(colorName)
+                            .colorId(colorId)  // 컬러 ID 추가
+                            .interestCount(interestCount) // 관심 수 추가
                             .build();
                 })
                 .toList();
 
 
         // 전체 데이터 수 조회
-        long total = queryFactory.select(product.count())
+//        long total = queryFactory.select(product.count())
+//                .from(product)
+//                .fetchOne(); // 카운트 조회
+        // 전체 데이터 수
+        long total = queryFactory.select(product.id.countDistinct())
                 .from(product)
-                .fetchOne(); // 카운트 조회
+                .leftJoin(product.colors, productColor)
+                .where(
+                        buildKeywordPredicate(keyword, product, productColor, productSize),
+                        buildCategoryPredicate(categoryIds, product),
+                        buildGenderPredicate(genders, product),
+                        buildBrandPredicate(brandIds, product),
+                        buildCollectionPredicate(collectionIds, product),
+                        buildColorPredicate(colors, productColor),
+                        buildSizePredicate(sizes, productSize),
+                        buildPricePredicate(minPrice, maxPrice, productSize)
+                )
+                .fetchOne();
 
         return new PageImpl<>(content, pageable, total); // Page 객체 생성 및 반환
     }

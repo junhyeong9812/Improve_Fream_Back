@@ -2,7 +2,7 @@ package Fream_back.improve_Fream_Back.product.service.product;
 
 import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
-import Fream_back.improve_Fream_Back.product.repository.ProductDetailResponseDto;
+import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.repository.ProductQueryDslRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +31,7 @@ public class ProductQueryService {
             Integer maxPrice,
             String sortField,
             String sortOrder,
+            String interested,
             Pageable pageable) {
         return productQueryDslRepository.searchProducts(
                 keyword,
@@ -44,6 +45,7 @@ public class ProductQueryService {
                 maxPrice,
                 sortField,
                 sortOrder,
+                interested,
                 pageable
         );
     }

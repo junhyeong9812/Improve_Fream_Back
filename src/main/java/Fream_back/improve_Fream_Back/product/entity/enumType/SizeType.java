@@ -16,4 +16,5 @@ public enum SizeType {
     public String[] getSizes() {
         return sizes;
     }
+
 }

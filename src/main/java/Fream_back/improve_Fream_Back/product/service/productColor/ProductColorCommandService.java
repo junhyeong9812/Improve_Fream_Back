@@ -1,13 +1,12 @@
 package Fream_back.improve_Fream_Back.product.service.productColor;
 
 import Fream_back.improve_Fream_Back.product.dto.ProductColorCreateRequestDto;
-import Fream_back.improve_Fream_Back.product.entity.Product;
-import Fream_back.improve_Fream_Back.product.entity.ProductColor;
-import Fream_back.improve_Fream_Back.product.entity.ProductDetailImage;
-import Fream_back.improve_Fream_Back.product.entity.ProductImage;
+import Fream_back.improve_Fream_Back.product.dto.ProductColorUpdateRequestDto;
+import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.repository.ProductColorRepository;
 import Fream_back.improve_Fream_Back.product.service.product.ProductEntityService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeCommandService;
+import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeQueryService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,11 +24,10 @@ public class ProductColorCommandService {
     private final ProductSizeCommandService productSizeCommandService;
     private final FileUtils fileUtils;
     private final ProductEntityService productEntityService;
+    private final ProductSizeQueryService productSizeQueryService;
 
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = "product/";
-
-
 
     public void createProductColor(
             ProductColorCreateRequestDto requestDto,
@@ -86,6 +84,148 @@ public class ProductColorCommandService {
         ProductColor savedColor = productColorRepository.save(productColor);
 
         // 사이즈 생성
-        productSizeCommandService.createProductSizes(savedColor,  product.getCategory(),requestDto.getSizes(),product.getReleasePrice());
+        productSizeCommandService.createProductSizes(savedColor,  product.getCategory().getId(),requestDto.getSizes(),product.getReleasePrice());
     }
+
+    @Transactional
+    public void updateProductColor(
+            Long productColorId,
+            ProductColorUpdateRequestDto requestDto,
+            MultipartFile thumbnailImage,
+            List<MultipartFile> newImages,
+            List<MultipartFile> newDetailImages) {
+
+        // ProductColor 엔티티 조회
+        ProductColor productColor = productColorRepository.findById(productColorId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 색상을 찾을 수 없습니다."));
+
+        // 썸네일 이미지 처리
+        if (thumbnailImage != null) {
+            if (productColor.getThumbnailImage() != null) {
+                fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl());
+            }
+            String thumbnailFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductImage_", thumbnailImage);
+            ProductImage newThumbnail = ProductImage.builder()
+                    .imageUrl(thumbnailFilename)
+                    .build();
+            productColor.addThumbnailImage(newThumbnail);
+        }
+
+        // 기존 일반 이미지 처리
+        if (requestDto.getExistingImages() != null) {
+            productColor.getProductImages().removeIf(image -> {
+                if (!requestDto.getExistingImages().contains(image.getImageUrl())) {
+                    fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl());
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // 새 일반 이미지 추가
+        if (newImages != null && !newImages.isEmpty()) {
+            newImages.forEach(file -> {
+                String imageFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductImage_", file);
+                ProductImage newImage = ProductImage.builder()
+                        .imageUrl(imageFilename)
+                        .build();
+                productColor.addProductImage(newImage);
+            });
+        }
+
+        // 기존 상세 이미지 처리
+        if (requestDto.getExistingDetailImages() != null) {
+            productColor.getProductDetailImages().removeIf(detailImage -> {
+                if (!requestDto.getExistingDetailImages().contains(detailImage.getImageUrl())) {
+                    fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl());
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // 새 상세 이미지 추가
+        if (newDetailImages != null && !newDetailImages.isEmpty()) {
+            newDetailImages.forEach(file -> {
+                String detailFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductDetailImage_", file);
+                ProductDetailImage newDetailImage = ProductDetailImage.builder()
+                        .imageUrl(detailFilename)
+                        .build();
+                productColor.addProductDetailImage(newDetailImage);
+            });
+        }
+
+
+        // 사이즈 업데이트 처리
+        if (requestDto.getSizes() != null) {
+            List<String> updatedSizes = requestDto.getSizes();
+
+            // 기존 사이즈 조회
+            List<String> existingSizes = productColor.getSizes()
+                    .stream()
+                    .map(ProductSize::getSize)
+                    .toList();
+
+            // 삭제할 사이즈 처리
+            existingSizes.stream()
+                    .filter(size -> !updatedSizes.contains(size))
+                    .forEach(size -> {
+                        ProductSize sizeEntity = productColor.getSizes()
+                                .stream()
+                                .filter(existingSize -> existingSize.getSize().equals(size))
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalArgumentException("해당 사이즈를 찾을 수 없습니다: " + size));
+                        productSizeCommandService.deleteProductSize(sizeEntity.getId());
+                    });
+
+            // 추가할 사이즈 처리
+            List<String> newSizes = updatedSizes.stream()
+                    .filter(size -> !existingSizes.contains(size))
+                    .toList();
+
+            if (!newSizes.isEmpty()) {
+                productSizeCommandService.createProductSizes(
+                        productColor,
+                        productColor.getProduct().getCategory().getId(),
+                        newSizes,
+                        productColor.getProduct().getReleasePrice()
+                );
+            }
+        }
+
+        // 기본 정보 업데이트
+        productColor.update(requestDto.getColorName(), requestDto.getContent());
+
+        // 저장
+        productColorRepository.save(productColor);
+    }
+
+    @Transactional
+    public void deleteProductColor(Long productColorId) {
+        ProductColor productColor = productColorRepository.findById(productColorId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 색상을 찾을 수 없습니다."));
+
+        // 사이즈 삭제
+        productColor.getSizes().forEach(size ->
+                productSizeCommandService.deleteProductSize(size.getId())
+        );
+
+        // 이미지 파일 삭제
+        if (productColor.getThumbnailImage() != null) {
+            fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl());
+        }
+
+        productColor.getProductImages().forEach(image ->
+                fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl())
+        );
+
+        productColor.getProductDetailImages().forEach(detailImage ->
+                fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl())
+        );
+
+        // ProductColor 삭제
+        productColorRepository.delete(productColor);
+    }
+
+
 }

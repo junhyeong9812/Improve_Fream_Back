@@ -14,5 +14,7 @@ public class ProductSearchResponseDto {
     private String thumbnailImageUrl; // 대표 이미지 URL
     private Integer price; // 가장 낮은 구매가 추가
     private String colorName; // 해당 이미지의 색상명 추가
+    private Long colorId;        // 컬러 ID 추가
+    private Long interestCount; // 관심 수 추가
 }
 

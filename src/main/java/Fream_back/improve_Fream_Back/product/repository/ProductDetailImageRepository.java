@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProductDetailImageRepository extends JpaRepository<ProductDetailImage, Long> {
     List<ProductDetailImage> findByProductColorId(Long productColorId);
+    List<ProductDetailImage> findAllByProductColorId(Long productColorId);
 }

@@ -6,6 +6,7 @@ import Fream_back.improve_Fream_Back.product.entity.ProductColor;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
 import Fream_back.improve_Fream_Back.product.entity.enumType.SizeType;
 import Fream_back.improve_Fream_Back.product.repository.ProductSizeRepository;
+import Fream_back.improve_Fream_Back.product.service.category.CategoryQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,22 +20,35 @@ import java.util.List;
 public class ProductSizeCommandService {
 
     private final ProductSizeRepository productSizeRepository;
+    private final CategoryQueryService categoryQueryService; // 카테고리 쿼리 서비스 주입
 
-    public void createProductSizes(ProductColor productColor, Category category, List<String> requestedSizes, int releasePrice) {
+    public void createProductSizes(ProductColor productColor, Long categoryId, List<String> requestedSizes, int releasePrice) {
         // 최상위 카테고리 찾기
-        Category rootCategory = findRootCategory(category);
+        Category rootCategory = categoryQueryService.findRootCategoryById(categoryId);
 
         // SizeType 결정
         SizeType sizeType = determineSizeType(rootCategory.getName());
 
-        // 요청된 사이즈 검증 및 생성
-        requestedSizes.forEach(size -> {
+        // 해당 ProductColor의 기존 사이즈 조회
+        List<String> existingSizes = productSizeRepository.findAllByProductColorId(productColor.getId())
+                .stream()
+                .map(ProductSize::getSize)
+                .toList();
+
+        // 요청된 사이즈 중 새로운 사이즈 필터링
+        List<String> newSizes = requestedSizes.stream()
+                .filter(size -> !existingSizes.contains(size)) // 기존 사이즈에 없는 경우만 필터링
+                .toList();
+
+        // 새로운 사이즈 생성
+        newSizes.forEach(size -> {
             if (isValidSize(size, sizeType)) {
                 ProductSize productSize = ProductSize.builder()
                         .size(size)
-                        .purchasePrice(releasePrice) // 출시가를 구매가로 설정
-                        .salePrice(releasePrice)    // 출시가를 판매가로 설정
-                        .quantity(0)               // 기본 재고 수량은 0
+                        .sizeType(sizeType)
+                        .purchasePrice(releasePrice)
+                        .salePrice(releasePrice)
+                        .quantity(0)
                         .productColor(productColor)
                         .build();
                 productSizeRepository.save(productSize);
@@ -44,12 +58,6 @@ public class ProductSizeCommandService {
         });
     }
 
-    private Category findRootCategory(Category category) {
-        while (category.getParentCategory() != null) {
-            category = category.getParentCategory();
-        }
-        return category;
-    }
 
     private SizeType determineSizeType(String rootCategoryName) {
         switch (rootCategoryName.toUpperCase()) {
@@ -66,5 +74,17 @@ public class ProductSizeCommandService {
 
     private boolean isValidSize(String size, SizeType sizeType) {
         return Arrays.asList(sizeType.getSizes()).contains(size);
+    }
+    public void deleteProductSize(Long sizeId) {
+        ProductSize productSize = productSizeRepository.findById(sizeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사이즈를 찾을 수 없습니다."));
+
+        productSizeRepository.delete(productSize);
+    }
+    public void updateProductSize(Long sizeId, int purchasePrice, int salePrice, int quantity) {
+        ProductSize productSize = productSizeRepository.findById(sizeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사이즈를 찾을 수 없습니다."));
+
+        productSize.update(purchasePrice, salePrice, quantity);
     }
 }

@@ -49,4 +49,10 @@ public class UserQueryService {
                 user.isEmailNotificationConsent() // 이메일 수신 동의 여부
         );
     }
+
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일을 가진 사용자가 없습니다: " + email));
+    }
 }

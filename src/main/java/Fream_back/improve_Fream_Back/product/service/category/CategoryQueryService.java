@@ -36,4 +36,18 @@ public class CategoryQueryService {
                 .map(CategoryResponseDto::fromEntity) // 엔티티 -> DTO 변환
                 .collect(Collectors.toList());
     }
+    // 최상위 카테고리 조회 메서드
+    public Category findRootCategory(Category category) {
+        while (category.getParentCategory() != null) {
+            category = category.getParentCategory();
+        }
+        return category;
+    }
+
+    // ID로 카테고리 조회 및 최상위 카테고리 반환
+    public Category findRootCategoryById(Long categoryId) {
+        Category category = categoryRepository.findWithParentById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리를 찾을 수 없습니다."));
+        return findRootCategory(category);
+    }
 }
