@@ -3,10 +3,14 @@ package Fream_back.improve_Fream_Back.user.dto;
 import Fream_back.improve_Fream_Back.user.entity.ShoeSize;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserRegistrationDto {
 
     private String email; // 이메일 주소

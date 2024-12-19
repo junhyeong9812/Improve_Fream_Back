@@ -44,9 +44,12 @@ public class Profile extends BaseTimeEntity {
     private List<BlockedProfile> blockedByProfiles = new ArrayList<>(); // 나를 차단한 프로필 목록
 
     // **편의 메서드 - 값 업데이트**
-    public void updateProfile(String profileName, String bio, Boolean isPublic, String profileImageUrl) {
+    public void updateProfile(String profileName,String name ,String bio, Boolean isPublic, String profileImageUrl) {
         if (profileName != null) {
             this.profileName = profileName;
+        }
+        if (name != null) {
+            this.Name = name;
         }
         if (bio != null) {
             this.bio = bio;

@@ -35,6 +35,7 @@ public class ProfileCommandService {
                 .build();
 
         user.addProfile(profile); // 연관관계 설정
+        profileRepository.save(profile); // 프로필 저장
     }
 
     private String generateRandomProfileName() {
@@ -58,8 +59,11 @@ public class ProfileCommandService {
         // 이미지 변경
         if (profileImage != null && !profileImage.isEmpty()) {
             // 기존 이미지 삭제
-            if (profile.getProfileImageUrl() != null) {
-                fileUtils.deleteFile("profile_images", profile.getProfileImageUrl());
+            if (!"user.jpg".equals(profile.getProfileImageUrl())) {
+                // 기존 이미지 삭제
+                if (profile.getProfileImageUrl() != null) {
+                    fileUtils.deleteFile("profile_images", profile.getProfileImageUrl());
+                }
             }
 
             // 새로운 이미지 저장
@@ -68,15 +72,13 @@ public class ProfileCommandService {
                     "profile_" + profile.getId() + "_",
                     profileImage
             );
-            profile.updateProfile(null, null, null, savedFilePath);
+            profile.updateProfile(null, null, null,null, savedFilePath);
         }
 
         // 프로필 이름, 소개글, 공개 여부 업데이트
-        profile.updateProfile(dto.getProfileName(), dto.getBio(), dto.getIsPublic(), null);
+        profile.updateProfile(dto.getProfileName(), dto.getName(), dto.getBio(), dto.getIsPublic(), null);
 
-        // 실제 이름 변경 (User 엔티티)
-        if (dto.getRealName() != null) {
-            profile.getUser().updateUser(dto.getRealName(), null, null, null, null, null, null);
-        }
+
+
     }
 }

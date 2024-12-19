@@ -2,10 +2,12 @@ package Fream_back.improve_Fream_Back.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class ProfileInfoDto {
     private String profileImage;      // 프로필 이미지 경로

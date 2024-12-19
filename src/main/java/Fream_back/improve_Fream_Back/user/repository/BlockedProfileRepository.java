@@ -22,7 +22,7 @@ public interface BlockedProfileRepository extends JpaRepository<BlockedProfile, 
 
     //블럭된 유저의 프로필을 목록으로 조회
     @Query("SELECT bp FROM BlockedProfile bp JOIN FETCH bp.blockedProfile WHERE bp.profile = :profile")
-    List<BlockedProfile> findAllByProfileWithBlocked(Profile profile);
+    List<BlockedProfile> findAllByProfileWithBlocked(@Param("profile") Profile profile);
 
     //이미 차단이 됬는 지 확인하는 로직
     Optional<BlockedProfile> findByProfileAndBlockedProfile(Profile profile, Profile blockedProfile);

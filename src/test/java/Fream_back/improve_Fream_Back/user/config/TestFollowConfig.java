@@ -2,11 +2,18 @@ package Fream_back.improve_Fream_Back.user.config;
 
 import Fream_back.improve_Fream_Back.user.entity.*;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
+import Fream_back.improve_Fream_Back.user.service.profile.ProfileCommandService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 @TestConfiguration
-public class TestConfig {
+public class TestFollowConfig {
+
+    private final ProfileCommandService profileCommandService;
+
+    public TestFollowConfig(ProfileCommandService profileCommandService) {
+        this.profileCommandService = profileCommandService;
+    }
 
     @Bean
     public User user1(UserRepository userRepository) {
@@ -24,7 +31,9 @@ public class TestConfig {
                 .gender(Gender.MALE)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        profileCommandService.createDefaultProfile(savedUser); // 디폴트 프로필 생성
+        return savedUser;
     }
 
     @Bean
@@ -43,7 +52,9 @@ public class TestConfig {
                 .gender(Gender.FEMALE)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        profileCommandService.createDefaultProfile(savedUser); // 디폴트 프로필 생성
+        return savedUser;
     }
 
     @Bean
@@ -62,7 +73,8 @@ public class TestConfig {
                 .gender(Gender.MALE)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        profileCommandService.createDefaultProfile(savedUser); // 디폴트 프로필 생성
+        return savedUser;
     }
-
 }

@@ -1,8 +1,12 @@
 package Fream_back.improve_Fream_Back.user.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginInfoUpdateDto {
     private String newEmail; // 변경할 이메일
     private String Password; //현재 사용중인 비밀번호

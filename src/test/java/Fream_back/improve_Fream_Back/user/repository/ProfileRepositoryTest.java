@@ -60,7 +60,7 @@ class ProfileRepositoryTest {
         profileRepository.save(profile);
 
         // When
-        profile.updateProfile("new_profile_name", "New bio", false, "new_image_url");
+        profile.updateProfile("new_profile_name", "NewName","New bio" ,false, "new_image_url");
 
         // Then
         Profile updatedProfile = profileRepository.findById(profile.getId()).orElseThrow();

@@ -191,11 +191,11 @@ public class User extends BaseTimeEntity {
 
     // 편의 메서드
     public void assignBankAccount(BankAccount bankAccount) {
-        if (this.bankAccount != null) {
+        if (this.bankAccount != null && this.bankAccount != bankAccount) {
             this.bankAccount.unassignUser();
         }
         this.bankAccount = bankAccount;
-        if (bankAccount != null) {
+        if (bankAccount != null && bankAccount.getUser() != this) {
             bankAccount.assignUser(this);
         }
     }
