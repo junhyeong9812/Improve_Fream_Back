@@ -45,4 +45,23 @@ public class TestConfig {
 
         return userRepository.save(user);
     }
+
+    @Bean
+    public User adminUser(UserRepository userRepository) {
+        User user = User.builder()
+                .email("admin@example.com")
+                .password("adminpassword")
+                .referralCode("admin123")
+                .phoneNumber("010-0000-0000")
+                .shoeSize(null) // 관리자 계정에서는 신발 사이즈 불필요
+                .termsAgreement(true)
+                .phoneNotificationConsent(true)
+                .emailNotificationConsent(true)
+                .role(Role.ADMIN) // 관리자 역할
+                .age(35)
+                .gender(Gender.MALE)
+                .build();
+
+        return userRepository.save(user);
+    }
 }

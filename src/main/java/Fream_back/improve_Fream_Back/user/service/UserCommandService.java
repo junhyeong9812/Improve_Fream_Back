@@ -3,11 +3,14 @@ package Fream_back.improve_Fream_Back.user.service;
 import Fream_back.improve_Fream_Back.user.dto.UserRegistrationDto;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
+import Fream_back.improve_Fream_Back.user.service.profile.ProfileCommandService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -15,7 +18,7 @@ public class UserCommandService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ProfileService profileService;
+    private final ProfileCommandService profileService;
     private final FileUtils fileUtils;
 
     @Transactional
@@ -39,7 +42,9 @@ public class UserCommandService {
         User user = User.builder()
                 .email(dto.getEmail())
                 .password(encodedPassword)
+                .referralCode(generateUniqueReferralCode())
                 .shoeSize(dto.getShoeSize())
+                .phoneNumber(dto.getPhoneNumber())
                 .referrer(referrer)
                 .termsAgreement(dto.getTermsAgreement())
                 .phoneNotificationConsent(dto.getAdConsent() != null ? dto.getAdConsent() : false)
@@ -70,6 +75,16 @@ public class UserCommandService {
 
         // 사용자 정보 삭제
         userRepository.delete(user);
+    }
+
+    //추천인 코드 생성
+    private String generateUniqueReferralCode() {
+        String referralCode;
+        do {
+            // 8자리 랜덤 문자열 생성
+            referralCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        } while (userRepository.findByReferralCode(referralCode).isPresent()); // 중복 체크
+        return referralCode;
     }
 }
 
