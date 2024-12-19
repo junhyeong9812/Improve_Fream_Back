@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.product.dto;
 
+import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class ProductCreateRequestDto {
     private String mainCategoryName; // 메인 카테고리명
     private String categoryName; // 서브 카테고리명
     private String collectionName; // 컬렉션명 (옵션)
+    private GenderType gender; // 상품 성별 추가
 }

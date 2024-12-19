@@ -34,6 +34,7 @@ public class ProductColorCommandService {
     public void createProductColor(
             ProductColorCreateRequestDto requestDto,
             MultipartFile productImage,
+            List<MultipartFile> productImages, // 일반 이미지 리스트
             List<MultipartFile> productDetailImages,
             Long productId) {
 
@@ -57,6 +58,17 @@ public class ProductColorCommandService {
                     .imageUrl(productDirectory + thumbnailFilename)
                     .build();
             productColor.addProductImage(thumbnail);
+        }
+
+        // ProductImages 저장 (일반 이미지)
+        if (productImages != null && !productImages.isEmpty()) {
+            productImages.forEach(file -> {
+                String imageFilename = fileUtils.saveFile(productDirectory, "ProductImage_", file);
+                ProductImage productImageEntity = ProductImage.builder()
+                        .imageUrl(productDirectory + imageFilename)
+                        .build();
+                productColor.addProductImage(productImageEntity);
+            });
         }
 
         // ProductDetailImage 저장 (상세페이지 이미지)

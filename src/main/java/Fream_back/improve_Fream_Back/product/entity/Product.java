@@ -1,6 +1,8 @@
 package Fream_back.improve_Fream_Back.product.entity;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
+import Fream_back.improve_Fream_Back.product.dto.ProductUpdateRequestDto;
+import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +33,10 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private String releaseDate; // 출시일 (YYYY-MM-DD)
 
+    @Enumerated(EnumType.STRING) // Enum 값을 String으로 저장
+    @Column(nullable = false)
+    private GenderType gender; // 성별 필터링 정보
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "brand_id")
     private Brand brand; // 브랜드 정보
@@ -47,7 +53,6 @@ public class Product extends BaseTimeEntity {
     private List<ProductColor> colors; // 색상별 상세 정보
 
     // 연관관계 편의 메서드
-    // 연관관계 편의 메서드
     public void addProductColor(ProductColor color) {
         colors.add(color);
         color.assignProduct(this);
@@ -59,5 +64,34 @@ public class Product extends BaseTimeEntity {
         this.releasePrice = releasePrice;
         this.modelNumber = modelNumber;
         this.releaseDate = releaseDate;
+    }
+    public void updateProduct(ProductUpdateRequestDto request, Brand brand, Category category, Collection collection) {
+        if (request.getName() != null) {
+            this.name = request.getName();
+        }
+        if (request.getEnglishName() != null) {
+            this.englishName = request.getEnglishName();
+        }
+        if (request.getReleasePrice() != null) {
+            this.releasePrice = request.getReleasePrice();
+        }
+        if (request.getModelNumber() != null) {
+            this.modelNumber = request.getModelNumber();
+        }
+        if (request.getReleaseDate() != null) {
+            this.releaseDate = request.getReleaseDate();
+        }
+        if (brand != null) {
+            this.brand = brand;
+        }
+        if (category != null) {
+            this.category = category;
+        }
+        if (collection != null) {
+            this.collection = collection;
+        }
+        if (request.getGender() != null) { // 요청에서 Gender 값이 전달된 경우 업데이트
+            this.gender = request.getGender();
+        }
     }
 }
