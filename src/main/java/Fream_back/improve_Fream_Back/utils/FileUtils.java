@@ -50,4 +50,10 @@ public class FileUtils {
         String extension = baseName.substring(baseName.lastIndexOf(".")); // 확장자 추출
         return uuid + "_" + baseName.replaceAll("\\s+", "_") + extension;
     }
+
+    // 파일 존재 여부 확인
+    public boolean isFileExist(String fullPath) {
+        File file = new File(fullPath);
+        return file.exists() && file.isFile();
+    }
 }

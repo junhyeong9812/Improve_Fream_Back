@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.product.service.productColor;
 import Fream_back.improve_Fream_Back.product.dto.ProductColorCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductColorUpdateRequestDto;
 import Fream_back.improve_Fream_Back.product.entity.*;
+import Fream_back.improve_Fream_Back.product.entity.enumType.ColorType;
 import Fream_back.improve_Fream_Back.product.repository.ProductColorRepository;
 import Fream_back.improve_Fream_Back.product.service.interest.InterestCommandService;
 import Fream_back.improve_Fream_Back.product.service.product.ProductEntityService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -40,6 +42,8 @@ public class ProductColorCommandService {
             List<MultipartFile> productImages, // 일반 이미지 리스트
             List<MultipartFile> productDetailImages,
             Long productId) {
+        // ColorType 유효성 검증
+        validateColorType(requestDto.getColorName());
 
         // Product 엔티티 조회
         Product product = productEntityService.findById(productId);
@@ -60,7 +64,7 @@ public class ProductColorCommandService {
             ProductImage thumbnail = ProductImage.builder()
                     .imageUrl(productDirectory + thumbnailFilename)
                     .build();
-            productColor.addProductImage(thumbnail);
+            productColor.addThumbnailImage(thumbnail);
         }
 
         // ProductImages 저장 (일반 이미지)
@@ -90,6 +94,14 @@ public class ProductColorCommandService {
 
         // 사이즈 생성
         productSizeCommandService.createProductSizes(savedColor,  product.getCategory().getId(),requestDto.getSizes(),product.getReleasePrice());
+    }
+
+    private void validateColorType(String colorName) {
+        boolean isValid = Arrays.stream(ColorType.values())
+                .anyMatch(colorType -> colorType.name().equals(colorName));
+        if (!isValid) {
+            throw new IllegalArgumentException("유효하지 않은 색상입니다: " + colorName);
+        }
     }
 
     @Transactional

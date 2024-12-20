@@ -17,6 +17,7 @@ public class ProductCreateResponseDto {
     private String categoryName;
     private String collectionName;
 
+
     public static ProductCreateResponseDto fromEntity(Product product) {
         return ProductCreateResponseDto.builder()
                 .id(product.getId())

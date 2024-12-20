@@ -38,8 +38,8 @@ public class TestProductConfig {
         // 카테고리 생성
         Category shoesCategory = categoryRepository.save(Category.builder().name("Shoes").build());
         Category sneakersCategory = categoryRepository.save(Category.builder().name("Sneakers").parentCategory(shoesCategory).build());
-        List<Category> categories = List.of(shoesCategory, sneakersCategory);
-
+        Category bootsCategory = categoryRepository.save(Category.builder().name("Boots").parentCategory(shoesCategory).build()); // Boots 추가
+        List<Category> categories = List.of(shoesCategory, sneakersCategory, bootsCategory);
         // 컬렉션 생성
         Collection jordanCollection = collectionRepository.save(Collection.builder().name("Jordan").build());
         List<Collection> collections = List.of(jordanCollection);
