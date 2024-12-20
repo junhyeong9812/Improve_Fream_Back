@@ -9,6 +9,7 @@ import Fream_back.improve_Fream_Back.product.service.brand.BrandEntityService;
 import Fream_back.improve_Fream_Back.product.service.category.CategoryEntityService;
 import Fream_back.improve_Fream_Back.product.service.collection.CollectionCommandService;
 import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
+import Fream_back.improve_Fream_Back.product.service.productColor.ProductColorCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class ProductCommandService {
     private final BrandEntityService brandEntityService;
     private final CategoryEntityService categoryEntityService;
     private final CollectionCommandService collectionCommandService;
-
+    private final ProductColorCommandService productColorCommandService;
 
     public ProductCreateResponseDto createProduct(ProductCreateRequestDto request) {
         // 브랜드 엔티티 확인
@@ -100,9 +101,17 @@ public class ProductCommandService {
                 .build();
     }
 
+    @Transactional
     public void deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        // ProductColor 삭제
+        product.getColors().forEach(productColor -> {
+            productColorCommandService.deleteProductColor(productColor.getId());
+        });
+
+        // Product 삭제
         productRepository.delete(product);
     }
 }
