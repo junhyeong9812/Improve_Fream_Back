@@ -28,6 +28,8 @@ public class InterestCommandService {
         interestRepository.findByUserAndProductColor(user, productColor).ifPresentOrElse(
                 interest -> {
                     // 이미 등록된 경우 삭제
+                    interest.unassignUser(); // 연관관계 해제
+                    interest.unassignProductColor(); // 연관관계 해제
                     interestRepository.delete(interest);
                 },
                 () -> {
@@ -36,6 +38,8 @@ public class InterestCommandService {
                             .user(user)
                             .productColor(productColor)
                             .build();
+                    newInterest.assignUser(user); // 연관관계 설정
+                    newInterest.assignProductColor(productColor); // 연관관계 설정
                     interestRepository.save(newInterest);
                 }
         );

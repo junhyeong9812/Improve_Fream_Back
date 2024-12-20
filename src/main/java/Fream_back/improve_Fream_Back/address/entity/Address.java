@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.address.entity;
 
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Address {
+public class Address extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
