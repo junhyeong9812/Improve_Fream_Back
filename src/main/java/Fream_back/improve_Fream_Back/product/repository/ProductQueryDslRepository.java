@@ -2,10 +2,7 @@ package Fream_back.improve_Fream_Back.product.repository;
 
 import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
-import Fream_back.improve_Fream_Back.product.entity.Product;
-import Fream_back.improve_Fream_Back.product.entity.QProduct;
-import Fream_back.improve_Fream_Back.product.entity.QProductColor;
-import Fream_back.improve_Fream_Back.product.entity.QProductSize;
+import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -40,8 +37,6 @@ public class ProductQueryDslRepository {
      * @param sizes          사이즈 조건
      * @param minPrice       최소 가격 조건
      * @param maxPrice       최대 가격 조건
-     * @param sortField      정렬 기준 필드
-     * @param sortOrder      정렬 순서 (asc/desc)
      * @param pageable       페이징 정보
      * @return 페이징된 상품 목록
      */
@@ -55,9 +50,7 @@ public class ProductQueryDslRepository {
             List<String> sizes,
             Integer minPrice,
             Integer maxPrice,
-            String sortField,
-            String sortOrder,
-            String interested,
+            SortOption sortOption, // 정렬 옵션 리스트
             Pageable pageable) {
 
         QProduct product = QProduct.product; // Product 엔티티
@@ -92,29 +85,22 @@ public class ProductQueryDslRepository {
                 .distinct();
 
         // 정렬 조건 적용
-//        if ("price".equals(sortField)) {
-//            query.orderBy("asc".equals(sortOrder) ? productSize.purchasePrice.asc() : productSize.purchasePrice.desc());
-//        } else if ("releaseDate".equals(sortField)) {
-//            query.orderBy("asc".equals(sortOrder) ? product.releaseDate.asc() : product.releaseDate.desc());
-//        } else if ("interestCount".equals(sortField) || ("asc".equals(interested) || "desc".equals(interested))) {
-//            query.orderBy("asc".equals(interested)
-//                    ? productColor.interests.size().sum().asc()
-//                    : productColor.interests.size().sum().desc());
-//        } else {
-//            query.orderBy(product.id.asc());
-//        }
-        //만약 Equals로 잘못보낸다 싶으면
-        //equals()와 equalsIgnoreCase() 이그놀로 변경할 필요성이 존재
-        if ("price".equalsIgnoreCase(sortField)) {
-            query.orderBy("asc".equalsIgnoreCase(sortOrder) ? productSize.purchasePrice.asc() : productSize.purchasePrice.desc());
-        } else if ("releaseDate".equalsIgnoreCase(sortField)) {
-            query.orderBy("asc".equalsIgnoreCase(sortOrder) ? product.releaseDate.asc() : product.releaseDate.desc());
-        } else if ("interestCount".equalsIgnoreCase(sortField) || "asc".equalsIgnoreCase(interested) || "desc".equalsIgnoreCase(interested)) {
-            query.orderBy("asc".equalsIgnoreCase(interested)
-                    ? productColor.interests.size().sum().asc()
-                    : productColor.interests.size().sum().desc());
+        if (sortOption != null) {
+            if ("price".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? productSize.purchasePrice.asc()
+                        : productSize.purchasePrice.desc());
+            } else if ("releaseDate".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? product.releaseDate.asc()
+                        : product.releaseDate.desc());
+            } else if ("interestCount".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? productColor.interests.size().sum().asc()
+                        : productColor.interests.size().sum().desc());
+            }
         } else {
-            query.orderBy(product.id.asc());
+            query.orderBy(product.id.asc()); // 기본 정렬
         }
 
         // 페이징 처리
@@ -231,10 +217,12 @@ public class ProductQueryDslRepository {
         // 단일 조회 쿼리
         Tuple result = queryFactory.select(
                         product,
+                        productColor.id, // 컬러 ID 추가
                         productColor.thumbnailImage.imageUrl,
                         productColor.colorName,
                         productColor.content,
-                        productSize
+                        productColor.interests.size().sum().as("interestCount")
+//                        productSize
                 )
                 .from(product)
                 .leftJoin(product.colors, productColor).fetchJoin()
@@ -251,8 +239,11 @@ public class ProductQueryDslRepository {
 
         // Product 정보
         Product productEntity = result.get(product);
+        Long colorId = result.get(productColor.id); // 컬러 ID 가져오기
         String thumbnailImageUrl = result.get(productColor.thumbnailImage.imageUrl);
         String colorDetail = result.get(productColor.content);
+        Long interestCount = result.get(productColor.interests.size().sum()).longValue();// 관심 수 가져오기
+
 
         // ProductSize 정보 리스트 생성
         List<ProductDetailResponseDto.SizeDetailDto> sizeDetails = queryFactory
@@ -275,8 +266,10 @@ public class ProductQueryDslRepository {
                 .englishName(productEntity.getEnglishName())
                 .releasePrice(productEntity.getReleasePrice())
                 .thumbnailImageUrl(thumbnailImageUrl)
+                .colorId(colorId)
                 .colorName(colorName)
                 .content(colorDetail)
+                .interestCount(interestCount)
                 .sizes(sizeDetails)
                 .build();
     }

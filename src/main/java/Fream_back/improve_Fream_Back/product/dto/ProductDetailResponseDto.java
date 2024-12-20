@@ -14,8 +14,10 @@ public class ProductDetailResponseDto {
     private String englishName; // 상품 영어명
     private int releasePrice; // 발매가
     private String thumbnailImageUrl; // 대표 이미지 URL
+    private Long colorId; // 색상 ID 추가
     private String colorName; // 색상명
     private String content; // 색상 상세 설명
+    private Long interestCount; // 관심 수 추가
     private List<SizeDetailDto> sizes; // 사이즈 정보 리스트
 
     @Data

@@ -1,9 +1,8 @@
-package Fream_back.improve_Fream_Back.product.service.Interest;
+package Fream_back.improve_Fream_Back.product.service.interest;
 
 import Fream_back.improve_Fream_Back.product.entity.Interest;
 import Fream_back.improve_Fream_Back.product.entity.ProductColor;
 import Fream_back.improve_Fream_Back.product.repository.InterestRepository;
-import Fream_back.improve_Fream_Back.product.service.productColor.ProductColorCommandService;
 import Fream_back.improve_Fream_Back.product.service.productColor.ProductColorQueryService;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
@@ -19,6 +18,7 @@ public class InterestCommandService {
     private final InterestRepository interestRepository;
     private final UserQueryService userQueryService;
     private final ProductColorQueryService productColorQueryService;
+
     // 관심 상품 토글 (추가/삭제)
     public void toggleInterest(String userEmail, Long productColorId) {
         User user = userQueryService.findByEmail(userEmail); // 이메일로 유저 조회

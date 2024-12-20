@@ -13,7 +13,6 @@ import lombok.*;
 public class Interest extends BaseTimeEntity {
 
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

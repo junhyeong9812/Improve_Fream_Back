@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.repository.ProductQueryDslRepository;
+import Fream_back.improve_Fream_Back.product.repository.SortOption;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,9 +30,7 @@ public class ProductQueryService {
             List<String> sizes,
             Integer minPrice,
             Integer maxPrice,
-            String sortField,
-            String sortOrder,
-            String interested,
+            SortOption sortOptions,
             Pageable pageable) {
         return productQueryDslRepository.searchProducts(
                 keyword,
@@ -43,9 +42,7 @@ public class ProductQueryService {
                 sizes,
                 minPrice,
                 maxPrice,
-                sortField,
-                sortOrder,
-                interested,
+                sortOptions,
                 pageable
         );
     }
