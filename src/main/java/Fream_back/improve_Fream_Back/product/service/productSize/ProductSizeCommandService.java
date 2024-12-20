@@ -87,4 +87,11 @@ public class ProductSizeCommandService {
 
         productSize.update(purchasePrice, salePrice, quantity);
     }
+    @Transactional
+    public void deleteAllSizesByProductColor(ProductColor productColor) {
+        productColor.getSizes().forEach(size -> deleteProductSize(size.getId()));
+        productColor.getSizes().clear();
+    }
+
+
 }

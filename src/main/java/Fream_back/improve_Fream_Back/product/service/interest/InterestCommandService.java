@@ -44,4 +44,13 @@ public class InterestCommandService {
                 }
         );
     }
+    @Transactional
+    public void deleteAllInterestsByProductColor(ProductColor productColor) {
+        productColor.getInterests().forEach(interest -> {
+            interest.unassignUser(); // 연관 관계 해제
+            interest.unassignProductColor(); // 연관 관계 해제
+            interestRepository.delete(interest); // 삭제
+        });
+        productColor.getInterests().clear();
+    }
 }

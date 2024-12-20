@@ -4,7 +4,10 @@ import Fream_back.improve_Fream_Back.product.dto.ProductColorCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductColorUpdateRequestDto;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.repository.ProductColorRepository;
+import Fream_back.improve_Fream_Back.product.service.interest.InterestCommandService;
 import Fream_back.improve_Fream_Back.product.service.product.ProductEntityService;
+import Fream_back.improve_Fream_Back.product.service.productDetailImage.ProductDetailImageCommandService;
+import Fream_back.improve_Fream_Back.product.service.productImage.ProductImageCommandService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeCommandService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeQueryService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
@@ -25,7 +28,9 @@ public class ProductColorCommandService {
     private final FileUtils fileUtils;
     private final ProductEntityService productEntityService;
     private final ProductSizeQueryService productSizeQueryService;
-
+    private final InterestCommandService interestCommandService;
+    private final ProductImageCommandService productImageCommandService;
+    private final ProductDetailImageCommandService productDetailImageCommandService;
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = "product/";
 
@@ -205,23 +210,31 @@ public class ProductColorCommandService {
         ProductColor productColor = productColorRepository.findById(productColorId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 색상을 찾을 수 없습니다."));
 
-        // 사이즈 삭제
-        productColor.getSizes().forEach(size ->
-                productSizeCommandService.deleteProductSize(size.getId())
-        );
+        // 관심 상품 삭제
+        interestCommandService.deleteAllInterestsByProductColor(productColor);
 
-        // 이미지 파일 삭제
+        // 사이즈 삭제
+        productSizeCommandService.deleteAllSizesByProductColor(productColor);
+
+        // 이미지 삭제
         if (productColor.getThumbnailImage() != null) {
-            fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl());
+            fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl()); // 실제 파일 삭제
+            productImageCommandService.deleteProductImage(productColor.getThumbnailImage().getId()); // 엔티티 삭제
         }
 
-        productColor.getProductImages().forEach(image ->
-                fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl())
-        );
+        productColor.getProductImages().forEach(image -> {
+            fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl()); // 실제 파일 삭제
+            productImageCommandService.deleteProductImage(image.getId()); // 엔티티 삭제
+        });
 
-        productColor.getProductDetailImages().forEach(detailImage ->
-                fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl())
-        );
+        productColor.getProductDetailImages().forEach(detailImage -> {
+            fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl()); // 실제 파일 삭제
+            productDetailImageCommandService.deleteProductDetailImage(detailImage.getId()); // 엔티티 삭제
+        });
+
+        // 모든 이미지를 컬렉션에서 제거
+        productColor.getProductImages().clear();
+        productColor.getProductDetailImages().clear();
 
         // ProductColor 삭제
         productColorRepository.delete(productColor);
