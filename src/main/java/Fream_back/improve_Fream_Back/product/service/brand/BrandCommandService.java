@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.product.dto.BrandRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.BrandResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.Brand;
 import Fream_back.improve_Fream_Back.product.repository.BrandRepository;
+import Fream_back.improve_Fream_Back.product.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BrandCommandService {
 
     private final BrandRepository brandRepository;
+    private final ProductRepository productRepository;
 
     public BrandResponseDto createBrand(BrandRequestDto request) {
         Brand brand = Brand.builder()
@@ -33,8 +35,17 @@ public class BrandCommandService {
     }
 
     public void deleteBrand(String name) {
+        // 1. 브랜드 존재 여부 확인
         Brand brand = brandRepository.findByName(name)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 브랜드입니다."));
+
+        // 2. 연관된 상품(Product) 확인
+        boolean hasAssociatedProducts = productRepository.existsByBrand(brand);
+        if (hasAssociatedProducts) {
+            throw new IllegalStateException("해당 브랜드와 연관된 상품이 존재합니다. 연관된 상품 삭제 후 브랜드를 삭제해주세요.");
+        }
+
+        // 3. 브랜드 삭제
         brandRepository.delete(brand);
     }
 }

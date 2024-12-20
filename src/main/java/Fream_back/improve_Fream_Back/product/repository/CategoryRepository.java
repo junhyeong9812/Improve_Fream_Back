@@ -25,4 +25,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parentCategory WHERE c.id = :id")
     Optional<Category> findWithParentById(@Param("id") Long id);
+
+
+    Optional<Category> findByNameAndParentCategoryIsNotNull(String name);
+
+    boolean existsByNameAndParentCategoryIsNull(String name);
+
+    boolean existsByNameAndParentCategory(String name, Category parentCategory);
 }
