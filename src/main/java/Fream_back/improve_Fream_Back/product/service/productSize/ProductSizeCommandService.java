@@ -78,7 +78,7 @@ public class ProductSizeCommandService {
     public void deleteProductSize(Long sizeId) {
         ProductSize productSize = productSizeRepository.findById(sizeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사이즈를 찾을 수 없습니다."));
-
+        System.out.println("DeleteProductSize = " + productSize);
         productSizeRepository.delete(productSize);
     }
     public void updateProductSize(Long sizeId, int purchasePrice, int salePrice, int quantity) {
@@ -89,7 +89,14 @@ public class ProductSizeCommandService {
     }
     @Transactional
     public void deleteAllSizesByProductColor(ProductColor productColor) {
-        productColor.getSizes().forEach(size -> deleteProductSize(size.getId()));
+        List<ProductSize> sizes = productSizeRepository.findAllByProductColorId(productColor.getId());
+        sizes.forEach(size -> {
+            deleteProductSize(size.getId());
+        });
+
+        // 영속성 컨텍스트를 강제로 플러시
+//        productSizeRepository.deleteAll(sizes);
+        productSizeRepository.flush();
         productColor.getSizes().clear();
     }
 

@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.product.entity.Category;
 import Fream_back.improve_Fream_Back.product.entity.ProductColor;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
 import Fream_back.improve_Fream_Back.product.repository.ProductSizeRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ class ProductSizeCommandServiceTest {
 
     @Autowired
     private TestProductConfig.TestData testData;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("상품 색상에 대한 새로운 사이즈 추가 테스트")
@@ -108,6 +112,7 @@ class ProductSizeCommandServiceTest {
 
         // Then
         List<ProductSize> sizes = productSizeRepository.findAllByProductColorId(productColor.getId());
-        assertThat(sizes).isEmpty();
+        System.out.println("sizes = " + sizes); // 남아있는 데이터 확인
+        assertThat(sizes).isEmpty(); // 삭제 확인
     }
 }
