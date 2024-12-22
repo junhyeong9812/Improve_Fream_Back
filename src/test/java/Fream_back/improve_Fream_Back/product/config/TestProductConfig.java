@@ -5,6 +5,7 @@ import Fream_back.improve_Fream_Back.product.entity.enumType.ColorType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import Fream_back.improve_Fream_Back.product.entity.enumType.SizeType;
 import Fream_back.improve_Fream_Back.product.repository.*;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +21,7 @@ public class TestProductConfig {
 
     private final Random random = new Random();
 
+
     @Bean
     public TestData setupTestData(
             BrandRepository brandRepository,
@@ -27,7 +29,8 @@ public class TestProductConfig {
             CollectionRepository collectionRepository,
             ProductRepository productRepository,
             ProductColorRepository productColorRepository,
-            ProductSizeRepository productSizeRepository
+            ProductSizeRepository productSizeRepository,
+            EntityManager entityManager
     ) {
         // 브랜드 생성
         Brand nike = brandRepository.save(Brand.builder().name("Nike").build());
@@ -60,6 +63,8 @@ public class TestProductConfig {
                     .build();
 
             Product savedProduct = productRepository.save(product);
+//            entityManager.flush();
+
             products.add(savedProduct);
 
             // 색상 생성
@@ -70,6 +75,9 @@ public class TestProductConfig {
                         .build();
 
                 ProductColor savedProductColor = productColorRepository.save(productColor);
+
+                // 연관관계 편의 메서드 사용
+                savedProduct.addProductColor(productColor);
 
                 // 사이즈 생성
                 List<String> randomSizes = randomSizes(SizeType.SHOES.getSizes(), 3);
@@ -106,6 +114,7 @@ public class TestProductConfig {
                 .mapToObj(sizeList::get)
                 .collect(Collectors.toList());
     }
+
 
     @Getter
     public static class TestData {

@@ -31,8 +31,9 @@ public class ProductColor extends BaseTimeEntity {
     @JoinColumn(name = "thumbnail_image_id", nullable = true)
     private ProductImage thumbnailImage; // 대표 이미지
 
+    @Builder.Default
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductSize> sizes; // 사이즈 정보
+    private List<ProductSize> sizes = new ArrayList<>(); // 사이즈 정보
 
     @Builder.Default
     @OneToMany(mappedBy = "productColor", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -116,12 +116,18 @@ public class ProductColorCommandService {
         ProductColor productColor = productColorRepository.findById(productColorId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 색상을 찾을 수 없습니다."));
 
+        // Product/{productId}/ 디렉토리 경로 생성
+        Product product = productColor.getProduct();
+        String productDirectory = BASE_DIRECTORY + product.getId() + "/";
+
+
+
         // 썸네일 이미지 처리
         if (thumbnailImage != null) {
             if (productColor.getThumbnailImage() != null) {
-                fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl());
+                fileUtils.deleteFile(productDirectory, productColor.getThumbnailImage().getImageUrl());
             }
-            String thumbnailFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductImage_", thumbnailImage);
+            String thumbnailFilename = fileUtils.saveFile(productDirectory, "ProductImage_", thumbnailImage);
             ProductImage newThumbnail = ProductImage.builder()
                     .imageUrl(thumbnailFilename)
                     .build();
@@ -132,7 +138,7 @@ public class ProductColorCommandService {
         if (requestDto.getExistingImages() != null) {
             productColor.getProductImages().removeIf(image -> {
                 if (!requestDto.getExistingImages().contains(image.getImageUrl())) {
-                    fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl());
+                    fileUtils.deleteFile(productDirectory, image.getImageUrl());
                     return true;
                 }
                 return false;
@@ -142,7 +148,7 @@ public class ProductColorCommandService {
         // 새 일반 이미지 추가
         if (newImages != null && !newImages.isEmpty()) {
             newImages.forEach(file -> {
-                String imageFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductImage_", file);
+                String imageFilename = fileUtils.saveFile(productDirectory, "ProductImage_", file);
                 ProductImage newImage = ProductImage.builder()
                         .imageUrl(imageFilename)
                         .build();
@@ -154,7 +160,7 @@ public class ProductColorCommandService {
         if (requestDto.getExistingDetailImages() != null) {
             productColor.getProductDetailImages().removeIf(detailImage -> {
                 if (!requestDto.getExistingDetailImages().contains(detailImage.getImageUrl())) {
-                    fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl());
+                    fileUtils.deleteFile(productDirectory, detailImage.getImageUrl());
                     return true;
                 }
                 return false;
@@ -164,7 +170,7 @@ public class ProductColorCommandService {
         // 새 상세 이미지 추가
         if (newDetailImages != null && !newDetailImages.isEmpty()) {
             newDetailImages.forEach(file -> {
-                String detailFilename = fileUtils.saveFile(BASE_DIRECTORY, "ProductDetailImage_", file);
+                String detailFilename = fileUtils.saveFile(productDirectory, "ProductDetailImage_", file);
                 ProductDetailImage newDetailImage = ProductDetailImage.builder()
                         .imageUrl(detailFilename)
                         .build();
@@ -192,7 +198,11 @@ public class ProductColorCommandService {
                                 .filter(existingSize -> existingSize.getSize().equals(size))
                                 .findFirst()
                                 .orElseThrow(() -> new IllegalArgumentException("해당 사이즈를 찾을 수 없습니다: " + size));
+                        // 엔티티 삭제
                         productSizeCommandService.deleteProductSize(sizeEntity.getId());
+
+                        // 컬렉션에서 제거
+                        productColor.getSizes().remove(sizeEntity);
                     });
 
             // 추가할 사이즈 처리
@@ -222,6 +232,10 @@ public class ProductColorCommandService {
         ProductColor productColor = productColorRepository.findById(productColorId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 색상을 찾을 수 없습니다."));
 
+        // Product/{productId}/ 디렉토리 경로 생성
+        Product product = productColor.getProduct();
+        String productDirectory = BASE_DIRECTORY + product.getId() + "/";
+
         // 관심 상품 삭제
         interestCommandService.deleteAllInterestsByProductColor(productColor);
 
@@ -230,12 +244,12 @@ public class ProductColorCommandService {
 
         // 이미지 삭제
         if (productColor.getThumbnailImage() != null) {
-            fileUtils.deleteFile(BASE_DIRECTORY, productColor.getThumbnailImage().getImageUrl()); // 실제 파일 삭제
+            fileUtils.deleteFile(productDirectory, productColor.getThumbnailImage().getImageUrl()); // 실제 파일 삭제
             productImageCommandService.deleteProductImage(productColor.getThumbnailImage().getId()); // 엔티티 삭제
         }
 
         productColor.getProductImages().forEach(image -> {
-            fileUtils.deleteFile(BASE_DIRECTORY, image.getImageUrl()); // 실제 파일 삭제
+            fileUtils.deleteFile(productDirectory, image.getImageUrl()); // 실제 파일 삭제
             productImageCommandService.deleteProductImage(image.getId()); // 엔티티 삭제
         });
 

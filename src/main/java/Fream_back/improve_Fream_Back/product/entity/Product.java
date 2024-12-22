@@ -6,6 +6,7 @@ import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -49,8 +50,9 @@ public class Product extends BaseTimeEntity {
     @JoinColumn(name = "collection_id")
     private Collection collection; // 컬렉션 참조
 
+    @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductColor> colors; // 색상별 상세 정보
+    private List<ProductColor> colors  = new ArrayList<>(); // 색상별 상세 정보
 
     // 연관관계 편의 메서드
     public void addProductColor(ProductColor color) {
@@ -94,4 +96,6 @@ public class Product extends BaseTimeEntity {
             this.gender = request.getGender();
         }
     }
+
+
 }
