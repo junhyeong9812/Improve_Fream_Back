@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  // CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 추가
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/**", "/api/payment-info/test-payment").permitAll()  // 로그인과 회원가입은 허용
+                        .requestMatchers("/**").permitAll()  // 로그인과 회원가입은 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")  // ROLE_ADMIN만 접근 가능
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증된 사용자만 허용
                 )
@@ -67,7 +67,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 Origin
+//        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 허용할 Origin
+        configuration.addAllowedOriginPattern("*"); // 모든 Origin 허용
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(List.of("*")); // 허용할 요청 헤더
         configuration.setAllowCredentials(true); // 쿠키 허용

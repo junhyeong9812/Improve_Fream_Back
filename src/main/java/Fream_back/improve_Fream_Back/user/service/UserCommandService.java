@@ -34,6 +34,10 @@ public class UserCommandService {
             referrer = userRepository.findByReferralCode(dto.getReferralCode())
                     .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 추천인 코드입니다."));
         }
+        // 이메일 중복 확인
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        }
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
