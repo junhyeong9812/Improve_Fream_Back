@@ -10,6 +10,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -44,5 +47,27 @@ public class ProductQueryController {
             @RequestParam String colorName) {
         ProductDetailResponseDto response = productQueryService.getProductDetail(productId, colorName);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{productId}/images")
+    public ResponseEntity<byte[]> getProductImage(
+            @PathVariable Long productId,
+            @RequestParam String imageName) throws Exception {
+        // 파일 경로 설정
+        String directory = "product/" + productId;
+        File imageFile = new File(directory + File.separator + imageName);
+
+        // 파일이 존재하지 않을 경우 예외 처리
+        if (!imageFile.exists()) {
+            throw new IllegalArgumentException("이미지 파일이 존재하지 않습니다.");
+        }
+
+        // 파일 내용 읽기
+        byte[] imageBytes = Files.readAllBytes(Paths.get(imageFile.getPath()));
+
+        // 응답 생성 (Content-Type 설정)
+        return ResponseEntity.ok()
+                .header("Content-Type", Files.probeContentType(imageFile.toPath()))
+                .body(imageBytes);
     }
 }
