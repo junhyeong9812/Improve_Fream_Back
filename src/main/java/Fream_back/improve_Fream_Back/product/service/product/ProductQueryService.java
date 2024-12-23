@@ -6,6 +6,7 @@ import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.repository.ProductQueryDslRepository;
 import Fream_back.improve_Fream_Back.product.repository.SortOption;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,12 @@ public class ProductQueryService {
     }
 
     public ProductDetailResponseDto getProductDetail(Long productId, String colorName) {
-        return productQueryDslRepository.findProductDetail(productId, colorName);
+        try {
+            return productQueryDslRepository.findProductDetail(productId, colorName);
+        } catch (InvalidDataAccessApiUsageException e) {
+            // 데이터 접근 계층의 예외를 명시적인 IllegalArgumentException으로 변환
+            throw new IllegalArgumentException("해당 상품 또는 색상이 존재하지 않습니다.", e);
+        }
     }
 }
 

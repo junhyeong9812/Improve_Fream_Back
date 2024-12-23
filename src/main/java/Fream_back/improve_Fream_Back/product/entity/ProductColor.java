@@ -54,7 +54,9 @@ public class ProductColor extends BaseTimeEntity {
 
     public void addThumbnailImage(ProductImage thumbnailImage) {
         this.thumbnailImage = thumbnailImage;
-        thumbnailImage.assignProductColor(this);
+        if (thumbnailImage != null) {
+            thumbnailImage.assignProductColor(this);
+        }
     }
 
     public void addProductImage(ProductImage image) {

@@ -23,7 +23,7 @@ public class ProductSize extends BaseTimeEntity {
     @Column(nullable = false)
     private String size; // 사이즈 (예: 250, M, L)
 
-    @Column(nullable = false)
+    @Column(name = "purchase_price",nullable = false)
     private int purchasePrice; // 구매가
 
     @Column(nullable = false)

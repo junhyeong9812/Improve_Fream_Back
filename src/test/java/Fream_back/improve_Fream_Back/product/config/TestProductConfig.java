@@ -30,7 +30,8 @@ public class TestProductConfig {
             ProductRepository productRepository,
             ProductColorRepository productColorRepository,
             ProductSizeRepository productSizeRepository,
-            EntityManager entityManager
+            EntityManager entityManager,
+            ProductImageRepository productImageRepository
     ) {
         // 브랜드 생성
         Brand nike = brandRepository.save(Brand.builder().name("Nike").build());
@@ -67,32 +68,46 @@ public class TestProductConfig {
 
             products.add(savedProduct);
 
-            // 색상 생성
-            for (int j = 0; j < 3; j++) {
+            String[] fixedColors = {"Red", "Blue", "Green"};
+            String[] fixedSizes = {"270", "280", "290"};
+
+            for (int j = 0; j < fixedColors.length; j++) {
+
                 ProductColor productColor = ProductColor.builder()
-                        .colorName(randomColor())
+                        .colorName(fixedColors[j])
                         .product(savedProduct)
                         .build();
 
+// 먼저 ProductColor를 저장하여 ID 생성
                 ProductColor savedProductColor = productColorRepository.save(productColor);
+                savedProduct.addProductColor(savedProductColor);
 
-                // 연관관계 편의 메서드 사용
-                savedProduct.addProductColor(productColor);
 
-                // 사이즈 생성
-                List<String> randomSizes = randomSizes(SizeType.SHOES.getSizes(), 3);
-                for (String size : randomSizes) {
-                    productSizeRepository.save(ProductSize.builder()
+// 대표 이미지 생성 후 저장
+                ProductImage thumbnailImage = ProductImage.builder()
+                        .imageUrl("https://example.com/images/" + fixedColors[j].toLowerCase() + ".jpg")
+                        .productColor(savedProductColor) // 저장된 ProductColor를 참조
+                        .build();
+                productImageRepository.save(thumbnailImage); // 별도로 저장
+                savedProductColor.addThumbnailImage(thumbnailImage);
+                productColorRepository.save(savedProductColor); // 다시 저장하여 관계 반영
+
+
+
+                for (String size : fixedSizes) {
+                    ProductSize productSize = ProductSize.builder()
                             .size(size)
                             .sizeType(SizeType.SHOES)
                             .purchasePrice(savedProduct.getReleasePrice())
                             .salePrice(savedProduct.getReleasePrice() + 20)
                             .quantity(10)
-                            .productColor(savedProductColor)
-                            .build());
+                            .build();
+                    savedProductColor.addProductSize(productSize);
+                    productSizeRepository.save(productSize);
                 }
             }
         }
+
 
         return new TestData(brands, categories, collections, products);
     }
