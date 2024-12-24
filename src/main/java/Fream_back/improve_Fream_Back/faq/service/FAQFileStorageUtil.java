@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.faq.service;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 @Component
 public class FAQFileStorageUtil {
 
-    private static final String FAQ_STORAGE_DIR = "FAQ/";
+    private static final String FAQ_STORAGE_DIR =System.getProperty("user.dir") +  "/FAQ/";
 
     /**
      * 파일 저장 (다중)
@@ -72,7 +73,11 @@ public class FAQFileStorageUtil {
      */
     public void deleteFiles(List<String> filePaths) throws IOException {
         for (String filePath : filePaths) {
-            Files.deleteIfExists(Paths.get(filePath));
+            String normalizedPath = filePath.replace("/", File.separator).replace("\\", File.separator);
+            Path path = Paths.get(normalizedPath);
+            if (Files.exists(path)) {
+                Files.deleteIfExists(path);
+            }
         }
     }
 

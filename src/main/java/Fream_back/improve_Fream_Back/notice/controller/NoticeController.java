@@ -6,10 +6,13 @@ import Fream_back.improve_Fream_Back.notice.dto.NoticeUpdateRequestDto;
 import Fream_back.improve_Fream_Back.notice.entity.NoticeCategory;
 import Fream_back.improve_Fream_Back.notice.service.NoticeCommandService;
 import Fream_back.improve_Fream_Back.notice.service.NoticeQueryService;
+import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -23,10 +26,21 @@ public class NoticeController {
 
     private final NoticeCommandService noticeCommandService;
     private final NoticeQueryService noticeQueryService;
+    private final UserQueryService userQueryService; // 권한 확인 서비스
+
+    private String extractEmailFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            return (String) authentication.getPrincipal(); // 이메일 반환
+        }
+        throw new IllegalStateException("인증된 사용자가 없습니다.");
+    }
 
     // 공지사항 생성 (쓰기 작업)
     @PostMapping
     public ResponseEntity<NoticeResponseDto> createNotice(@ModelAttribute NoticeCreateRequestDto requestDto) throws IOException {
+        String email = extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email); // 관리자 권한 확인
         NoticeResponseDto response = noticeCommandService.createNotice(
                 requestDto.getTitle(),
                 requestDto.getContent(),
@@ -39,7 +53,7 @@ public class NoticeController {
     // 공지사항 수정 (쓰기 작업)
     @PutMapping("/{noticeId}")
     public ResponseEntity<NoticeResponseDto> updateNotice(
-            @PathVariable Long noticeId,
+            @PathVariable("noticeId") Long noticeId,
             @ModelAttribute NoticeUpdateRequestDto requestDto
     ) throws IOException {
         NoticeResponseDto response = noticeCommandService.updateNotice(
@@ -55,14 +69,14 @@ public class NoticeController {
 
     // 공지사항 삭제 (쓰기 작업)
     @DeleteMapping("/{noticeId}")
-    public ResponseEntity<Void> deleteNotice(@PathVariable Long noticeId) throws IOException {
+    public ResponseEntity<Void> deleteNotice(@PathVariable("noticeId") Long noticeId) throws IOException {
         noticeCommandService.deleteNotice(noticeId);
         return ResponseEntity.noContent().build();
     }
 
     // 단일 공지사항 조회 (읽기 작업)
     @GetMapping("/{noticeId}")
-    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable Long noticeId) {
+    public ResponseEntity<NoticeResponseDto> getNotice(@PathVariable("noticeId") Long noticeId) {
         NoticeResponseDto response = noticeQueryService.getNotice(noticeId);
         return ResponseEntity.ok(response);
     }
@@ -70,7 +84,7 @@ public class NoticeController {
     // 공지사항 검색 (읽기 작업)
     @GetMapping("/search")
     public ResponseEntity<Page<NoticeResponseDto>> searchNotices(
-            @RequestParam(required = false) String keyword,
+            @RequestParam(name = "keyword",required = false) String keyword,
             Pageable pageable
     ) {
         Page<NoticeResponseDto> results = noticeQueryService.searchNotices(keyword, pageable);
@@ -95,7 +109,7 @@ public class NoticeController {
 
     // 파일 미리보기 (읽기 작업)
     @GetMapping("/files/{fileName}")
-    public ResponseEntity<byte[]> getFilePreview(@PathVariable String fileName) throws IOException {
+    public ResponseEntity<byte[]> getFilePreview(@PathVariable("fileName") String fileName) throws IOException {
         byte[] fileData = noticeQueryService.getFilePreview(fileName);
 
         String mimeType = Files.probeContentType(Paths.get("notice/" + fileName));

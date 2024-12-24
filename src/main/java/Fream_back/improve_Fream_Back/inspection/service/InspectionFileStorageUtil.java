@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.inspection.service;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.regex.Pattern;
 @Component
 public class InspectionFileStorageUtil {
 
-    private static final String INSPECTION_STORAGE_DIR = "Inspection/";
+    private static final String INSPECTION_STORAGE_DIR =System.getProperty("user.dir") +  "/Inspection/";
 
     // 파일 저장 (단일)
     public String saveFile(MultipartFile file) throws IOException {
@@ -48,8 +49,11 @@ public class InspectionFileStorageUtil {
     // 파일 삭제 (다중)
     public void deleteFiles(List<String> filePaths) throws IOException {
         for (String filePath : filePaths) {
-            Path path = Paths.get(filePath);
-            Files.deleteIfExists(path);
+            String normalizedPath = filePath.replace("/", File.separator).replace("\\", File.separator);
+            Path path = Paths.get(normalizedPath);
+            if (Files.exists(path)) {
+                Files.deleteIfExists(path);
+            }
         }
     }
 

@@ -47,7 +47,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{addressId}")
-    public ResponseEntity<String> deleteAddress(@PathVariable Long addressId) {
+    public ResponseEntity<String> deleteAddress(@PathVariable("addressId") Long addressId) {
         String email = extractEmailFromSecurityContext();
         addressCommandService.deleteAddress(email, addressId);
         return ResponseEntity.ok("주소록 삭제가 완료되었습니다.");
@@ -61,7 +61,7 @@ public class AddressController {
     }
 
     @GetMapping("/{addressId}")
-    public ResponseEntity<AddressResponseDto> getAddress(@PathVariable Long addressId) {
+    public ResponseEntity<AddressResponseDto> getAddress(@PathVariable("addressId") Long addressId) {
         String email = extractEmailFromSecurityContext();
         AddressResponseDto address = addressQueryService.getAddress(email, addressId);
         return ResponseEntity.ok(address);

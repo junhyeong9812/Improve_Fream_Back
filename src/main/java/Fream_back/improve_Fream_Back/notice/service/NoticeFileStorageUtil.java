@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.notice.entity.NoticeImage;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class NoticeFileStorageUtil {
 
-    private static final String NOTICE_STORAGE_DIR = "notice/";
+    private static final String NOTICE_STORAGE_DIR = System.getProperty("user.dir") +  "/notice/";
 
     // 단일 파일 저장
     public String saveFile(MultipartFile file) throws IOException {
@@ -60,8 +61,13 @@ public class NoticeFileStorageUtil {
 
     // 다중 파일 삭제
     public void deleteFiles(List<String> filePaths) throws IOException {
+
         for (String filePath : filePaths) {
-            deleteFile(filePath);
+            String normalizedPath = filePath.replace("/", File.separator).replace("\\", File.separator);
+            Path path = Paths.get(normalizedPath);
+            if (Files.exists(path)) {
+                deleteFile(filePath);
+            }
         }
     }
 

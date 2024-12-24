@@ -58,7 +58,7 @@ public class ProfileController {
 
     // 프로필 이미지 파일 제공
     @GetMapping("/{profileId}/image")
-    public ResponseEntity<byte[]> getProfileImage(@PathVariable Long profileId) throws IOException {
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable("profileId") Long profileId) throws IOException {
         // 프로필에서 이미지 파일명 조회
         String profileImageFileName = profileQueryService.getProfileImageFileName(profileId);
         String directory = "profile_images"; // 이미지 저장 디렉토리

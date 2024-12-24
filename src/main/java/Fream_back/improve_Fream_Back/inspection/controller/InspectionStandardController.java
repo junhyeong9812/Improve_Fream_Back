@@ -6,10 +6,13 @@ import Fream_back.improve_Fream_Back.inspection.dto.InspectionStandardUpdateRequ
 import Fream_back.improve_Fream_Back.inspection.entity.InspectionCategory;
 import Fream_back.improve_Fream_Back.inspection.service.InspectionStandardCommandService;
 import Fream_back.improve_Fream_Back.inspection.service.InspectionStandardQueryService;
+import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -21,7 +24,15 @@ public class InspectionStandardController {
 
     private final InspectionStandardCommandService commandService;
     private final InspectionStandardQueryService queryService;
+    private final UserQueryService userQueryService; // 권한 확인 서비스
 
+    private String extractEmailFromSecurityContext() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            return (String) authentication.getPrincipal(); // 이메일 반환
+        }
+        throw new IllegalStateException("인증된 사용자가 없습니다.");
+    }
     /**
      * 검수 기준 생성 (Command)
      * @param requestDto 생성 요청 데이터
@@ -31,6 +42,9 @@ public class InspectionStandardController {
     @PostMapping
     public ResponseEntity<InspectionStandardResponseDto> createStandard(
             @ModelAttribute InspectionStandardCreateRequestDto requestDto) throws IOException {
+        String email = extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email); // 관리자 권한 확인
+
         InspectionStandardResponseDto response = commandService.createStandard(requestDto);
         return ResponseEntity.ok(response);
     }
@@ -44,8 +58,11 @@ public class InspectionStandardController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<InspectionStandardResponseDto> updateStandard(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @ModelAttribute InspectionStandardUpdateRequestDto requestDto) throws IOException {
+        String email = extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email); // 관리자 권한 확인
+
         InspectionStandardResponseDto response = commandService.updateStandard(id, requestDto);
         return ResponseEntity.ok(response);
     }
@@ -57,7 +74,10 @@ public class InspectionStandardController {
      * @throws IOException 파일 삭제 중 오류
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStandard(@PathVariable Long id) throws IOException {
+    public ResponseEntity<Void> deleteStandard(@PathVariable("id") Long id) throws IOException {
+        String email = extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email); // 관리자 권한 확인
+
         commandService.deleteStandard(id);
         return ResponseEntity.noContent().build();
     }
@@ -88,7 +108,7 @@ public class InspectionStandardController {
      * @return 검수 기준 DTO
      */
     @GetMapping("/{id}")
-    public ResponseEntity<InspectionStandardResponseDto> getStandard(@PathVariable Long id) {
+    public ResponseEntity<InspectionStandardResponseDto> getStandard(@PathVariable("id") Long id) {
         InspectionStandardResponseDto response = queryService.getStandard(id);
         return ResponseEntity.ok(response);
     }
@@ -99,11 +119,11 @@ public class InspectionStandardController {
      * @param pageable 페이징 정보
      * @return 검색된 검수 기준 리스트
      */
-    @GetMapping("/search")
-    public ResponseEntity<Page<InspectionStandardResponseDto>> searchStandards(
-            @RequestParam String keyword,
-            Pageable pageable) {
-        Page<InspectionStandardResponseDto> response = queryService.searchStandards(keyword, pageable);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<Page<InspectionStandardResponseDto>> searchStandards(
+//            @RequestParam String keyword,
+//            Pageable pageable) {
+//        Page<InspectionStandardResponseDto> response = queryService.searchStandards(keyword, pageable);
+//        return ResponseEntity.ok(response);
+//    }
 }
