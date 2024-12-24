@@ -1,13 +1,13 @@
 version: '3.8'
 services:
-#  h2db:
-#    image: h2database/h2
-#    container_name: h2_database
-#    ports:
-#      - "9092:9092"
-#      - "8082:8082" # H2 웹 콘솔
-#    environment:
-#      - H2_OPTIONS=-tcpAllowOthers
+  h2db:
+    image: h2database/h2
+    container_name: h2_database
+    ports:
+      - "9092:9092"
+      - "8082:8082" # H2 웹 콘솔
+    environment:
+      - H2_OPTIONS=-tcpAllowOthers
 
   redis:
     image: redis:7.0

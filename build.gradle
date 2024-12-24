@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
-	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10' // QueryDSL 플러그인 추가
+//	id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10' // QueryDSL 플러그인 추가
 
 }
 
@@ -71,33 +71,18 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-tasks.withType(JavaCompile) {
-	options.compilerArgs << "-parameters"
-}
 
 tasks.withType(Test) {
 	// 테스트를 실행하지 않도록 설정
 	enabled = false
 }
-//querydsl 추가 시작
 
-//def querydslDir = "$buildDir/generated/querydsl"
-//querydsl {
-//	jpa = true
-//	querydslSourcesDir = querydslDir
-//}
-//sourceSets {
-//	main.java.srcDir querydslDir
-//}
-querydsl {
-	jpa = true
-	querydslSourcesDir = "$buildDir/generated/querydsl"
-}
+
 
 sourceSets {
 	main {
 		java {
-			srcDirs += "$buildDir/generated/querydsl"
+			srcDirs += file("$buildDir/generated/querydsl")
 		}
 	}
 }
@@ -105,8 +90,10 @@ sourceSets {
 configurations {
 	querydsl.extendsFrom compileClasspath
 }
-compileQuerydsl {
-	options.annotationProcessorPath = configurations.querydsl
+
+tasks.withType(JavaCompile) {
+	options.compilerArgs << "-parameters"
+	options.annotationProcessorPath = configurations.annotationProcessor
 }
 //querydsl 추가 끝
 
