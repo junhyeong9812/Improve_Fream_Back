@@ -138,6 +138,7 @@ public class DataInitializer implements CommandLineRunner {
     private void createProductData() {
         // 브랜드 생성
         Brand nike = brandRepository.save(Brand.builder().name("Nike").build());
+        Brand newBalance = brandRepository.save(Brand.builder().name("New Balance").build());
         Brand adidas = brandRepository.save(Brand.builder().name("Adidas").build());
         Brand jordan = brandRepository.save(Brand.builder().name("Jordan").build());
         Brand stussy = brandRepository.save(Brand.builder().name("Stussy").build());
@@ -153,15 +154,46 @@ public class DataInitializer implements CommandLineRunner {
         Category sneakers = categoryRepository.save(Category.builder().name("Sneakers").parentCategory(shoes).build());
 
         // 상품 생성
-        createProductsForCategory("Sneakers", sneakers, List.of(nike, adidas, jordan), SizeType.SHOES);
-        createProductsForCategory("Short Sleeve T-Shirts", tshirts, List.of(stussy, iabStudio, newJeans), SizeType.CLOTHING);
-    }
+//        createProductsForCategory("Sneakers", sneakers, List.of(nike, adidas, newBalance), SizeType.SHOES);
+//        createProductsForCategory("Short Sleeve T-Shirts", tshirts, List.of(stussy, iabStudio, newJeans), SizeType.CLOTHING);
+        List<List<ColorType>> predefinedColors = List.of(
+                List.of(ColorType.BLACK, ColorType.GREY, ColorType.NAVY),
+                List.of(ColorType.WHITE, ColorType.ORANGE, ColorType.MINT),
+                List.of(ColorType.PINK, ColorType.GOLD, ColorType.MINT),
+                List.of(ColorType.WHITE, ColorType.BLACK, ColorType.ORANGE),
+                List.of(ColorType.GREEN, ColorType.BLACK, ColorType.GREY),
+                List.of(ColorType.WHITE, ColorType.BLACK, ColorType.SKY_BLUE),
+                List.of(ColorType.BLACK, ColorType.IVORY, ColorType.WHITE),
+                List.of(ColorType.BLACK, ColorType.GREY, ColorType.BROWN),
+                List.of(ColorType.ORANGE, ColorType.PURPLE, ColorType.RED),
+                List.of(ColorType.ORANGE, ColorType.RED, ColorType.KHAKI)
+        );
 
-    private void createProductsForCategory(String categoryName, Category category, List<Brand> brands, SizeType sizeType) {
-        List<ColorType> colors = List.of(ColorType.values()); // 전체 색상 목록
-        int colorCount = colors.size();
+        List<ColorType> singleColors = List.of(
+                ColorType.BLACK, ColorType.WHITE, ColorType.PINK, ColorType.WHITE, ColorType.WHITE,
+                ColorType.PURPLE, ColorType.RED, ColorType.KHAKI, ColorType.NAVY, ColorType.GREY
+        );
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 20; i++) {
+            String categoryName;
+            Category category;
+            List<Brand> brands;
+            SizeType sizeType;
+
+            if (i <= 10) {
+                // 1~10번은 Sneakers
+                categoryName = "Sneakers";
+                category = sneakers;
+                brands = List.of(nike, adidas, newBalance);
+                sizeType = SizeType.SHOES;
+            } else {
+                // 11~20번은 Short Sleeve T-Shirts
+                categoryName = "Short Sleeve T-Shirts";
+                category = tshirts;
+                brands = List.of(stussy, iabStudio, newJeans);
+                sizeType = SizeType.CLOTHING;
+            }
+
             Product product = productRepository.save(
                     Product.builder()
                             .name(categoryName + " Product " + i)
@@ -170,14 +202,49 @@ public class DataInitializer implements CommandLineRunner {
                             .modelNumber("Model-" + i)
                             .releaseDate("2023-01-" + (i < 10 ? "0" + i : i))
                             .gender(GenderType.values()[new Random().nextInt(GenderType.values().length)])
-                            .brand(brands.get(i % brands.size()))
+                            .brand(brands.get((i - 1) % brands.size())) // 상품 번호 기반으로 브랜드 선택
                             .category(category)
                             .build()
             );
 
-            for (int j = 0; j < 3; j++) { // 색상 3개 고정
-                // 색상 순환으로 선택
-                ColorType color = colors.get((i * 3 + j) % colorCount);
+            if (i <= 10) {
+                // 1번부터 10번까지는 predefinedColors 사용
+                List<ColorType> colorsForProduct = predefinedColors.get(i - 1);
+
+                for (ColorType color : colorsForProduct) {
+                    ProductColor productColor = productColorRepository.save(
+                            ProductColor.builder()
+                                    .colorName(color.getDisplayName())
+                                    .product(product)
+                                    .build()
+                    );
+
+                    String imageName = "thumbnail_" + product.getId() + "_" + color.name().toLowerCase() + ".jpg";
+                    productColor.addThumbnailImage(
+                            productImageRepository.save(
+                                    ProductImage.builder()
+                                            .imageUrl("/api/products/" + product.getId() + "/images?imageName=" + imageName)
+                                            .productColor(productColor)
+                                            .build()
+                            )
+                    );
+
+                    for (String size : sizeType.getSizes()) {
+                        productSizeRepository.save(
+                                ProductSize.builder()
+                                        .size(size)
+                                        .sizeType(sizeType)
+                                        .purchasePrice(product.getReleasePrice())
+                                        .salePrice(product.getReleasePrice() + 20)
+                                        .quantity(10)
+                                        .productColor(productColor)
+                                        .build()
+                        );
+                    }
+                }
+            } else {
+                // 11번부터 20번까지는 단일 색상 사용
+                ColorType color = singleColors.get(i - 11);
 
                 ProductColor productColor = productColorRepository.save(
                         ProductColor.builder()
@@ -186,7 +253,6 @@ public class DataInitializer implements CommandLineRunner {
                                 .build()
                 );
 
-                // 이미지 URL 생성
                 String imageName = "thumbnail_" + product.getId() + "_" + color.name().toLowerCase() + ".jpg";
                 productColor.addThumbnailImage(
                         productImageRepository.save(
@@ -212,4 +278,87 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
+//    private void createProductsForCategory(String categoryName, Category category, List<Brand> brands, SizeType sizeType) {
+//        List<ColorType> colors = List.of(ColorType.values()); // 전체 색상 목록
+//        int colorCount = colors.size();
+//        List<List<ColorType>> predefinedColors = List.of(
+//                List.of(ColorType.BLACK, ColorType.GREY, ColorType.NAVY),
+//                List.of(ColorType.WHITE, ColorType.ORANGE, ColorType.MINT),
+//                List.of(ColorType.PINK, ColorType.GOLD, ColorType.MINT),
+//                List.of(ColorType.WHITE, ColorType.BLACK, ColorType.ORANGE),
+//                List.of(ColorType.GREEN, ColorType.BLACK, ColorType.GREY),
+//                List.of(ColorType.WHITE, ColorType.BLACK, ColorType.SKY_BLUE),
+//                List.of(ColorType.BLACK, ColorType.IVORY, ColorType.WHITE),
+//                List.of(ColorType.BLACK, ColorType.GREY, ColorType.BROWN),
+//                List.of(ColorType.ORANGE, ColorType.PURPLE, ColorType.RED),
+//                List.of(ColorType.ORANGE, ColorType.RED, ColorType.KHAKI)
+//        );
+//        List<ColorType> singleColors = List.of(
+//                ColorType.BLACK, ColorType.WHITE, ColorType.PINK, ColorType.WHITE, ColorType.WHITE,
+//                ColorType.PURPLE, ColorType.RED, ColorType.KHAKI, ColorType.NAVY, ColorType.GREY
+//        );
+//
+//
+//        for (int i = 1; i <= 10; i++) {
+//            Product product = productRepository.save(
+//                    Product.builder()
+//                            .name(categoryName + " Product " + i)
+//                            .englishName(categoryName + " English Product " + i)
+//                            .releasePrice(100 + i * 50)
+//                            .modelNumber("Model-" + i)
+//                            .releaseDate("2023-01-" + (i < 10 ? "0" + i : i))
+//                            .gender(GenderType.values()[new Random().nextInt(GenderType.values().length)])
+//                            .brand(brands.get(i % brands.size()))
+//                            .category(category)
+//                            .build()
+//            );
+//
+//            // 해당 i 값에 맞는 색상 리스트 가져오기
+//            List<ColorType> colorsForProduct = predefinedColors.get(i - 1);
+//
+//            for (ColorType color : colorsForProduct) {
+//                ProductColor productColor = productColorRepository.save(
+//                        ProductColor.builder()
+//                                .colorName(color.getDisplayName())
+//                                .product(product)
+//                                .build()
+//                );
+////            for (int j = 0; j < 3; j++) { // 색상 3개 고정
+////                // 색상 순환으로 선택
+////                ColorType color = colors.get((i * 3 + j) % colorCount);
+////
+////                ProductColor productColor = productColorRepository.save(
+////                        ProductColor.builder()
+////                                .colorName(color.getDisplayName())
+////                                .product(product)
+////                                .build()
+////                );
+//
+//                // 이미지 URL 생성
+//                String imageName = "thumbnail_" + product.getId() + "_" + color.name().toLowerCase() + ".jpg";
+//                productColor.addThumbnailImage(
+//                        productImageRepository.save(
+//                                ProductImage.builder()
+//                                        .imageUrl("/api/products/" + product.getId() + "/images?imageName=" + imageName)
+//                                        .productColor(productColor)
+//                                        .build()
+//                        )
+//                );
+//
+//                for (String size : sizeType.getSizes()) {
+//                    productSizeRepository.save(
+//                            ProductSize.builder()
+//                                    .size(size)
+//                                    .sizeType(sizeType)
+//                                    .purchasePrice(product.getReleasePrice())
+//                                    .salePrice(product.getReleasePrice() + 20)
+//                                    .quantity(10)
+//                                    .productColor(productColor)
+//                                    .build()
+//                    );
+//                }
+//            }
+//        }
+//    }
 }
