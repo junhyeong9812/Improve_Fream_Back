@@ -28,14 +28,14 @@ public class FollowController {
     }
 
     @PostMapping("/{profileId}")
-    public ResponseEntity<String> createFollow(@PathVariable Long profileId) {
+    public ResponseEntity<String> createFollow(@PathVariable("profileId") Long profileId) {
         String email = extractEmailFromSecurityContext();
         followCommandService.createFollow(email, profileId);
         return ResponseEntity.ok("팔로우가 성공적으로 추가되었습니다.");
     }
 
     @DeleteMapping("/{profileId}")
-    public ResponseEntity<String> deleteFollow(@PathVariable Long profileId) {
+    public ResponseEntity<String> deleteFollow(@PathVariable("profileId") Long profileId) {
         String email = extractEmailFromSecurityContext();
         followCommandService.deleteFollow(email, profileId);
         return ResponseEntity.ok("팔로우가 성공적으로 삭제되었습니다.");
