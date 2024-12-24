@@ -68,7 +68,7 @@ public class ProfileCommandService {
 
             // 새로운 이미지 저장
             String savedFilePath = fileUtils.saveFile(
-                    "profile_images",
+                    System.getProperty("user.dir") + "/profile_images",
                     "profile_" + profile.getId() + "_",
                     profileImage
             );

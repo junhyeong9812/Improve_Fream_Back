@@ -131,6 +131,7 @@ public class DataInitializer implements CommandLineRunner {
         return savedUser;
     }
 
+
     private String generateReferralCode() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }

@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/profiles/blocked")
@@ -21,7 +22,8 @@ public class BlockedProfileController {
 
     // 프로필 차단
     @PostMapping
-    public ResponseEntity<String> blockProfile(@RequestParam Long blockedProfileId) {
+    public ResponseEntity<String> blockProfile(@RequestBody Map<String, Long> requestBody) {
+        Long blockedProfileId = requestBody.get("blockedProfileId");
         String email = extractEmailFromSecurityContext();
         blockedProfileCommandService.blockProfile(email, blockedProfileId);
         return ResponseEntity.ok("프로필 차단이 완료되었습니다.");
@@ -29,7 +31,7 @@ public class BlockedProfileController {
 
     // 프로필 차단 해제
     @DeleteMapping
-    public ResponseEntity<String> unblockProfile(@RequestParam Long blockedProfileId) {
+    public ResponseEntity<String> unblockProfile(@RequestParam(name = "blockedProfileId") Long blockedProfileId) {
         String email = extractEmailFromSecurityContext();
         blockedProfileCommandService.unblockProfile(email, blockedProfileId);
         return ResponseEntity.ok("프로필 차단이 해제되었습니다.");

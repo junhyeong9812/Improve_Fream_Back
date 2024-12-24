@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.user.service;
 
+import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
 import Fream_back.improve_Fream_Back.user.dto.UserRegistrationDto;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
@@ -20,6 +21,7 @@ public class UserCommandService {
     private final PasswordEncoder passwordEncoder;
     private final ProfileCommandService profileService;
     private final FileUtils fileUtils;
+    private final NotificationCommandService notificationCommandService;
 
     @Transactional
     public User registerUser(UserRegistrationDto dto) {
@@ -71,6 +73,10 @@ public class UserCommandService {
     public void deleteAccount(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        // 사용자 알림 삭제
+        notificationCommandService.deleteNotificationsByUser(email);
+
 
         // 프로필 이미지 삭제
         if (user.getProfile() != null && user.getProfile().getProfileImageUrl() != null) {

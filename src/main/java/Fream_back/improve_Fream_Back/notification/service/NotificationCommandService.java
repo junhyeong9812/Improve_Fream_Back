@@ -126,4 +126,9 @@ public class NotificationCommandService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+    // 사용자 알림 삭제
+    public void deleteNotificationsByUser(String email) {
+        List<Notification> notifications = notificationRepository.findAllByUserEmail(email);
+        notificationRepository.deleteAll(notifications);
+    }
 }

@@ -48,6 +48,9 @@ public class ProfileController {
     public ResponseEntity<String> updateProfile(
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             @RequestPart(value = "dto") ProfileUpdateDto dto) {
+        System.out.println("Content-Type: " + profileImage.getContentType());
+        System.out.println("File Name: " + profileImage.getOriginalFilename());
+        System.out.println("DTO: " + dto);
         String email = extractEmailFromSecurityContext();
         profileCommandService.updateProfile(email, dto, profileImage);
         return ResponseEntity.ok("프로필이 성공적으로 업데이트되었습니다.");

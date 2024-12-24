@@ -45,4 +45,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             @Param("type") NotificationType type,
             @Param("isRead") boolean isRead,
             Pageable pageable);
+
+    // 사용자 이메일로 알림 조회
+    @Query("SELECT n FROM Notification n JOIN FETCH n.user u WHERE u.email = :email")
+    List<Notification> findAllByUserEmail(@Param("email") String email);
 }
