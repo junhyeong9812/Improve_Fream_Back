@@ -8,7 +8,9 @@ import Fream_back.improve_Fream_Back.product.repository.ProductColorRepository;
 import Fream_back.improve_Fream_Back.product.service.interest.InterestCommandService;
 import Fream_back.improve_Fream_Back.product.service.product.ProductEntityService;
 import Fream_back.improve_Fream_Back.product.service.productDetailImage.ProductDetailImageCommandService;
+import Fream_back.improve_Fream_Back.product.service.productDetailImage.ProductDetailImageQueryService;
 import Fream_back.improve_Fream_Back.product.service.productImage.ProductImageCommandService;
+import Fream_back.improve_Fream_Back.product.service.productImage.ProductImageQueryService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeCommandService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeQueryService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
@@ -33,6 +35,9 @@ public class ProductColorCommandService {
     private final InterestCommandService interestCommandService;
     private final ProductImageCommandService productImageCommandService;
     private final ProductDetailImageCommandService productDetailImageCommandService;
+    private final ProductImageQueryService productImageQueryService;
+    private final ProductDetailImageQueryService productDetailImageQueryService;
+
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";
 
@@ -60,7 +65,7 @@ public class ProductColorCommandService {
 
         // ProductImage 저장 (썸네일)
         if (productImage != null) {
-            String thumbnailFilename = fileUtils.saveFile(productDirectory, "ProductImage_", productImage);
+            String thumbnailFilename = fileUtils.saveFile(productDirectory, "thumbnail_", productImage);
             ProductImage thumbnail = ProductImage.builder()
                     .imageUrl(productDirectory + thumbnailFilename)
                     .build();
@@ -130,7 +135,7 @@ public class ProductColorCommandService {
             if (productColor.getThumbnailImage() != null) {
                 fileUtils.deleteFile(productDirectory, productColor.getThumbnailImage().getImageUrl());
             }
-            String thumbnailFilename = fileUtils.saveFile(productDirectory, "ProductImage_", thumbnailImage);
+            String thumbnailFilename = fileUtils.saveFile(productDirectory, "thumbnail_", thumbnailImage);
             ProductImage newThumbnail = ProductImage.builder()
                     .imageUrl(thumbnailFilename)
                     .build();
@@ -251,15 +256,25 @@ public class ProductColorCommandService {
             productImageCommandService.deleteProductImage(productColor.getThumbnailImage().getId()); // 엔티티 삭제
         }
 
-        productColor.getProductImages().forEach(image -> {
-            fileUtils.deleteFile(productDirectory, image.getImageUrl()); // 실제 파일 삭제
-            productImageCommandService.deleteProductImage(image.getId()); // 엔티티 삭제
-        });
+        // 일반 이미지 삭제
+        if (productImageQueryService.existsByProductColorId(productColorId)) {
+            productImageQueryService.findAllByProductColorId(productColorId).forEach(image -> {
+                if (fileUtils.existsFile(productDirectory, image.getImageUrl())) {
+                    fileUtils.deleteFile(productDirectory, image.getImageUrl());
+                }
+                productImageCommandService.deleteProductImage(image.getId());
+            });
+        }
 
-        productColor.getProductDetailImages().forEach(detailImage -> {
-            fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl()); // 실제 파일 삭제
-            productDetailImageCommandService.deleteProductDetailImage(detailImage.getId()); // 엔티티 삭제
-        });
+        // 상세 이미지 삭제
+        if (productDetailImageQueryService.existsByProductColorId(productColorId)) {
+            productDetailImageQueryService.findAllByProductColorId(productColorId).forEach(detailImage -> {
+                if (fileUtils.existsFile(BASE_DIRECTORY, detailImage.getImageUrl())) {
+                    fileUtils.deleteFile(BASE_DIRECTORY, detailImage.getImageUrl());
+                }
+                productDetailImageCommandService.deleteProductDetailImage(detailImage.getId());
+            });
+        }
 
         // 모든 이미지를 컬렉션에서 제거
         productColor.getProductImages().clear();

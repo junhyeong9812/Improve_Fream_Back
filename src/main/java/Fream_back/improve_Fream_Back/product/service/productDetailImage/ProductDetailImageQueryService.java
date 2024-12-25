@@ -17,4 +17,7 @@ public class ProductDetailImageQueryService {
     public List<ProductDetailImage> findAllByProductColorId(Long productColorId) {
         return productDetailImageRepository.findAllByProductColorId(productColorId);
     }
+    public boolean existsByProductColorId(Long productColorId) {
+        return productDetailImageRepository.existsByProductColorId(productColorId);
+    }
 }

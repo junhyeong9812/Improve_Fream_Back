@@ -13,6 +13,11 @@ import java.util.UUID;
 @Component
 public class FileUtils {
 
+    public boolean existsFile(String directory, String filePath) {
+        File file = new File(directory + filePath);
+        return file.exists();
+    }
+
     // 파일 저장
     public String saveFile(String directory, String prefix, MultipartFile file) {
         try {
