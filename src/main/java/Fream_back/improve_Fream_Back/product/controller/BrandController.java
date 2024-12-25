@@ -40,16 +40,16 @@ public class BrandController {
         return ResponseEntity.ok(brandCommandService.createBrand(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BrandResponseDto> updateBrand(@PathVariable Long id, @RequestBody BrandRequestDto request) {
+    @PutMapping("/{brandId}")
+    public ResponseEntity<BrandResponseDto> updateBrand(@PathVariable("brandId") Long id, @RequestBody BrandRequestDto request) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 
         return ResponseEntity.ok(brandCommandService.updateBrand(id, request));
     }
 
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> deleteBrand(@PathVariable String name) {
+    @DeleteMapping("/{brandName}")
+    public ResponseEntity<Void> deleteBrand(@PathVariable("brandName") String name) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 
@@ -62,8 +62,8 @@ public class BrandController {
         return ResponseEntity.ok(brandQueryService.findAllBrands());
     }
 
-    @GetMapping("/{name}")
-    public ResponseEntity<BrandResponseDto> getBrandByName(@PathVariable String name) {
+    @GetMapping("/{brandName}")
+    public ResponseEntity<BrandResponseDto> getBrandByName(@PathVariable("brandName") String name) {
         return ResponseEntity.ok(brandQueryService.findByName(name));
     }
 }

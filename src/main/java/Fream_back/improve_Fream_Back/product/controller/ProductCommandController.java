@@ -37,7 +37,7 @@ public class ProductCommandController {
 
     @PutMapping("/{productId}")
     public ResponseEntity<ProductUpdateResponseDto> updateProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @RequestBody ProductUpdateRequestDto request) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
@@ -47,7 +47,7 @@ public class ProductCommandController {
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
 

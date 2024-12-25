@@ -44,7 +44,7 @@ public class NotificationController {
     }
     //단일 사용자 알림
     @PostMapping
-    public NotificationDTO createNotification(@RequestParam Long userId, @RequestBody NotificationRequestDTO requestDTO) {
+    public NotificationDTO createNotification(@RequestParam(name = "userId") Long userId, @RequestBody NotificationRequestDTO requestDTO) {
         return commandService.createNotification(userId, requestDTO.getCategory(), requestDTO.getType(), requestDTO.getMessage());
     }
 
@@ -56,21 +56,21 @@ public class NotificationController {
 
     // 알림 읽음 처리
     @PatchMapping("/{id}/read")
-    public void markAsRead(@PathVariable Long id) {
+    public void markAsRead(@PathVariable(name = "id") Long id) {
         String email = extractEmailFromSecurityContext(); // SecurityContext에서 이메일 추출
         commandService.markAsRead(id, email); // 이메일과 알림 ID를 기반으로 처리
     }
 
     // 카테고리별 알림 조회
     @GetMapping("/filter/category")
-    public List<NotificationDTO> filterByCategory(@RequestParam NotificationCategory category) {
+    public List<NotificationDTO> filterByCategory(@RequestParam(name = "category") NotificationCategory category) {
         String email = extractEmailFromSecurityContext(); // 토큰에서 이메일 추출
         return queryService.filterByCategory(email, category);
     }
 
     // 유형별 알림 조회
     @GetMapping("/filter/type")
-    public List<NotificationDTO> filterByType(@RequestParam NotificationType type) {
+    public List<NotificationDTO> filterByType(@RequestParam(name = "type") NotificationType type) {
         String email = extractEmailFromSecurityContext(); // 토큰에서 이메일 추출
         return queryService.filterByType(email, type);
     }
@@ -78,10 +78,10 @@ public class NotificationController {
     // 카테고리별 + 읽음 여부 조회
     @GetMapping("/filter/category/read-status")
     public List<NotificationDTO> filterByCategoryAndIsRead(
-            @RequestParam NotificationCategory category,
-            @RequestParam boolean isRead,
-            @RequestParam int page,
-            @RequestParam int size) {
+            @RequestParam(name = "category") NotificationCategory category,
+            @RequestParam(name = "isRead") boolean isRead,
+            @RequestParam(name = "page") int page,
+            @RequestParam(name = "size") int size) {
         String email = extractEmailFromSecurityContext(); // 이메일 추출
         return queryService.filterByCategoryAndIsRead(email, category, isRead, PageRequest.of(page, size));
     }
@@ -89,10 +89,10 @@ public class NotificationController {
     // 유형별 + 읽음 여부 조회
     @GetMapping("/filter/type/read-status")
     public List<NotificationDTO> filterByTypeAndIsRead(
-            @RequestParam NotificationType type,
-            @RequestParam boolean isRead,
-            @RequestParam int page,
-            @RequestParam int size) {
+            @RequestParam(name = "type") NotificationType type,
+            @RequestParam(name = "isRead") boolean isRead,
+            @RequestParam(name = "page") int page,
+            @RequestParam(name = "size") int size) {
         String email = extractEmailFromSecurityContext(); // 이메일 추출
         return queryService.filterByTypeAndIsRead(email, type, isRead, PageRequest.of(page, size));
     }

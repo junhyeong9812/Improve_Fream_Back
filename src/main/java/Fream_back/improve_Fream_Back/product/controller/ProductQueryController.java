@@ -24,35 +24,38 @@ public class ProductQueryController {
 
     @GetMapping
     public ResponseEntity<Page<ProductSearchResponseDto>> searchProducts(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) List<Long> categoryIds,
-            @RequestParam(required = false) List<GenderType> genders,
-            @RequestParam(required = false) List<Long> brandIds,
-            @RequestParam(required = false) List<Long> collectionIds,
-            @RequestParam(required = false) List<String> colors,
-            @RequestParam(required = false) List<String> sizes,
-            @RequestParam(required = false) Integer minPrice,
-            @RequestParam(required = false) Integer maxPrice,
-            @RequestParam(required = false) SortOption sortOption,
+            @ModelAttribute ProductSearchDto searchRequest,
             Pageable pageable) {
+        // 유효성 검증
+        searchRequest.validate();
+
         Page<ProductSearchResponseDto> response = productQueryService.searchProducts(
-                keyword, categoryIds, genders, brandIds, collectionIds, colors, sizes,
-                minPrice, maxPrice, sortOption, pageable);
+                searchRequest.getKeyword(),
+                searchRequest.getCategoryIds(),
+                searchRequest.getGenders(),
+                searchRequest.getBrandIds(),
+                searchRequest.getCollectionIds(),
+                searchRequest.getColors(),
+                searchRequest.getSizes(),
+                searchRequest.getMinPrice(),
+                searchRequest.getMaxPrice(),
+                searchRequest.getSortOption(),
+                pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}/detail")
     public ResponseEntity<ProductDetailResponseDto> getProductDetail(
-            @PathVariable Long productId,
-            @RequestParam String colorName) {
+            @PathVariable("productId") Long productId,
+            @RequestParam("colorName") String colorName) {
         ProductDetailResponseDto response = productQueryService.getProductDetail(productId, colorName);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}/images")
     public ResponseEntity<byte[]> getProductImage(
-            @PathVariable Long productId,
-            @RequestParam String imageName) throws Exception {
+            @PathVariable("productId") Long productId,
+            @RequestParam("imageName") String imageName) throws Exception {
         // 파일 경로 설정
         String directory = "product/" + productId;
         File imageFile = new File(directory + File.separator + imageName);

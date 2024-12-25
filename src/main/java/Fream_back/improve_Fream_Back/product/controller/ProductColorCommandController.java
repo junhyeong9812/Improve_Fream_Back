@@ -32,11 +32,11 @@ public class ProductColorCommandController {
 
     @PostMapping("/{productId}")
     public ResponseEntity<Void> createProductColor(
-            @PathVariable Long productId,
-            @RequestBody ProductColorCreateRequestDto requestDto,
-            @RequestParam MultipartFile thumbnailImage,
-            @RequestParam List<MultipartFile> images,
-            @RequestParam List<MultipartFile> detailImages) {
+            @PathVariable("productId") Long productId,
+            @RequestPart("requestDto") ProductColorCreateRequestDto requestDto,
+            @RequestPart("thumbnailImage") MultipartFile thumbnailImage,
+            @RequestPart("images") List<MultipartFile> images,
+            @RequestPart("detailImages") List<MultipartFile> detailImages) {
 
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
@@ -47,11 +47,11 @@ public class ProductColorCommandController {
 
     @PutMapping("/{productColorId}")
     public ResponseEntity<Void> updateProductColor(
-            @PathVariable Long productColorId,
-            @RequestBody ProductColorUpdateRequestDto requestDto,
-            @RequestParam(required = false) MultipartFile thumbnailImage,
-            @RequestParam(required = false) List<MultipartFile> newImages,
-            @RequestParam(required = false) List<MultipartFile> newDetailImages) {
+            @PathVariable("productColorId") Long productColorId,
+            @RequestPart("requestDto") ProductColorUpdateRequestDto requestDto,
+            @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestPart(value = "newDetailImages", required = false) List<MultipartFile> newDetailImages) {
 
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
@@ -61,7 +61,7 @@ public class ProductColorCommandController {
     }
 
     @DeleteMapping("/{productColorId}")
-    public ResponseEntity<Void> deleteProductColor(@PathVariable Long productColorId) {
+    public ResponseEntity<Void> deleteProductColor(@PathVariable("productColorId") Long productColorId) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
 

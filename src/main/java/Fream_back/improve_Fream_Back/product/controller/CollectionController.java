@@ -39,16 +39,19 @@ public class CollectionController {
         return ResponseEntity.ok(collectionCommandService.createCollection(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CollectionResponseDto> updateCollection(@PathVariable Long id, @RequestBody CollectionRequestDto request) {
+    @PutMapping("/{collectionId}")
+    public ResponseEntity<CollectionResponseDto> updateCollection(
+            @PathVariable("collectionId") Long id,
+            @RequestBody CollectionRequestDto request) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 
         return ResponseEntity.ok(collectionCommandService.updateCollection(id, request));
     }
 
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> deleteCollection(@PathVariable String name) {
+    @DeleteMapping("/{collectionName}")
+    public ResponseEntity<Void> deleteCollection(
+            @PathVariable("collectionName") String name) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 

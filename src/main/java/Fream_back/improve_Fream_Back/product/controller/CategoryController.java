@@ -39,16 +39,16 @@ public class CategoryController {
         return ResponseEntity.ok(categoryCommandService.createCategory(request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable Long id, @RequestBody CategoryRequestDto request) {
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponseDto> updateCategory(@PathVariable("categoryId") Long id, @RequestBody CategoryRequestDto request) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 
         return ResponseEntity.ok(categoryCommandService.updateCategory(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable("categoryId") Long id) {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 권한 확인
 
@@ -62,7 +62,7 @@ public class CategoryController {
     }
 
     @GetMapping("/sub/{mainCategoryName}")
-    public ResponseEntity<List<CategoryResponseDto>> getSubCategoriesByMain(@PathVariable String mainCategoryName) {
+    public ResponseEntity<List<CategoryResponseDto>> getSubCategoriesByMain(@PathVariable("mainCategoryName") String mainCategoryName) {
         return ResponseEntity.ok(categoryQueryService.findSubCategoriesByMainCategory(mainCategoryName));
     }
 }

@@ -30,7 +30,7 @@ public class InterestCommandController {
      * @return 상태 메시지
      */
     @PostMapping("/{productColorId}/toggle")
-    public ResponseEntity<String> toggleInterest(@PathVariable Long productColorId) {
+    public ResponseEntity<String> toggleInterest(@PathVariable("productColorId") Long productColorId) {
         String userEmail = extractEmailFromSecurityContext();
         interestCommandService.toggleInterest(userEmail, productColorId);
         return ResponseEntity.ok("Interest toggled successfully.");

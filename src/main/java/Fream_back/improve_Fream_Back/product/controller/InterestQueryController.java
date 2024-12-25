@@ -18,9 +18,12 @@ public class InterestQueryController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<Page<ProductSearchResponseDto>> getUserInterestProducts(
-            @PathVariable Long userId,
-            @RequestParam(required = false) SortOption sortOption,
+            @PathVariable("userId") Long userId,
+            @RequestParam(name = "field", required = false) String field,
+            @RequestParam(name = "order", required = false) String order,
             Pageable pageable) {
+        // SortOption 객체 생성
+        SortOption sortOption = new SortOption(field, order);
         Page<ProductSearchResponseDto> response = interestQueryService.findUserInterestProducts(userId, sortOption, pageable);
         return ResponseEntity.ok(response);
     }
