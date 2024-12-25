@@ -6,6 +6,8 @@ Fream 리빌딩 프로젝트
 <br>
 엔티티 설계 과정 : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
 <br>
+PostMan API경로 : https://web.postman.co/workspace/5b556cbc-5c81-44b7-8ebd-85f4023ecae3/request/38241845-816ab6bf-2756-4868-8860-f03fe7544a49?tab=body
+<br>
 
 ### 개요
 ```
