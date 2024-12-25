@@ -221,14 +221,15 @@ public class DataInitializer implements CommandLineRunner {
                     );
 
                     String imageName = "thumbnail_" + product.getId() + "_" + color.name().toLowerCase() + ".jpg";
-                    productColor.addThumbnailImage(
-                            productImageRepository.save(
-                                    ProductImage.builder()
-                                            .imageUrl("/api/products/" + product.getId() + "/images?imageName=" + imageName)
-                                            .productColor(productColor)
-                                            .build()
-                            )
+                    ProductImage thumbnail = productImageRepository.save(
+                            ProductImage.builder()
+                                    .imageUrl("/api/products/" + product.getId() + "/images?imageName=" + imageName)
+                                    .productColor(productColor)
+                                    .build()
                     );
+
+                    productColor.addThumbnailImage(thumbnail);
+                    productColorRepository.save(productColor);
 
                     for (String size : sizeType.getSizes()) {
                         productSizeRepository.save(

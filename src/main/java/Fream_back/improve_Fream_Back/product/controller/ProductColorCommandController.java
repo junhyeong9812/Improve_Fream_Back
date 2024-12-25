@@ -35,8 +35,8 @@ public class ProductColorCommandController {
             @PathVariable("productId") Long productId,
             @RequestPart("requestDto") ProductColorCreateRequestDto requestDto,
             @RequestPart("thumbnailImage") MultipartFile thumbnailImage,
-            @RequestPart("images") List<MultipartFile> images,
-            @RequestPart("detailImages") List<MultipartFile> detailImages) {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages) {
 
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인

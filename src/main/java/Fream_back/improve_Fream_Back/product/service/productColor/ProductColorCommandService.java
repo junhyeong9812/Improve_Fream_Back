@@ -34,7 +34,7 @@ public class ProductColorCommandService {
     private final ProductImageCommandService productImageCommandService;
     private final ProductDetailImageCommandService productDetailImageCommandService;
     // 기본 파일 저장 경로
-    private final String BASE_DIRECTORY = "product/";
+    private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";
 
     public void createProductColor(
             ProductColorCreateRequestDto requestDto,
@@ -98,7 +98,10 @@ public class ProductColorCommandService {
 
     private void validateColorType(String colorName) {
         boolean isValid = Arrays.stream(ColorType.values())
-                .anyMatch(colorType -> colorType.name().equals(colorName));
+                .anyMatch(colorType ->
+                        colorType.name().equalsIgnoreCase(colorName.trim()) ||
+                                colorType.getDisplayName().equals(colorName.trim())
+                ); // 두 가지 방식 비교
         if (!isValid) {
             throw new IllegalArgumentException("유효하지 않은 색상입니다: " + colorName);
         }
