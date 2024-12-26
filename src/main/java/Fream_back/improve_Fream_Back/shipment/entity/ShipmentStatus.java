@@ -1,13 +1,60 @@
 package Fream_back.improve_Fream_Back.shipment.entity;
 
 public enum ShipmentStatus {
+    PENDING {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == SHIPPED || nextStatus == CANCELED;
+        }
+    },
+    SHIPPED {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == IN_TRANSIT || nextStatus == RETURNED || nextStatus == CANCELED;
+        }
+    },
+    IN_TRANSIT {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == OUT_FOR_DELIVERY || nextStatus == DELAYED || nextStatus == CANCELED;
+        }
+    },
+    OUT_FOR_DELIVERY {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == DELIVERED || nextStatus == FAILED_DELIVERY || nextStatus == CANCELED;
+        }
+    },
+    DELIVERED {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return false; // 배송 완료 이후로는 상태 전환 없음
+        }
+    },
+    RETURNED {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == CANCELED;
+        }
+    },
+    CANCELED {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return false; // 취소 이후 상태 전환 없음
+        }
+    },
+    DELAYED {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == IN_TRANSIT || nextStatus == CANCELED;
+        }
+    },
+    FAILED_DELIVERY {
+        @Override
+        public boolean canTransitionTo(ShipmentStatus nextStatus) {
+            return nextStatus == RETURNED || nextStatus == OUT_FOR_DELIVERY || nextStatus == CANCELED;
+        }
+    };
 
-    PENDING,       // 배송 준비 중
-    SHIPPED,       // 배송 시작 (운송장 번호가 등록된 상태)
-    IN_TRANSIT,    // 배송 중
-    OUT_FOR_DELIVERY, // 배달 중
-    DELIVERED,     // 배송 완료
-    RETURNED,      // 반송 처리됨
-    CANCELED,       // 배송 취소됨
-    REFUND_PENDING // 환불 대기 중
+    public abstract boolean canTransitionTo(ShipmentStatus nextStatus);
 }

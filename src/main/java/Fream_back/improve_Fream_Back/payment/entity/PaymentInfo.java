@@ -32,4 +32,13 @@ public class PaymentInfo {
     public void unassignUser() {
         this.user = null;
     }
+
+    @Builder
+    public PaymentInfo(User user, String cardNumber, String cardPassword, String expirationDate, String birthDate) {
+        this.user = user;
+        this.cardNumber = cardNumber;
+        this.cardPassword = cardPassword;
+        this.expirationDate = expirationDate;
+        this.birthDate = birthDate;
+    }
 }
