@@ -17,7 +17,7 @@ public class GeneralPayment extends Payment {
     private String receiptUrl; // 영수증 URL
     private String buyerName; // 구매자 이름
     private String buyerEmail; // 구매자 이메일
-    private String status; // 결제 상태 (e.g., PAID)
+
 
     @Builder
     public GeneralPayment(String impUid, String pgProvider, String receiptUrl,
@@ -27,8 +27,11 @@ public class GeneralPayment extends Payment {
         this.receiptUrl = receiptUrl;
         this.buyerName = buyerName;
         this.buyerEmail = buyerEmail;
-        this.status = status;
         this.setPaidAmount(paidAmount);
+    }
+    @Override
+    public String getImpUid() {
+        return this.impUid;
     }
 
 }

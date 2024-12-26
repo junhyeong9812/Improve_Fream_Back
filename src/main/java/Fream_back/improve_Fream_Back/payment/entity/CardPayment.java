@@ -11,18 +11,33 @@ import lombok.NoArgsConstructor;
 @DiscriminatorValue("CARD")
 public class CardPayment extends Payment {
 
-    // 결제 당시의 카드 정보
-    private String cardNumber;       // 카드 번호 (마스킹 처리된 번호)
-    private String cardExpiration;  // 카드 유효기간
-    private String cardHolderName;  // 카드 소유자 이름
-    private String cardType;        // 카드 타입 (e.g., Visa, MasterCard)
+    private String cardNumber;        // 카드 번호
+    private String cardPassword;      // 카드 비밀번호 앞 두 자리
+    private String cardExpiration;    // 카드 유효기간
+    private String birthDate;         // 생년월일
+    private String cardType;          // 카드 타입 (e.g., Visa, MasterCard)
+    private String impUid;            // 포트원 거래 고유 번호
+    private String receiptUrl;        // 영수증 URL
+    private String pgProvider;        // PG사 이름
+    private String pgTid;             // PG사 거래 ID
 
     @Builder
-    public CardPayment(String cardNumber, String cardExpiration, String cardHolderName, String cardType, double paidAmount) {
+    public CardPayment(String cardNumber, String cardPassword, String cardExpiration, String birthDate,
+                       String cardType, double paidAmount, String impUid, String receiptUrl,
+                       String pgProvider, String pgTid) {
         this.cardNumber = cardNumber;
+        this.cardPassword = cardPassword;
         this.cardExpiration = cardExpiration;
-        this.cardHolderName = cardHolderName;
+        this.birthDate = birthDate;
         this.cardType = cardType;
+        this.impUid = impUid;
+        this.receiptUrl = receiptUrl;
+        this.pgProvider = pgProvider;
+        this.pgTid = pgTid;
         this.setPaidAmount(paidAmount);
+    }
+    @Override
+    public String getImpUid() {
+        return this.impUid;
     }
 }

@@ -41,4 +41,9 @@ public class PaymentInfoQueryService {
                 paymentInfo.getExpirationDate(),
                 paymentInfo.getBirthDate());
     }
+    @Transactional(readOnly = true)
+    public PaymentInfo getPaymentInfoEntity(String email, Long id) {
+        return paymentInfoRepository.findByIdAndUser_Email(id, email)
+                .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다."));
+    }
 }

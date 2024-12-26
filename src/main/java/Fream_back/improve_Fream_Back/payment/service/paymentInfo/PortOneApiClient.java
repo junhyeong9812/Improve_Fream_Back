@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.payment.service.paymentInfo;
 
 import Fream_back.improve_Fream_Back.payment.dto.paymentInfo.PaymentInfoCreateDto;
+import Fream_back.improve_Fream_Back.payment.entity.PaymentInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
@@ -107,6 +108,69 @@ public class PortOneApiClient {
         }
     }
 
+    public Map<String, Object> processCardPayment(PaymentInfo paymentInfo, double amount) {
+        String url = BASE_URL + "/subscribe/payments/onetime";
+        String accessToken = getAccessToken();
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("merchant_uid", UUID.randomUUID().toString());
+        requestBody.put("amount", String.valueOf(amount));
+        requestBody.put("card_number", paymentInfo.getCardNumber());
+        requestBody.put("expiry", paymentInfo.getExpirationDate());
+        requestBody.put("birth", paymentInfo.getBirthDate());
+        requestBody.put("pwd_2digit", paymentInfo.getCardPassword());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
+
+            if (response.getStatusCode() != HttpStatus.OK || !response.getBody().get("code").equals(0)) {
+                throw new IllegalArgumentException("결제 요청에 실패했습니다. 응답: " + response.getBody());
+            }
+
+            return (Map<String, Object>) response.getBody().get("response");
+
+        } catch (Exception e) {
+            throw new RuntimeException("결제 요청 중 오류 발생", e);
+        }
+    }
+
+    public boolean refundPayment(String impUid) {
+        String url = BASE_URL + "/payments/cancel";
+        String accessToken = getAccessToken();
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("imp_uid", impUid);
+        requestBody.put("reason", "사용자 요청에 의한 환불");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody().get("code").equals(0)) {
+                return true; // 환불 성공
+            } else {
+                return false; // 환불 실패
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("환불 요청 중 오류 발생", e);
+        }
+    }
+
     public boolean cancelTestPayment(String impUid) {
         String url = BASE_URL + "/payments/cancel";
         String accessToken = getAccessToken(); // 인증 토큰 발급
@@ -140,4 +204,37 @@ public class PortOneApiClient {
             throw new RuntimeException("결제 환불 중 오류 발생", e);
         }
     }
+
+    public boolean cancelPayment(String impUid) {
+        String url = BASE_URL + "/payments/cancel";
+        String accessToken = getAccessToken(); // 인증 토큰 발급
+
+        // 요청 본문 생성
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("imp_uid", impUid);
+        requestBody.put("reason", "사용자 요청에 의한 환불");
+
+        // HTTP 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken); // 인증 토큰 포함
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && (int) response.getBody().get("code") == 0) {
+                return true; // 환불 성공
+            } else {
+                return false; // 환불 실패
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("환불 요청 중 오류 발생: " + e.getMessage());
+        }
+    }
+
 }

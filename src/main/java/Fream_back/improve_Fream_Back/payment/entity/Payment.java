@@ -30,8 +30,14 @@ public abstract class Payment extends BaseTimeEntity {
 
     @Column(nullable = false)
     private double paidAmount; // 결제 금액
-    private boolean isSuccess; // 성공 여부
+    @Column(nullable = false)
+    private boolean isSuccess = false; // 기본값 false
+
     private LocalDateTime paymentDate; // 결제 완료 시간
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status = PaymentStatus.PENDING; // 기본값 PENDING
+
 
     public void assignOrder(Order order) {
         this.order = order;
@@ -47,4 +53,19 @@ public abstract class Payment extends BaseTimeEntity {
         this.paidAmount = paidAmount;
         this.isSuccess = paidAmount > 0; // 결제 금액이 양수면 성공으로 간주
     }
+    public void updateSuccessStatus(boolean success) {
+        this.isSuccess = success;
+        if (success) {
+            this.paymentDate = LocalDateTime.now(); // 성공 시 결제 완료 시간 갱신
+        }
+    }
+    public void updateStatus(PaymentStatus newStatus) {
+        if (this.status.canTransitionTo(newStatus)) {
+            this.status = newStatus;
+        } else {
+            throw new IllegalStateException("결제 상태 전환이 허용되지 않습니다: " + this.status + " -> " + newStatus);
+        }
+    }
+    // 하위 클래스에서 구현해야 하는 메서드
+    public abstract String getImpUid();
 }

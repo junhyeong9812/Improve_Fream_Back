@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @DiscriminatorValue("ACCOUNT")
 public class AccountPayment extends Payment {
 
+    private String impUid;            // 포트원 거래 고유 번호
     private String bankName; // 은행 이름
     private String accountNumber; // 계좌 번호
     private String accountHolder; // 예금주
@@ -25,6 +26,10 @@ public class AccountPayment extends Payment {
         this.accountHolder = accountHolder;
         this.receiptRequested = receiptRequested;
         this.setPaidAmount(paidAmount);
+    }
+    @Override
+    public String getImpUid() {
+        return this.impUid;
     }
 
 }
