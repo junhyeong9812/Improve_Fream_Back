@@ -2,11 +2,13 @@ Fream 리빌딩 프로젝트
 <br>
 기존의 Kream클론 프로젝트에서 부족한 점을 개선하고 리빌딩하기 위한 프로젝트
 <br>
-기존 프로젝트 : https://github.com/junhyeong9812/fream_back
+**기존 프로젝트** : https://github.com/junhyeong9812/fream_back
 <br>
-엔티티 설계 과정 : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
 <br>
-PostMan API경로 : https://web.postman.co/workspace/5b556cbc-5c81-44b7-8ebd-85f4023ecae3/request/38241845-816ab6bf-2756-4868-8860-f03fe7544a49?tab=body
+**엔티티 설계 과정** : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
+<br>
+<br>
+**PostMan API경로** : https://web.postman.co/workspace/5b556cbc-5c81-44b7-8ebd-85f4023ecae3/request/38241845-816ab6bf-2756-4868-8860-f03fe7544a49?tab=body
 <br>
 
 ### 개요
