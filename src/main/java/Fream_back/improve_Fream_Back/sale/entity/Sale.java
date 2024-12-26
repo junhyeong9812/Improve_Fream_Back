@@ -2,6 +2,7 @@ package Fream_back.improve_Fream_Back.sale.entity;
 
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
+import Fream_back.improve_Fream_Back.shipment.entity.Shipment;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,6 +41,9 @@ public class Sale {
     private String courier; // 택배사 이름
     private String trackingNumber; // 송장 번호
 
+    @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Shipment shipment; // 배송 정보 추가
+
     public void assignSaleBankAccount(SaleBankAccount saleBankAccount) {
         this.saleBankAccount = saleBankAccount;
         saleBankAccount.assignSale(this);
@@ -48,6 +52,10 @@ public class Sale {
     public void assignPayment(Payment payment) {
         this.payment = payment;
         payment.assignSale(this);
+    }
+    public void assignShipment(Shipment shipment) {
+        this.shipment = shipment;
+        shipment.assignSale(this); // Shipment에도 Sale 설정
     }
 
     public void updateShipmentInfo(String courier, String trackingNumber) {

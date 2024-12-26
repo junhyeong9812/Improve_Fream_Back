@@ -22,30 +22,43 @@ public class WarehouseStorage {
     private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    private Order order; // 구매한 상품의 보관
+    @JoinColumn(name = "order_id", nullable = true)
+    private Order order; // 구매와 연결된 정보 (nullable)
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_id")
-    private Sale sale; // 판매 중인 상품의 보관
+    @JoinColumn(name = "sale_id", nullable = true)
+    private Sale sale; // 판매와 연결된 정보 (nullable)
 
     private String storageLocation; // 창고 위치 정보
 
     private LocalDate startDate; // 보관 시작 날짜
     private LocalDate endDate; // 보관 종료 날짜
 
+    @Enumerated(EnumType.STRING)
+    private WarehouseStatus status; // 보관 상태
+
+    private boolean isLinkedToOrder; // 구매와 연결된 보관 여부
+
+    // ======= 상태 및 관계 관리 메서드 =======
     public void assignOrder(Order order) {
         this.order = order;
         this.sale = null; // 배타적 관계 설정
+        this.isLinkedToOrder = true;
+        this.status = WarehouseStatus.ASSOCIATED_WITH_ORDER;
     }
 
     public void assignSale(Sale sale) {
         this.sale = sale;
         this.order = null; // 배타적 관계 설정
+        this.isLinkedToOrder = false;
+        this.status = WarehouseStatus.IN_STORAGE;
+    }
+    public void markAsReturned() {
+        this.status = WarehouseStatus.REMOVED_FROM_STORAGE;
     }
 
-    public void assignUser(User user) {
-        this.user = user;
+    public void updateStatus(WarehouseStatus newStatus) {
+        this.status = newStatus;
     }
 
     public void setStorageDates(LocalDate startDate, int initialPeriodDays) {
@@ -57,4 +70,7 @@ public class WarehouseStorage {
         this.endDate = this.endDate.plusDays(additionalDays);
     }
 }
+
+
+
 
