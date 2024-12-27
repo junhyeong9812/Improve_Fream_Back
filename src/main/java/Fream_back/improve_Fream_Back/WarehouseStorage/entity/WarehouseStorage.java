@@ -11,6 +11,8 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class WarehouseStorage {
 
     @Id
@@ -46,6 +48,7 @@ public class WarehouseStorage {
         this.isLinkedToOrder = true;
         this.status = WarehouseStatus.ASSOCIATED_WITH_ORDER;
     }
+
 
     public void assignSale(Sale sale) {
         this.sale = sale;

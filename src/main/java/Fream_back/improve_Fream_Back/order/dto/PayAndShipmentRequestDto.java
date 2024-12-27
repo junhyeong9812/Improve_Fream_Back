@@ -13,4 +13,5 @@ public class PayAndShipmentRequestDto {
     private String receiverPhone;            // 배송 수령인 전화번호
     private String postalCode;               // 배송 우편번호
     private String address;                  // 배송 주소
+    private boolean warehouseStorage;        // 창고 보관 여부
 }

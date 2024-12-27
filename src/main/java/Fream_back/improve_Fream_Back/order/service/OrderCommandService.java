@@ -1,5 +1,7 @@
 package Fream_back.improve_Fream_Back.order.service;
 
+import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStorage;
+import Fream_back.improve_Fream_Back.WarehouseStorage.service.WarehouseStorageCommandService;
 import Fream_back.improve_Fream_Back.order.dto.PayAndShipmentRequestDto;
 import Fream_back.improve_Fream_Back.order.entity.*;
 import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
@@ -24,6 +26,7 @@ public class OrderCommandService {
     private final OrderItemCommandService orderItemCommandService;
     private final OrderBidQueryService orderBidQueryService;
     private final UserQueryService userQueryService;
+    private final WarehouseStorageCommandService warehouseStorageCommandService;
 
     @Transactional
     public Order createOrderFromBid(User user, ProductSize productSize, int bidPrice) {
@@ -71,8 +74,16 @@ public class OrderCommandService {
         order.assignOrderShipment(shipment);
 
         // 4. 상태 업데이트
-        order.updateStatus(OrderStatus.PAYMENT_COMPLETED);
-        order.updateStatus(OrderStatus.PREPARING);
+        if (requestDto.isWarehouseStorage()) {
+            // 창고 보관일 경우
+            WarehouseStorage warehouseStorage = warehouseStorageCommandService.createOrderStorage(order, user);
+            order.assignWarehouseStorage(warehouseStorage);
+            order.updateStatus(OrderStatus.IN_WAREHOUSE);
+        } else {
+            // 실제 배송일 경우
+            order.updateStatus(OrderStatus.PAYMENT_COMPLETED);
+            order.updateStatus(OrderStatus.PREPARING);
+        }
 
         // 5. OrderBid 상태 업데이트
         orderBidQueryService.findById(orderId).ifPresent(orderBid -> {

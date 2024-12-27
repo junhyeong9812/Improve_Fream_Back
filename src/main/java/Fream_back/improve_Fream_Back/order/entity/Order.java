@@ -65,8 +65,12 @@ public class Order {
 
     public void assignWarehouseStorage(WarehouseStorage warehouseStorage) {
         this.warehouseStorage = warehouseStorage;
-        warehouseStorage.assignOrder(this);
+
+        if (warehouseStorage != null && warehouseStorage.getOrder() != this) {
+            warehouseStorage.assignOrder(this);
+        }
     }
+
 
     public void updateStatus(OrderStatus newStatus) {
         if (this.status.canTransitionTo(newStatus)) {

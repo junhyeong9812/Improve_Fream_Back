@@ -4,6 +4,7 @@ public enum OrderStatus {
     PENDING_PAYMENT, // 결제 대기
     PAYMENT_COMPLETED, // 결제 완료
     PREPARING, // 상품 준비 중
+    IN_WAREHOUSE, // 창고 보관 중
     SHIPMENT_STARTED, // 배송 시작
     IN_TRANSIT, // 배송 중
     COMPLETED, // 배송 완료
@@ -17,7 +18,9 @@ public enum OrderStatus {
             case PAYMENT_COMPLETED:
                 return newStatus == PREPARING || newStatus == REFUND_REQUESTED;
             case PREPARING:
-                return newStatus == SHIPMENT_STARTED;
+                return newStatus == IN_WAREHOUSE || newStatus == SHIPMENT_STARTED;
+            case IN_WAREHOUSE:
+                return newStatus == SHIPMENT_STARTED; // 창고 보관에서 배송 시작 가능
             case SHIPMENT_STARTED:
                 return newStatus == IN_TRANSIT;
             case IN_TRANSIT:
