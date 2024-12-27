@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderBid {
 
     @Id
@@ -41,6 +43,11 @@ public class OrderBid {
     public void assignOrder(Order order) {
         this.order = order;
         this.status = BidStatus.MATCHED;
+
+        // Order 엔티티에도 OrderBid 설정
+        if (order != null && order.getOrderBid() != this) {
+            order.assignOrderBid(this);
+        }
     }
 
     public void assignSale(Sale sale) {

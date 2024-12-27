@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.payment.entity;
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.order.entity.Order;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
+import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,10 @@ public abstract class Payment extends BaseTimeEntity {
     @JoinColumn(name = "sale_id")
     private Sale sale; // 판매와 연결
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Column(nullable = false)
     private double paidAmount; // 결제 금액
     @Column(nullable = false)
@@ -47,6 +52,9 @@ public abstract class Payment extends BaseTimeEntity {
     public void assignSale(Sale sale) {
         this.sale = sale;
         this.order = null; // 서로 배타적 관계
+    }
+    public void assignUser(User user) {
+        this.user = user;
     }
 
     public void setPaidAmount(double paidAmount) {

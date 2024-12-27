@@ -2,15 +2,20 @@ package Fream_back.improve_Fream_Back.sale.entity;
 
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
+import Fream_back.improve_Fream_Back.shipment.entity.SellerShipment;
 import Fream_back.improve_Fream_Back.shipment.entity.Shipment;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Sale {
 
     @Id
@@ -38,11 +43,8 @@ public class Sale {
     @Enumerated(EnumType.STRING)
     private SaleStatus status; // 판매 상태
 
-    private String courier; // 택배사 이름
-    private String trackingNumber; // 송장 번호
-
     @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Shipment shipment; // 배송 정보 추가
+    private SellerShipment sellerShipment;
 
     public void assignSaleBankAccount(SaleBankAccount saleBankAccount) {
         this.saleBankAccount = saleBankAccount;
@@ -53,14 +55,9 @@ public class Sale {
         this.payment = payment;
         payment.assignSale(this);
     }
-    public void assignShipment(Shipment shipment) {
-        this.shipment = shipment;
-        shipment.assignSale(this); // Shipment에도 Sale 설정
-    }
-
-    public void updateShipmentInfo(String courier, String trackingNumber) {
-        this.courier = courier;
-        this.trackingNumber = trackingNumber;
+    public void assignSellerShipment(SellerShipment sellerShipment) {
+        this.sellerShipment = sellerShipment;
+        sellerShipment.assignSale(this); // 연관관계 설정
         this.status = SaleStatus.IN_INSPECTION; // 상태를 검수 중으로 업데이트
     }
 

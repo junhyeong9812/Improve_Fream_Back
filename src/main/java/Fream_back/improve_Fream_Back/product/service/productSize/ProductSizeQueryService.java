@@ -26,4 +26,7 @@ public class ProductSizeQueryService {
                 .map(ProductSize::getSize) // 사이즈 값만 추출
                 .collect(Collectors.toList());
     }
+    public Optional<ProductSize> findById(Long id) {
+        return productSizeRepository.findById(id);
+    }
 }

@@ -1,12 +1,21 @@
 package Fream_back.improve_Fream_Back.payment.service;
 
+import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
+import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
+import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
 import Fream_back.improve_Fream_Back.order.entity.Order;
-import Fream_back.improve_Fream_Back.payment.dto.paymentInfo.PaymentInfoCreateDto;
+import Fream_back.improve_Fream_Back.order.entity.OrderBid;
+import Fream_back.improve_Fream_Back.payment.dto.AccountPaymentRequestDto;
+import Fream_back.improve_Fream_Back.payment.dto.CardPaymentRequestDto;
+import Fream_back.improve_Fream_Back.payment.dto.GeneralPaymentRequestDto;
+import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.entity.*;
 import Fream_back.improve_Fream_Back.payment.service.paymentInfo.PaymentInfoQueryService;
 import Fream_back.improve_Fream_Back.payment.service.paymentInfo.PortOneApiClient;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import Fream_back.improve_Fream_Back.payment.repository.PaymentRepository;
+import Fream_back.improve_Fream_Back.sale.entity.SaleStatus;
+import Fream_back.improve_Fream_Back.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +30,166 @@ public class PaymentCommandService {
     private final PaymentRepository paymentRepository;
     private final PaymentInfoQueryService paymentInfoQueryService;
     private final PortOneApiClient portOneApiClient;
+    private final NotificationCommandService notificationCommandService;
+
+    public Payment processPayment(Order order, User user, PaymentRequestDto requestDto) {
+        Payment payment;
+
+        switch (requestDto.getPaymentType()) {
+            case "CARD":
+                payment = createCardPayment(order, user, (CardPaymentRequestDto) requestDto);
+                break;
+            case "ACCOUNT":
+                payment = createAccountPayment(order, user, (AccountPaymentRequestDto) requestDto);
+                break;
+            case "GENERAL":
+                payment = createGeneralPayment(order, user, (GeneralPaymentRequestDto) requestDto);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid payment type: " + requestDto.getPaymentType());
+        }
+
+        // 알림 전송 및 Sale 상태 업데이트
+        notifyUsersAndUpdateSaleStatus(order, payment);
+
+        return payment;
+    }
+
+
+
+    private Payment createCardPayment(Order order, User user, CardPaymentRequestDto requestDto) {
+        // 1. PaymentInfo 조회
+        PaymentInfo paymentInfo = paymentInfoQueryService.getPaymentInfoEntity(user.getEmail(), requestDto.getPaymentInfoId());
+
+        // 2. 결제 요청 생성
+        try {
+            Map<String, Object> response = portOneApiClient.processCardPayment(paymentInfo, requestDto.getPaidAmount());
+
+            // 3. CardPayment 생성 및 저장
+            CardPayment cardPayment = CardPayment.builder()
+                    .cardNumber(paymentInfo.getCardNumber())
+                    .cardPassword(paymentInfo.getCardPassword())
+                    .cardExpiration(paymentInfo.getExpirationDate())
+                    .birthDate(paymentInfo.getBirthDate())
+                    .cardType((String) response.get("card_name"))
+                    .paidAmount(requestDto.getPaidAmount())
+                    .impUid((String) response.get("imp_uid"))
+                    .receiptUrl((String) response.get("receipt_url"))
+                    .pgProvider((String) response.get("pg_provider"))
+                    .pgTid((String) response.get("pg_tid"))
+                    .build();
+
+            cardPayment.assignOrder(order);
+            cardPayment.assignUser(user);
+
+            if ("success".equals(response.get("status"))) {
+                cardPayment.updateStatus(PaymentStatus.PAID);
+                cardPayment.updateSuccessStatus(true); // 결제 성공
+            }
+
+            paymentRepository.save(cardPayment);
+
+            // 4. 즉시 환불 요청
+            handleRefundIfNecessary(cardPayment);
+
+            return cardPayment;
+
+        } catch (Exception e) {
+            throw new RuntimeException("카드 결제 요청 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    private Payment createAccountPayment(Order order, User user, AccountPaymentRequestDto requestDto) {
+        validateBank(requestDto.getBankName());
+
+        AccountPayment accountPayment = AccountPayment.builder()
+                .bankName(requestDto.getBankName())
+                .accountNumber(requestDto.getAccountNumber())
+                .accountHolder(requestDto.getAccountHolder())
+                .receiptRequested(requestDto.isReceiptRequested())
+                .paidAmount(requestDto.getPaidAmount())
+                .build();
+
+        accountPayment.assignOrder(order);
+        accountPayment.assignUser(user);
+        accountPayment.updateStatus(PaymentStatus.PENDING);
+
+        paymentRepository.save(accountPayment);
+
+        // 즉시 환불 요청
+        handleRefundIfNecessary(accountPayment);
+
+        return accountPayment;
+    }
+
+    private Payment createGeneralPayment(Order order, User user, GeneralPaymentRequestDto requestDto) {
+        GeneralPayment generalPayment = GeneralPayment.builder()
+                .impUid(requestDto.getImpUid())
+                .pgProvider(requestDto.getPgProvider())
+                .receiptUrl(requestDto.getReceiptUrl())
+                .buyerName(requestDto.getBuyerName())
+                .buyerEmail(requestDto.getBuyerEmail())
+                .paidAmount(requestDto.getPaidAmount())
+                .build();
+
+        generalPayment.assignOrder(order);
+        generalPayment.assignUser(user);
+        generalPayment.updateSuccessStatus(true);
+        generalPayment.updateStatus(PaymentStatus.PAID);
+
+        paymentRepository.save(generalPayment);
+
+        // 즉시 환불 요청
+        handleRefundIfNecessary(generalPayment);
+
+        return generalPayment;
+    }
+
+    private void handleRefundIfNecessary(Payment payment) {
+        boolean refundSuccess = portOneApiClient.cancelPayment(payment.getImpUid());
+
+        if (refundSuccess) {
+            payment.updateStatus(PaymentStatus.REFUNDED);
+            paymentRepository.save(payment);
+        } else {
+            throw new RuntimeException("환불 요청 실패: 관리자에게 문의하세요.");
+        }
+    }
+
+    private void notifyUsersAndUpdateSaleStatus(Order order, Payment payment) {
+        // 1. OrderBid 조회
+        OrderBid orderBid = order.getOrderBid();
+        if (orderBid == null) {
+            throw new IllegalArgumentException("Order에 연결된 OrderBid가 없습니다.");
+        }
+
+        // 2. Sale 조회
+        Sale sale = orderBid.getSale();
+        if (sale == null) {
+            throw new IllegalArgumentException("OrderBid에 연결된 Sale이 없습니다.");
+        }
+
+        // 3. 알림 전송
+        User buyer = order.getUser();
+        notificationCommandService.createNotification(
+                buyer.getId(),
+                NotificationCategory.SHOPPING,
+                NotificationType.BID,
+                "결제가 완료되었습니다. 주문 ID: " + order.getId()
+        );
+
+        User seller = sale.getSeller();
+        notificationCommandService.createNotification(
+                seller.getId(),
+                NotificationCategory.SHOPPING,
+                NotificationType.BID,
+                "구매자가 결제를 완료하였습니다. 판매 ID: " + sale.getId()
+        );
+
+        // 4. Sale 상태 변경
+        sale.updateStatus(SaleStatus.SOLD);
+    }
+
 
     //주문 기반 GeneralPayment 생성 및 상태 설정
     public String createGeneralPayment(Order order, String impUid, String pgProvider, String receiptUrl,
