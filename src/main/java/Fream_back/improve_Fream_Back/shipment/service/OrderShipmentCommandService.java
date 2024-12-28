@@ -4,7 +4,13 @@ import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
 import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
 import Fream_back.improve_Fream_Back.order.entity.Order;
+import Fream_back.improve_Fream_Back.order.entity.OrderBid;
 import Fream_back.improve_Fream_Back.order.entity.OrderStatus;
+import Fream_back.improve_Fream_Back.order.service.OrderBidQueryService;
+import Fream_back.improve_Fream_Back.sale.entity.Sale;
+import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
+import Fream_back.improve_Fream_Back.sale.entity.SaleStatus;
+import Fream_back.improve_Fream_Back.sale.service.SaleBidQueryService;
 import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
 import Fream_back.improve_Fream_Back.shipment.repository.OrderShipmentRepository;
@@ -25,7 +31,8 @@ public class OrderShipmentCommandService {
 
     private final OrderShipmentRepository orderShipmentRepository;
     private final NotificationCommandService notificationCommandService;
-
+    private final SaleBidQueryService saleBidQueryService;
+    private final OrderBidQueryService orderBidQueryService;
     @Transactional
     public OrderShipment createOrderShipment(Order order, String receiverName, String receiverPhone,
                                              String postalCode, String address) {
@@ -44,6 +51,44 @@ public class OrderShipmentCommandService {
     public void updateShipmentStatus(OrderShipment shipment, ShipmentStatus newStatus) {
         shipment.updateStatus(newStatus);
         orderShipmentRepository.save(shipment);
+    }
+
+    @Transactional
+    public void updateSaleStatusToSold(Long orderId) {
+        // SaleBid 조회
+        SaleBid saleBid = saleBidQueryService.findByOrderId(orderId);
+        if (saleBid != null) {
+            Sale sale = saleBid.getSale();
+            if (sale != null && sale.getStatus().canTransitionTo(SaleStatus.SOLD)) {
+                sale.updateStatus(SaleStatus.SOLD); // 더티 체크에 의해 자동으로 업데이트됨
+                // 판매자에게 알림 생성
+                User seller = sale.getSeller();
+                notificationCommandService.createNotification(
+                        seller.getId(),
+                        NotificationCategory.SHOPPING,
+                        NotificationType.BID,
+                        "상품이 성공적으로 판매 완료되었습니다. 판매 ID: " + sale.getId()
+                );
+            }
+        }
+
+        // OrderBid 조회
+        OrderBid orderBid = orderBidQueryService.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 OrderBid를 찾을 수 없습니다: " + orderId));
+        if (orderBid != null) {
+            Sale sale = orderBid.getSale();
+            if (sale != null && sale.getStatus().canTransitionTo(SaleStatus.SOLD)) {
+                sale.updateStatus(SaleStatus.SOLD); // 더티 체크에 의해 자동으로 업데이트됨
+                // 판매자에게 알림 생성
+                User seller = sale.getSeller();
+                notificationCommandService.createNotification(
+                        seller.getId(),
+                        NotificationCategory.SHOPPING,
+                        NotificationType.BID,
+                        "상품이 성공적으로 판매 완료되었습니다. 판매 ID: " + sale.getId()
+                );
+            }
+        }
     }
     @Transactional
     public void updateTrackingInfo(Long shipmentId, String courier, String trackingNumber) {
@@ -65,9 +110,9 @@ public class OrderShipmentCommandService {
                 NotificationType.BID,
                 "상품이 출발하였습니다. 주문 ID: " + order.getId()
         );
+        // 판매 상태 업데이트 및 알림 전송
+        updateSaleStatusToSold(order.getId());
 
-
-        orderShipmentRepository.save(shipment);
     }
 
     //Cj대한통운 송장조회

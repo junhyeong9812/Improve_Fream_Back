@@ -2,12 +2,17 @@ package Fream_back.improve_Fream_Back.order.service;
 
 import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStorage;
 import Fream_back.improve_Fream_Back.WarehouseStorage.service.WarehouseStorageCommandService;
+import Fream_back.improve_Fream_Back.address.dto.AddressResponseDto;
+import Fream_back.improve_Fream_Back.address.service.AddressQueryService;
 import Fream_back.improve_Fream_Back.order.dto.PayAndShipmentRequestDto;
 import Fream_back.improve_Fream_Back.order.entity.*;
 import Fream_back.improve_Fream_Back.order.repository.OrderRepository;
+import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.payment.service.PaymentCommandService;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
+import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
+import Fream_back.improve_Fream_Back.sale.service.SaleBidQueryService;
 import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.service.OrderShipmentCommandService;
 import Fream_back.improve_Fream_Back.user.entity.User;
@@ -27,6 +32,8 @@ public class OrderCommandService {
     private final OrderBidQueryService orderBidQueryService;
     private final UserQueryService userQueryService;
     private final WarehouseStorageCommandService warehouseStorageCommandService;
+    private final SaleBidQueryService saleBidQueryService;
+    private final AddressQueryService addressQueryService;
 
     @Transactional
     public Order createOrderFromBid(User user, ProductSize productSize, int bidPrice) {
@@ -90,6 +97,52 @@ public class OrderCommandService {
             orderBid.updateStatus(BidStatus.MATCHED);
         });
     }
+
+    @Transactional
+    public Order createInstantOrder(String buyerEmail, Long saleBidId, Long addressId,
+                                    boolean isWarehouseStorage, PaymentRequestDto paymentRequest) {
+        User buyer = userQueryService.findByEmail(buyerEmail);
+        SaleBid saleBid = saleBidQueryService.findById(saleBidId);
+
+        AddressResponseDto address = addressQueryService.getAddress(buyerEmail, addressId);
+
+        Order order = Order.builder()
+                .user(buyer)
+                .totalAmount(saleBid.getBidPrice())
+                .status(OrderStatus.PENDING_PAYMENT)
+                .build();
+
+        order = orderRepository.save(order);
+
+        OrderItem orderItem = orderItemCommandService.createOrderItem(order, saleBid.getProductSize(), saleBid.getBidPrice());
+        order.addOrderItem(orderItem);
+
+        // 배송 정보 생성
+        OrderShipment orderShipment = orderShipmentCommandService.createOrderShipment(
+                order,
+                address.getRecipientName(),
+                address.getPhoneNumber(),
+                address.getZipCode(),
+                address.getAddress()
+        );
+        // 연관관계 설정
+        order.assignOrderShipment(orderShipment);
+
+        // 창고 보관 여부에 따라 추가 처리
+        if (isWarehouseStorage) {
+            warehouseStorageCommandService.createOrderStorage(order, buyer);
+        }
+
+        saleBid.assignOrder(order);
+        saleBid.updateStatus(Fream_back.improve_Fream_Back.sale.entity.BidStatus.MATCHED);
+
+        paymentCommandService.processPayment(order, buyer, paymentRequest);
+
+        return order;
+    }
+
+
+
 
 
 }

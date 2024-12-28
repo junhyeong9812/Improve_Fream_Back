@@ -40,6 +40,8 @@ public class Sale {
     @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private SaleBankAccount saleBankAccount;
 
+    private boolean isWarehouseStorage; // 창고 보관 여부
+
     @Enumerated(EnumType.STRING)
     private SaleStatus status; // 판매 상태
 

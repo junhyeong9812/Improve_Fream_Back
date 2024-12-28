@@ -9,8 +9,13 @@ import Fream_back.improve_Fream_Back.product.entity.ProductSize;
 import Fream_back.improve_Fream_Back.sale.entity.*;
 import Fream_back.improve_Fream_Back.sale.repository.SaleBidRepository;
 import Fream_back.improve_Fream_Back.sale.repository.SaleRepository;
+import Fream_back.improve_Fream_Back.shipment.entity.SellerShipment;
+import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
+import Fream_back.improve_Fream_Back.shipment.service.SellerShipmentCommandService;
+import Fream_back.improve_Fream_Back.user.dto.BankAccount.BankAccountInfoDto;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+import Fream_back.improve_Fream_Back.user.service.bankaccount.BankAccountQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,10 @@ public class SaleCommandService {
     private final OrderBidQueryService orderBidQueryService;
     private final NotificationCommandService notificationCommandService;
     private final UserQueryService userQueryService;
+    private final SellerShipmentCommandService sellerShipmentCommandService;
+    private final BankAccountQueryService bankAccountQueryService;
+    private final SaleBankAccountCommandService saleBankAccountCommandService;
+
 
     @Transactional
     public Sale createInstantSale(
@@ -69,6 +78,59 @@ public class SaleCommandService {
         );
 
         return savedSale;
+    }
+
+    @Transactional
+    public Sale createSale(User seller, ProductSize productSize, String returnAddress,
+                           String postalCode, String receiverPhone, boolean isWarehouseStorage) {
+        // 1. BankAccount 정보 조회
+        BankAccountInfoDto bankAccountInfo = bankAccountQueryService.getBankAccount(seller.getEmail());
+
+        // 2. Sale 생성
+        Sale sale = Sale.builder()
+                .seller(seller)
+                .productSize(productSize)
+                .returnAddress(returnAddress)
+                .postalCode(postalCode)
+                .receiverPhone(receiverPhone)
+                .isWarehouseStorage(isWarehouseStorage) // 창고 보관 여부 설정
+                .status(SaleStatus.PENDING_SHIPMENT) // 초기 상태 설정
+                .build();
+
+        Sale savedSale = saleRepository.save(sale);
+
+        // 3. SaleBankAccount 생성 및 저장
+        SaleBankAccount saleBankAccount = saleBankAccountCommandService.createSaleBankAccount(
+                bankAccountInfo.getBankName(),
+                bankAccountInfo.getAccountNumber(),
+                bankAccountInfo.getAccountHolder(),
+                savedSale
+        );
+
+        // 4. Sale에 SaleBankAccount 연관 설정
+        savedSale.assignSaleBankAccount(saleBankAccount);
+
+        // 5. 알림 전송
+        notificationCommandService.createNotification(
+                seller.getId(),
+                NotificationCategory.SHOPPING,
+                NotificationType.BID,
+                "판매 입찰이 등록되었습니다."
+        );
+
+        return savedSale;
+    }
+
+
+    @Transactional
+    public SellerShipment createSellerShipment(Long saleId, String courier, String trackingNumber) {
+        // 1. SellerShipment 생성
+        SellerShipment shipment = sellerShipmentCommandService.createSellerShipment(saleId, courier, trackingNumber);
+
+        // 2. Sale 상태를 배송 중으로 업데이트
+        updateSaleStatus(saleId, SaleStatus.IN_TRANSIT);
+
+        return shipment;
     }
 
     @Transactional
