@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.shipment.service;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
 import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
+import Fream_back.improve_Fream_Back.order.entity.BidStatus;
 import Fream_back.improve_Fream_Back.order.entity.Order;
 import Fream_back.improve_Fream_Back.order.entity.OrderBid;
 import Fream_back.improve_Fream_Back.order.entity.OrderStatus;
@@ -113,6 +114,9 @@ public class OrderShipmentCommandService {
         // 판매 상태 업데이트 및 알림 전송
         updateSaleStatusToSold(order.getId());
 
+        // OrderBid 상태를 COMPLETED로 변경
+        updateOrderAndSaleBidStatusToCompleted(order.getId());
+
     }
 
     //Cj대한통운 송장조회
@@ -175,6 +179,23 @@ public class OrderShipmentCommandService {
             case "배송출발" -> ShipmentStatus.OUT_FOR_DELIVERY;
             default -> ShipmentStatus.IN_TRANSIT;
         };
+    }
+
+    @Transactional
+    private void updateOrderAndSaleBidStatusToCompleted(Long orderId) {
+        // OrderBid 조회
+        OrderBid orderBid = orderBidQueryService.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 OrderBid를 찾을 수 없습니다: " + orderId));
+
+        // 상태를 COMPLETED로 업데이트
+        if (orderBid.getStatus() == BidStatus.MATCHED) {
+            orderBid.updateStatus(BidStatus.COMPLETED);
+        }
+        // SaleBid 상태 업데이트
+        SaleBid saleBid = saleBidQueryService.findByOrderId(orderId);
+        if (saleBid != null && saleBid.getStatus() == Fream_back.improve_Fream_Back.sale.entity.BidStatus.MATCHED) {
+            saleBid.updateStatus(Fream_back.improve_Fream_Back.sale.entity.BidStatus.COMPLETED);
+        }
     }
 
 }

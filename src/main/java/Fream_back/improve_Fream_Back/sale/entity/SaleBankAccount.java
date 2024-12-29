@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.sale.entity;
 
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class SaleBankAccount {
+public class SaleBankAccount extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

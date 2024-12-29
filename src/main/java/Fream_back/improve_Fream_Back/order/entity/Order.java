@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.order.entity;
 
 import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStorage;
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.entity.Shipment;
@@ -16,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order {
+public class Order extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

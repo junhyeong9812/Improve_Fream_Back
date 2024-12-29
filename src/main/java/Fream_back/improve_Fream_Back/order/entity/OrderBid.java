@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.order.entity;
 
+import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import Fream_back.improve_Fream_Back.user.entity.User;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderBid {
+public class OrderBid extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
