@@ -1,10 +1,16 @@
 package Fream_back.improve_Fream_Back.sale.service;
 
+import Fream_back.improve_Fream_Back.sale.dto.SaleBidResponseDto;
+import Fream_back.improve_Fream_Back.sale.dto.SaleBidStatusCountDto;
 import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
 import Fream_back.improve_Fream_Back.sale.repository.SaleBidRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,5 +32,11 @@ public class SaleBidQueryService {
     public SaleBid findBySaleId(Long saleId) {
         return saleBidRepository.findBySale_Id(saleId)
                 .orElse(null); // 연결되지 않은 경우 null 반환
+    }
+    public Page<SaleBidResponseDto> getSaleBids(String email, String saleBidStatus, String saleStatus, Pageable pageable) {
+        return saleBidRepository.findSaleBidsByFilters(email, saleBidStatus, saleStatus, pageable);
+    }
+    public SaleBidStatusCountDto getSaleBidStatusCounts(String email) {
+        return saleBidRepository.countSaleBidsByStatus(email);
     }
 }

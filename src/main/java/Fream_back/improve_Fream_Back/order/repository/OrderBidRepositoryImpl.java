@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.order.repository;
 
+import Fream_back.improve_Fream_Back.order.dto.OrderBidStatusCountDto;
 import Fream_back.improve_Fream_Back.user.entity.QUser;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -84,5 +85,36 @@ public class OrderBidRepositoryImpl implements OrderBidRepositoryCustom {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public OrderBidStatusCountDto countOrderBidsByStatus(String email) {
+        QOrderBid orderBid = QOrderBid.orderBid;
+        QUser user = QUser.user;
+
+        long pendingCount = queryFactory
+                .select(orderBid.count())
+                .from(orderBid)
+                .where(orderBid.status.eq(Fream_back.improve_Fream_Back.order.entity.BidStatus.PENDING)
+                        .and(orderBid.user.email.eq(email)))
+                .fetchOne();
+
+        long matchedCount = queryFactory
+                .select(orderBid.count())
+                .from(orderBid)
+                .where(orderBid.status.eq(Fream_back.improve_Fream_Back.order.entity.BidStatus.MATCHED)
+                        .and(orderBid.user.email.eq(email)))
+                .fetchOne();
+
+        long cancelledOrCompletedCount = queryFactory
+                .select(orderBid.count())
+                .from(orderBid)
+                .where(orderBid.status.in(
+                                Fream_back.improve_Fream_Back.order.entity.BidStatus.CANCELLED,
+                                Fream_back.improve_Fream_Back.order.entity.BidStatus.COMPLETED)
+                        .and(orderBid.user.email.eq(email)))
+                .fetchOne();
+
+        return new OrderBidStatusCountDto(pendingCount, matchedCount, cancelledOrCompletedCount);
     }
 }

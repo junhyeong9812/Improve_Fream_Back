@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.order.service;
 
 import Fream_back.improve_Fream_Back.order.dto.OrderBidResponseDto;
+import Fream_back.improve_Fream_Back.order.dto.OrderBidStatusCountDto;
 import Fream_back.improve_Fream_Back.order.entity.OrderBid;
 import Fream_back.improve_Fream_Back.order.repository.OrderBidRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +28,8 @@ public class OrderBidQueryService {
     }
     public Page<OrderBidResponseDto> getOrderBids(String email, String bidStatus, String orderStatus, Pageable pageable) {
         return orderBidRepository.findOrderBidsByFilters(email, bidStatus, orderStatus, pageable);
+    }
+    public OrderBidStatusCountDto getOrderBidStatusCounts(String email) {
+        return orderBidRepository.countOrderBidsByStatus(email);
     }
 }
