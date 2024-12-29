@@ -3,6 +3,7 @@ package Fream_back.improve_Fream_Back.sale.service;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
 import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
+import Fream_back.improve_Fream_Back.order.entity.BidStatus;
 import Fream_back.improve_Fream_Back.order.entity.OrderBid;
 import Fream_back.improve_Fream_Back.order.service.OrderBidQueryService;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
@@ -31,7 +32,7 @@ public class SaleCommandService {
     private final SellerShipmentCommandService sellerShipmentCommandService;
     private final BankAccountQueryService bankAccountQueryService;
     private final SaleBankAccountCommandService saleBankAccountCommandService;
-
+    private final SaleBidQueryService saleBidQueryService;
 
     @Transactional
     public Sale createInstantSale(
@@ -39,8 +40,7 @@ public class SaleCommandService {
             String sellerEmail,
             String returnAddress,
             String postalCode,
-            String receiverPhone,
-            SaleBankAccount saleBankAccount
+            String receiverPhone
     ) {
         // 1. OrderBid 조회
         OrderBid orderBid = orderBidQueryService.findById(orderBidId)
@@ -59,16 +59,26 @@ public class SaleCommandService {
                 .returnAddress(returnAddress)
                 .postalCode(postalCode)
                 .receiverPhone(receiverPhone)
-                .saleBankAccount(saleBankAccount)
                 .status(SaleStatus.PENDING_SHIPMENT) // 판매자 발송 대기 상태
                 .build();
 
         Sale savedSale = saleRepository.save(sale);
 
-        // 5. OrderBid와 Sale 연결
-        orderBid.assignSale(savedSale);
+        // 5. SaleBankAccount 생성 및 Sale에 연관 설정
+        BankAccountInfoDto bankAccountInfo = bankAccountQueryService.getBankAccount(seller.getEmail());
+        SaleBankAccount saleBankAccount = saleBankAccountCommandService.createSaleBankAccount(
+                bankAccountInfo.getBankName(),
+                bankAccountInfo.getAccountNumber(),
+                bankAccountInfo.getAccountHolder(),
+                savedSale
+        );
+        savedSale.assignSaleBankAccount(saleBankAccount);
 
-        // 6. 알림 전송
+        // 6. OrderBid와 Sale 연결
+        orderBid.assignSale(savedSale);
+        orderBid.updateStatus(BidStatus.MATCHED);
+
+        // 7. 알림 전송
         User buyer = orderBid.getUser();
         notificationCommandService.createNotification(
                 buyer.getId(),
@@ -143,6 +153,16 @@ public class SaleCommandService {
         }
 
         sale.updateStatus(newStatus);
+    }
+
+    @Transactional
+    public void deleteSale(Long saleId) {
+        // Sale 조회
+        Sale sale = saleRepository.findById(saleId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Sale을 찾을 수 없습니다: " + saleId));
+
+        // Sale 삭제
+        saleRepository.delete(sale);
     }
 
 

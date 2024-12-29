@@ -22,4 +22,9 @@ public class SaleBidQueryService {
         return saleBidRepository.findByOrder_Id(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Order에 연결된 SaleBid가 없습니다. Order ID: " + orderId));
     }
+    @Transactional(readOnly = true)
+    public SaleBid findBySaleId(Long saleId) {
+        return saleBidRepository.findBySale_Id(saleId)
+                .orElse(null); // 연결되지 않은 경우 null 반환
+    }
 }

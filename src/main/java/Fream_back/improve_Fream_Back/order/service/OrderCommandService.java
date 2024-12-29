@@ -141,7 +141,15 @@ public class OrderCommandService {
         return order;
     }
 
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        // Order 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Order를 찾을 수 없습니다: " + orderId));
 
+        // Order 삭제
+        orderRepository.delete(order);
+    }
 
 
 

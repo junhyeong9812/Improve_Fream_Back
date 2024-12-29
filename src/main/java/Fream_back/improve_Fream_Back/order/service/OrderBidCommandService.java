@@ -51,4 +51,23 @@ public class OrderBidCommandService {
     public void matchOrderBid(OrderBid orderBid) {
         orderBid.updateStatus(BidStatus.MATCHED);
     }
+    @Transactional
+    public void deleteOrderBid(Long orderBidId) {
+        // OrderBid 조회
+        OrderBid orderBid = orderBidRepository.findById(orderBidId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 OrderBid를 찾을 수 없습니다: " + orderBidId));
+
+        // Sale과 연결 여부 확인
+        if (orderBid.getSale() != null) {
+            throw new IllegalStateException("OrderBid는 Sale과 연결되어 있으므로 삭제할 수 없습니다.");
+        }
+
+        // Order와 연결 여부 확인 후 삭제
+        if (orderBid.getOrder() != null) {
+            orderCommandService.deleteOrder(orderBid.getOrder().getId());
+        }
+
+        // OrderBid 삭제
+        orderBidRepository.delete(orderBid);
+    }
 }

@@ -8,5 +8,5 @@ import java.util.Optional;
 public interface SaleBidRepository extends JpaRepository<SaleBid, Long> {
     Optional<SaleBid> findById(Long id);
     Optional<SaleBid> findByOrder_Id(Long orderId);
-
+    Optional<SaleBid> findBySale_Id(Long saleId);
 }

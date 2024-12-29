@@ -46,4 +46,23 @@ public class SaleBidCommandService {
 
         return saleBidRepository.save(saleBid);
     }
+    @Transactional
+    public void deleteSaleBid(Long saleBidId) {
+        // SaleBid 조회
+        SaleBid saleBid = saleBidRepository.findById(saleBidId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 SaleBid를 찾을 수 없습니다: " + saleBidId));
+
+        // Order와 연결 여부 확인
+        if (saleBid.getOrder() != null) {
+            throw new IllegalStateException("SaleBid는 Order와 연결되어 있으므로 삭제할 수 없습니다.");
+        }
+
+        // Sale과 연결 여부 확인 후 삭제
+        if (saleBid.getSale() != null) {
+            saleCommandService.deleteSale(saleBid.getSale().getId());
+        }
+
+        // SaleBid 삭제
+        saleBidRepository.delete(saleBid);
+    }
 }
