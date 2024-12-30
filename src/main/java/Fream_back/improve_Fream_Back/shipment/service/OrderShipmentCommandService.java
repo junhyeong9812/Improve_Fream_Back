@@ -1,12 +1,10 @@
 package Fream_back.improve_Fream_Back.shipment.service;
 
+import Fream_back.improve_Fream_Back.WarehouseStorage.service.WarehouseStorageCommandService;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
 import Fream_back.improve_Fream_Back.notification.service.NotificationCommandService;
-import Fream_back.improve_Fream_Back.order.entity.BidStatus;
-import Fream_back.improve_Fream_Back.order.entity.Order;
-import Fream_back.improve_Fream_Back.order.entity.OrderBid;
-import Fream_back.improve_Fream_Back.order.entity.OrderStatus;
+import Fream_back.improve_Fream_Back.order.entity.*;
 import Fream_back.improve_Fream_Back.order.service.OrderBidQueryService;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
@@ -25,6 +23,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +33,8 @@ public class OrderShipmentCommandService {
     private final NotificationCommandService notificationCommandService;
     private final SaleBidQueryService saleBidQueryService;
     private final OrderBidQueryService orderBidQueryService;
+    private final WarehouseStorageCommandService warehouseStorageCommandService;
+
     @Transactional
     public OrderShipment createOrderShipment(Order order, String receiverName, String receiverPhone,
                                              String postalCode, String address) {
@@ -62,6 +63,12 @@ public class OrderShipmentCommandService {
             Sale sale = saleBid.getSale();
             if (sale != null && sale.getStatus().canTransitionTo(SaleStatus.SOLD)) {
                 sale.updateStatus(SaleStatus.SOLD); // 더티 체크에 의해 자동으로 업데이트됨
+
+                // 창고 상태 업데이트
+                if (sale.isWarehouseStorage()) {
+                    warehouseStorageCommandService.updateWarehouseStatusToSold(sale);
+                }
+
                 // 판매자에게 알림 생성
                 User seller = sale.getSeller();
                 notificationCommandService.createNotification(
@@ -113,6 +120,16 @@ public class OrderShipmentCommandService {
         );
         // 판매 상태 업데이트 및 알림 전송
         updateSaleStatusToSold(order.getId());
+
+        // SaleBid에서 Sale 조회 및 창고 상태 업데이트
+        SaleBid saleBid = saleBidQueryService.findByOrderId(order.getId());
+        if (saleBid != null) {
+            Sale sale = saleBid.getSale();
+            if (sale != null && sale.isWarehouseStorage()) {
+                warehouseStorageCommandService.updateWarehouseStatusToSold(sale);
+            }
+        }
+
 
         // OrderBid 상태를 COMPLETED로 변경
         updateOrderAndSaleBidStatusToCompleted(order.getId());

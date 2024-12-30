@@ -21,6 +21,14 @@ public class FileUtils {
     // 파일 저장
     public String saveFile(String directory, String prefix, MultipartFile file) {
         try {
+
+            // 파일 MIME 타입 확인
+            String contentType = file.getContentType();
+            if (contentType == null ||
+                    (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+                throw new IllegalArgumentException("지원되지 않는 파일 형식입니다: " + contentType);
+            }
+
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename.substring(originalFilename.lastIndexOf(".")); // 확장자 추출
             String uniqueFilename = prefix + UUID.randomUUID() + extension; // 고유 파일명 생성
@@ -61,4 +69,20 @@ public class FileUtils {
         File file = new File(fullPath);
         return file.exists() && file.isFile();
     }
+
+    public String saveMediaFile(String directory, String prefix, MultipartFile file) {
+        try {
+            // 파일 유형 확인
+            String contentType = file.getContentType();
+            if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+                throw new IllegalArgumentException("지원되지 않는 파일 형식입니다: " + contentType);
+            }
+
+            return saveFile(directory, prefix, file);
+        }  catch (RuntimeException e) {
+            // 기존의 RuntimeException 사용
+            throw new RuntimeException("파일 저장 중 오류가 발생했습니다.", e);
+        }
+    }
+
 }

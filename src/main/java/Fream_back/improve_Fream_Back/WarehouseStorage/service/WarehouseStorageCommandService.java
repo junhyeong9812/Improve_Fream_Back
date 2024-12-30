@@ -50,5 +50,13 @@ public class WarehouseStorageCommandService {
         storage.updateStatus(newStatus);
         warehouseStorageRepository.save(storage);
     }
+    @Transactional
+    public void updateWarehouseStatusToSold(Sale sale) {
+        if (sale.isWarehouseStorage()) {
+            WarehouseStorage storage = warehouseStorageQueryService.findBySale(sale);
+            storage.updateStatus(WarehouseStatus.SOLD);
+            warehouseStorageRepository.save(storage);
+        }
+    }
 
 }

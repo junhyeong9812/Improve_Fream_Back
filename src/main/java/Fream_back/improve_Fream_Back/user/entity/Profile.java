@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.user.entity;
 
 import Fream_back.improve_Fream_Back.base.entity.BaseTimeEntity;
+import Fream_back.improve_Fream_Back.style.entity.Style;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,6 +44,11 @@ public class Profile extends BaseTimeEntity {
     @OneToMany(mappedBy = "blockedProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BlockedProfile> blockedByProfiles = new ArrayList<>(); // 나를 차단한 프로필 목록
 
+    @Builder.Default
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Style> styles = new ArrayList<>();
+
+
     // **편의 메서드 - 값 업데이트**
     public void updateProfile(String profileName,String name ,String bio, Boolean isPublic, String profileImageUrl) {
         if (profileName != null) {
@@ -61,6 +67,7 @@ public class Profile extends BaseTimeEntity {
             this.profileImageUrl = profileImageUrl;
         }
     }
+
     // **연관관계 메서드**
     public void addFollower(Follow follow) {
         this.followers.add(follow);
@@ -80,6 +87,18 @@ public class Profile extends BaseTimeEntity {
     public void removeFollowing(Follow follow) {
         this.followings.remove(follow);
         follow.addFollower(null);
+    }
+
+    // 스타일 추가
+    public void addStyle(Style style) {
+        this.styles.add(style);
+        style.assignProfile(this); // 양방향 동기화
+    }
+
+    // 스타일 제거
+    public void removeStyle(Style style) {
+        this.styles.remove(style);
+        style.assignProfile(null); // 양방향 동기화 해제
     }
 
 

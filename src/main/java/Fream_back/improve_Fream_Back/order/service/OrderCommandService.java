@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.order.service;
 
+import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStatus;
 import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStorage;
 import Fream_back.improve_Fream_Back.WarehouseStorage.service.WarehouseStorageCommandService;
 import Fream_back.improve_Fream_Back.address.dto.AddressResponseDto;
@@ -11,6 +12,7 @@ import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
 import Fream_back.improve_Fream_Back.payment.entity.Payment;
 import Fream_back.improve_Fream_Back.payment.service.PaymentCommandService;
 import Fream_back.improve_Fream_Back.product.entity.ProductSize;
+import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
 import Fream_back.improve_Fream_Back.sale.service.SaleBidQueryService;
 import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
@@ -133,8 +135,17 @@ public class OrderCommandService {
             warehouseStorageCommandService.createOrderStorage(order, buyer);
         }
 
+
         saleBid.assignOrder(order);
         saleBid.updateStatus(Fream_back.improve_Fream_Back.sale.entity.BidStatus.MATCHED);
+
+        // Sale의 isWarehouseStorage 확인 후 상태 변경
+        Sale sale = saleBid.getSale();
+        if (sale != null && sale.isWarehouseStorage()) {
+            warehouseStorageCommandService.updateWarehouseStatus(sale, WarehouseStatus.ASSOCIATED_WITH_ORDER);
+        }
+
+
 
         paymentCommandService.processPayment(order, buyer, paymentRequest);
 
