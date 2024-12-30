@@ -11,6 +11,5 @@ public interface StyleRepository extends JpaRepository<Style, Long>, StyleReposi
     // 특정 프로필 ID로 스타일 목록 조회
     List<Style> findByProfileId(Long profileId);
 
-    // 특정 주문 항목(OrderItem) ID로 스타일 목록 조회
-    List<Style> findByOrderItemId(Long orderItemId);
+
 }

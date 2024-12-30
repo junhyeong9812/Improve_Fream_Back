@@ -1,19 +1,31 @@
 package Fream_back.improve_Fream_Back.style.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
 
 @Data
+@Builder
 @AllArgsConstructor
 public class StyleDetailResponseDto {
     private Long id; // Style ID
     private String profileName; // 작성자 이름
     private String profileImageUrl; // 작성자 프로필 이미지
     private String content; // 텍스트 컨텐츠
-    private String mediaUrl; // 미디어 URL
+    private List<String> mediaUrls; // 미디어 URL 목록
     private Long likeCount; // 좋아요 수
     private Long commentCount; // 댓글 수
-    private String productName; // 상품명
-    private String productEnglishName; // 상품 영어명
-    private String thumbnailImageUrl; // 대표 이미지
-    private Integer minSalePrice; // 최저 판매가
+    private List<ProductInfoDto> productInfos; // 상품 정보 목록
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class ProductInfoDto {
+        private String productName; // 상품명
+        private String productEnglishName; // 상품 영어명
+        private String thumbnailImageUrl; // 대표 이미지
+        private Integer minSalePrice; // 최저 판매가
+    }
 }

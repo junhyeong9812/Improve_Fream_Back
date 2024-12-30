@@ -33,10 +33,7 @@ public class StyleQueryService {
         return styleRepository.findByProfileId(profileId);
     }
 
-    // 특정 OrderItem ID로 스타일 목록 조회
-    public List<Style> findStylesByOrderItemId(Long orderItemId) {
-        return styleRepository.findByOrderItemId(orderItemId);
-    }
+
 
     public Page<StyleResponseDto> getFilteredStyles(StyleFilterRequestDto filterRequestDto, Pageable pageable) {
         return styleRepository.filterStyles(filterRequestDto, pageable);

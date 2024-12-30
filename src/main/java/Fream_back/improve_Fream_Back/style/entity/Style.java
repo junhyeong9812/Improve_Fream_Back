@@ -24,12 +24,16 @@ public class Style extends BaseTimeEntity {
     @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile; // 작성자
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_item_id", nullable = false)
-    private OrderItem orderItem; // 구매한 상품 정보
 
     private String content; // 텍스트 컨텐츠
-    private String mediaUrl; // 이미지 또는 동영상 URL
+    @Builder.Default
+    @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StyleOrderItem> styleOrderItems = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "style", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MediaUrl> mediaUrls = new ArrayList<>(); // 미디어 URL 리스트
+
     private Long viewCount; // 뷰 카운트
 
     @Builder.Default
@@ -56,10 +60,6 @@ public class Style extends BaseTimeEntity {
         this.content = content;
     }
 
-    // 미디어 URL 업데이트
-    public void updateMediaUrl(String mediaUrl) {
-        this.mediaUrl = mediaUrl;
-    }
     //연관관계 메서드
     public void addLike(StyleLike like) {
         this.likes.add(like);
@@ -73,6 +73,16 @@ public class Style extends BaseTimeEntity {
     // 관심 제거
     public void removeInterest(StyleInterest interest) {
         this.interests.remove(interest);
+    }
+    // 연관관계 메서드
+    public void addStyleOrderItem(StyleOrderItem styleOrderItem) {
+        this.styleOrderItems.add(styleOrderItem);
+        styleOrderItem.assignStyle(this);
+    }
+
+    public void addMediaUrl(MediaUrl mediaUrl) {
+        this.mediaUrls.add(mediaUrl);
+        mediaUrl.assignStyle(this);
     }
 
     public void addComment(StyleComment comment) {
@@ -90,6 +100,16 @@ public class Style extends BaseTimeEntity {
         if (profile != null && !profile.getStyles().contains(this)) {
             profile.addStyle(this); // 양방향 동기화
         }
+    }
+
+    public void removeMediaUrl(MediaUrl mediaUrl) {
+        this.mediaUrls.remove(mediaUrl);
+        mediaUrl.unassignStyle(); // MediaUrl에서 Style 해제
+    }
+
+    public void removeStyleOrderItem(StyleOrderItem styleOrderItem) {
+        this.styleOrderItems.remove(styleOrderItem);
+        styleOrderItem.unassignStyle();
     }
 
 }

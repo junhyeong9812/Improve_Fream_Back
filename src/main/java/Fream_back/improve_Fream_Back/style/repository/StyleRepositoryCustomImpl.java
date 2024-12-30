@@ -1,10 +1,14 @@
 package Fream_back.improve_Fream_Back.style.repository;
 
+import Fream_back.improve_Fream_Back.order.entity.QOrderItem;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.style.dto.ProfileStyleResponseDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleDetailResponseDto;
+import Fream_back.improve_Fream_Back.style.entity.QMediaUrl;
+import Fream_back.improve_Fream_Back.style.entity.QStyleOrderItem;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import Fream_back.improve_Fream_Back.style.dto.StyleFilterRequestDto;
 import Fream_back.improve_Fream_Back.style.dto.StyleResponseDto;
@@ -26,46 +30,46 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
     public Page<StyleResponseDto> filterStyles(StyleFilterRequestDto filterRequestDto, Pageable pageable) {
         QStyle style = QStyle.style;
         QProfile profile = QProfile.profile;
-        QBrand brand = QBrand.brand;
-        QCategory category = QCategory.category;
-        QCollection collection = QCollection.collection;
-        QProduct product=QProduct.product;
+        QStyleOrderItem styleOrderItem = QStyleOrderItem.styleOrderItem;
+        QOrderItem orderItem = QOrderItem.orderItem;
+        QMediaUrl mediaUrl = QMediaUrl.mediaUrl;
+
         BooleanBuilder builder = new BooleanBuilder();
 
         // 필터 조건 추가
         if (filterRequestDto.getBrandName() != null) {
-            builder.and(brand.name.eq(filterRequestDto.getBrandName()));
+            builder.and(orderItem.productSize.productColor.product.brand.name.eq(filterRequestDto.getBrandName()));
         }
         if (filterRequestDto.getCollectionName() != null) {
-            builder.and(collection.name.eq(filterRequestDto.getCollectionName()));
+            builder.and(orderItem.productSize.productColor.product.collection.name.eq(filterRequestDto.getCollectionName()));
         }
         if (filterRequestDto.getCategoryId() != null) {
-            builder.and(category.id.eq(filterRequestDto.getCategoryId()));
-        }
-        if (filterRequestDto.getIsMainCategory() != null && filterRequestDto.getIsMainCategory()) {
-            builder.and(category.parentCategory.isNull());
+            builder.and(orderItem.productSize.productColor.product.category.id.eq(filterRequestDto.getCategoryId()));
         }
         if (filterRequestDto.getProfileName() != null) {
             builder.and(profile.profileName.eq(filterRequestDto.getProfileName()));
         }
 
-        // 정렬 조건
+        // 쿼리 생성
         var query = queryFactory.select(Projections.constructor(
                         StyleResponseDto.class,
                         style.id,
                         profile.profileName,
                         profile.profileImageUrl,
                         style.content,
-                        style.mediaUrl,
+                        // 가장 먼저 저장된 MediaUrl
+                        JPAExpressions.select(mediaUrl.url)
+                                .from(mediaUrl)
+                                .where(mediaUrl.style.eq(style))
+                                .orderBy(mediaUrl.id.asc())
+                                .limit(1),
                         style.viewCount,
                         style.likes.size() // 좋아요 수 계산
                 ))
                 .from(style)
                 .leftJoin(style.profile, profile)
-                .leftJoin(style.orderItem.productSize.productColor.product, product) // product까지만 조인
-                .leftJoin(product.brand, brand) // product에서 brand 조인
-                .leftJoin(product.category, category) // product에서 category 조인
-                .leftJoin(product.collection, collection) // product에서 collection 조인
+                .leftJoin(style.styleOrderItems, styleOrderItem)
+                .leftJoin(styleOrderItem.orderItem, orderItem)
                 .where(builder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
@@ -77,56 +81,101 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
             query.orderBy(style.id.desc());
         }
 
-        // 결과 및 페이지 계산
+        // 데이터 조회
         List<StyleResponseDto> content = query.fetch();
 
-        var countQuery = queryFactory.select(style.count()).from(style).where(builder);
+        // 총 카운트 계산
+        var countQuery = queryFactory.select(style.count())
+                .from(style)
+                .leftJoin(style.styleOrderItems, styleOrderItem)
+                .leftJoin(styleOrderItem.orderItem, orderItem)
+                .where(builder);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
+
 
     @Override
     public StyleDetailResponseDto getStyleDetail(Long styleId) {
         QStyle style = QStyle.style;
         QProfile profile = QProfile.profile;
+        QMediaUrl mediaUrl = QMediaUrl.mediaUrl;
+        QStyleOrderItem styleOrderItem = QStyleOrderItem.styleOrderItem;
+        QOrderItem orderItem = QOrderItem.orderItem;
         QProduct product = QProduct.product;
         QProductColor productColor = QProductColor.productColor;
         QProductImage productImage = QProductImage.productImage;
         QProductSize productSize = QProductSize.productSize;
 
-        return queryFactory.select(Projections.constructor(
-                        StyleDetailResponseDto.class,
-                        style.id,
-                        profile.profileName,
-                        profile.profileImageUrl,
-                        style.content,
-                        style.mediaUrl,
-                        style.likes.size(), // 좋아요 수
-                        style.comments.size(), // 댓글 수
+        // 1. 미디어 URL 목록 조회
+        List<String> mediaUrls = queryFactory
+                .select(mediaUrl.url)
+                .from(mediaUrl)
+                .where(mediaUrl.style.id.eq(styleId))
+                .orderBy(mediaUrl.id.asc())
+                .fetch();
+
+        // 2. ProductInfoDto 목록 조회
+        List<StyleDetailResponseDto.ProductInfoDto> productInfos = queryFactory
+                .select(Projections.constructor(
+                        StyleDetailResponseDto.ProductInfoDto.class,
                         product.name,
                         product.englishName,
                         productColor.thumbnailImage.imageUrl,
                         productSize.salePrice.min() // 최저 판매가
                 ))
-                .from(style)
-                .leftJoin(style.profile, profile)
-                .leftJoin(style.orderItem.productSize.productColor.product, product)
+                .from(styleOrderItem)
+                .leftJoin(styleOrderItem.orderItem, orderItem)
+                .leftJoin(orderItem.productSize.productColor.product, product)
                 .leftJoin(product.colors, productColor)
                 .leftJoin(productColor.thumbnailImage, productImage)
                 .leftJoin(productColor.sizes, productSize)
+                .where(styleOrderItem.style.id.eq(styleId))
+                .fetch();
+
+        // 3. 스타일 정보 조회
+        StyleDetailResponseDto styleDetail = queryFactory
+                .select(Projections.constructor(
+                        StyleDetailResponseDto.class,
+                        style.id,
+                        profile.profileName,
+                        profile.profileImageUrl,
+                        style.content,
+                        null, // 미디어 URL은 나중에 설정
+                        style.likes.size(), // 좋아요 수
+                        style.comments.size(), // 댓글 수
+                        null // 상품 정보는 나중에 설정
+                ))
+                .from(style)
+                .leftJoin(style.profile, profile)
                 .where(style.id.eq(styleId))
                 .fetchOne();
+
+        // 4. 미디어 URL과 상품 정보를 DTO에 주입
+        if (styleDetail != null) {
+            styleDetail.setMediaUrls(mediaUrls);
+            styleDetail.setProductInfos(productInfos);
+        }
+
+        return styleDetail;
     }
+
 
     @Override
     public Page<ProfileStyleResponseDto> getStylesByProfile(Long profileId, Pageable pageable) {
         QStyle style = QStyle.style;
         QProfile profile = QProfile.profile;
+        QMediaUrl mediaUrl = QMediaUrl.mediaUrl;
 
+        // 첫 번째 미디어 URL 조회
         var query = queryFactory.select(Projections.constructor(
                         ProfileStyleResponseDto.class,
                         style.id,
-                        style.mediaUrl,
+                        JPAExpressions.select(mediaUrl.url)
+                                .from(mediaUrl)
+                                .where(mediaUrl.style.id.eq(style.id))
+                                .orderBy(mediaUrl.id.asc()) // 첫 번째 URL 가져오기
+                                .limit(1),
                         style.likes.size() // 좋아요 수
                 ))
                 .from(style)
@@ -146,6 +195,7 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
+
 
 
 }
