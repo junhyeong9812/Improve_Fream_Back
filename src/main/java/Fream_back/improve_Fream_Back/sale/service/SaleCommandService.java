@@ -32,7 +32,7 @@ public class SaleCommandService {
     private final SellerShipmentCommandService sellerShipmentCommandService;
     private final BankAccountQueryService bankAccountQueryService;
     private final SaleBankAccountCommandService saleBankAccountCommandService;
-    private final SaleBidQueryService saleBidQueryService;
+
 
     @Transactional
     public Sale createInstantSale(
@@ -63,6 +63,7 @@ public class SaleCommandService {
                 .build();
 
         Sale savedSale = saleRepository.save(sale);
+
 
         // 5. SaleBankAccount 생성 및 Sale에 연관 설정
         BankAccountInfoDto bankAccountInfo = bankAccountQueryService.getBankAccount(seller.getEmail());

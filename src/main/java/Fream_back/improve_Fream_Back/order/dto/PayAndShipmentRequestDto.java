@@ -1,11 +1,15 @@
 package Fream_back.improve_Fream_Back.order.dto;
 
 import Fream_back.improve_Fream_Back.payment.dto.PaymentRequestDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PayAndShipmentRequestDto {
 
     private PaymentRequestDto paymentRequest; // 결제 정보

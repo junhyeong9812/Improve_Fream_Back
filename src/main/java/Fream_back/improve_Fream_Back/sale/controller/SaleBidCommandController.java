@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.sale.controller;
 
+import Fream_back.improve_Fream_Back.sale.dto.InstantSaleRequestDto;
 import Fream_back.improve_Fream_Back.sale.dto.SaleBidRequestDto;
 import Fream_back.improve_Fream_Back.sale.service.SaleBidCommandService;
 import Fream_back.improve_Fream_Back.utils.SecurityUtils;
@@ -32,9 +33,22 @@ public class SaleBidCommandController {
 
     // 판매 입찰 삭제
     @DeleteMapping("/{saleBidId}")
-    public ResponseEntity<Void> deleteSaleBid(@PathVariable Long saleBidId) {
+    public ResponseEntity<Void> deleteSaleBid(@PathVariable("saleBidId") Long saleBidId) {
         saleBidCommandService.deleteSaleBid(saleBidId);
         return ResponseEntity.ok().build();
+    }
+    // 즉시 판매 생성
+    @PostMapping("/instant")
+    public ResponseEntity<Long> createInstantSale(@RequestBody InstantSaleRequestDto requestDto) {
+        String sellerEmail = SecurityUtils.extractEmailFromSecurityContext(); // 이메일 추출
+        Long saleId = saleBidCommandService.createInstantSaleBid(
+                requestDto.getOrderBidId(),
+                sellerEmail,
+                requestDto.getReturnAddress(),
+                requestDto.getPostalCode(),
+                requestDto.getReceiverPhone()
+        ).getId();
+        return ResponseEntity.ok(saleId);
     }
 }
 

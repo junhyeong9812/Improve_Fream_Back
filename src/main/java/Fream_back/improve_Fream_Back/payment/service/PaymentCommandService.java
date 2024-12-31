@@ -14,7 +14,9 @@ import Fream_back.improve_Fream_Back.payment.service.paymentInfo.PaymentInfoQuer
 import Fream_back.improve_Fream_Back.payment.service.paymentInfo.PortOneApiClient;
 import Fream_back.improve_Fream_Back.sale.entity.Sale;
 import Fream_back.improve_Fream_Back.payment.repository.PaymentRepository;
+import Fream_back.improve_Fream_Back.sale.entity.SaleBid;
 import Fream_back.improve_Fream_Back.sale.entity.SaleStatus;
+import Fream_back.improve_Fream_Back.sale.service.SaleBidQueryService;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,11 +33,12 @@ public class PaymentCommandService {
     private final PaymentInfoQueryService paymentInfoQueryService;
     private final PortOneApiClient portOneApiClient;
     private final NotificationCommandService notificationCommandService;
+    private final SaleBidQueryService saleBidQueryService;
 
     public Payment processPayment(Order order, User user, PaymentRequestDto requestDto) {
         Payment payment;
 
-        switch (requestDto.getPaymentType()) {
+        switch (requestDto.getResolvedType()) {
             case "CARD":
                 payment = createCardPayment(order, user, (CardPaymentRequestDto) requestDto);
                 break;
@@ -140,7 +143,7 @@ public class PaymentCommandService {
         paymentRepository.save(generalPayment);
 
         // 즉시 환불 요청
-        handleRefundIfNecessary(generalPayment);
+//        handleRefundIfNecessary(generalPayment);
 
         return generalPayment;
     }
@@ -160,16 +163,48 @@ public class PaymentCommandService {
         // 1. OrderBid 조회
         OrderBid orderBid = order.getOrderBid();
         if (orderBid == null) {
-            throw new IllegalArgumentException("Order에 연결된 OrderBid가 없습니다.");
+            // OrderBid가 없으면 SaleBid 탐색
+            SaleBid saleBid = saleBidQueryService.findByOrderId(order.getId());
+
+            Sale sale = saleBid.getSale();
+            if (sale == null) {
+                throw new IllegalArgumentException("SaleBid에 연결된 Sale이 없습니다.");
+            }
+
+            sendNotifications(order, sale); // 알림 전송
+            sale.updateStatus(SaleStatus.SOLD); // Sale 상태 변경
+            return;
         }
 
-        // 2. Sale 조회
+            // 2. Sale 조회
         Sale sale = orderBid.getSale();
         if (sale == null) {
             throw new IllegalArgumentException("OrderBid에 연결된 Sale이 없습니다.");
         }
 
-        // 3. 알림 전송
+//        // 3. 알림 전송
+//        User buyer = order.getUser();
+//        notificationCommandService.createNotification(
+//                buyer.getId(),
+//                NotificationCategory.SHOPPING,
+//                NotificationType.BID,
+//                "결제가 완료되었습니다. 주문 ID: " + order.getId()
+//        );
+//
+//        User seller = sale.getSeller();
+//        notificationCommandService.createNotification(
+//                seller.getId(),
+//                NotificationCategory.SHOPPING,
+//                NotificationType.BID,
+//                "구매자가 결제를 완료하였습니다. 판매 ID: " + sale.getId()
+//        );
+
+        sendNotifications(order, sale); // 알림 전송
+        // 4. Sale 상태 변경
+        sale.updateStatus(SaleStatus.SOLD);
+    }
+
+    private void sendNotifications(Order order, Sale sale) {
         User buyer = order.getUser();
         notificationCommandService.createNotification(
                 buyer.getId(),
@@ -185,10 +220,8 @@ public class PaymentCommandService {
                 NotificationType.BID,
                 "구매자가 결제를 완료하였습니다. 판매 ID: " + sale.getId()
         );
-
-        // 4. Sale 상태 변경
-        sale.updateStatus(SaleStatus.SOLD);
     }
+
 
 
     //주문 기반 GeneralPayment 생성 및 상태 설정

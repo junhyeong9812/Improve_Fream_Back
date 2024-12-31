@@ -19,6 +19,7 @@ import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.service.OrderShipmentCommandService;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,9 +35,8 @@ public class OrderCommandService {
     private final OrderBidQueryService orderBidQueryService;
     private final UserQueryService userQueryService;
     private final WarehouseStorageCommandService warehouseStorageCommandService;
-    private final SaleBidQueryService saleBidQueryService;
     private final AddressQueryService addressQueryService;
-
+    private final EntityManager entityManager; // EntityManager 주입
     @Transactional
     public Order createOrderFromBid(User user, ProductSize productSize, int bidPrice) {
         // 1. OrderItem 생성
@@ -103,13 +103,12 @@ public class OrderCommandService {
     }
 
     @Transactional
-    public Order createInstantOrder(String buyerEmail, Long saleBidId, Long addressId,
+    public Order createInstantOrder(User buyer, SaleBid saleBid, Long addressId,
                                     boolean isWarehouseStorage, PaymentRequestDto paymentRequest) {
-        User buyer = userQueryService.findByEmail(buyerEmail);
-        SaleBid saleBid = saleBidQueryService.findById(saleBidId);
+        // 1. 주소 조회
+        AddressResponseDto address = addressQueryService.getAddress(buyer.getEmail(), addressId);
 
-        AddressResponseDto address = addressQueryService.getAddress(buyerEmail, addressId);
-
+        // 2. Order 생성
         Order order = Order.builder()
                 .user(buyer)
                 .totalAmount(saleBid.getBidPrice())
@@ -118,10 +117,14 @@ public class OrderCommandService {
 
         order = orderRepository.save(order);
 
+        // **PaymentRequest에 OrderId 설정**
+        paymentRequest.setOrderId(order.getId());
+        System.out.println("paymentRequest = " + paymentRequest);
+        // 3. OrderItem 추가
         OrderItem orderItem = orderItemCommandService.createOrderItem(order, saleBid.getProductSize(), saleBid.getBidPrice());
         order.addOrderItem(orderItem);
 
-        // 배송 정보 생성
+        // 4. 배송 정보 생성 및 연관 설정
         OrderShipment orderShipment = orderShipmentCommandService.createOrderShipment(
                 order,
                 address.getRecipientName(),
@@ -129,19 +132,19 @@ public class OrderCommandService {
                 address.getZipCode(),
                 address.getAddress()
         );
-        // 연관관계 설정
         order.assignOrderShipment(orderShipment);
 
 
         saleBid.assignOrder(order);
         saleBid.updateStatus(Fream_back.improve_Fream_Back.sale.entity.BidStatus.MATCHED);
+        // **변경 내용 강제 반영**
+        entityManager.flush();
 
         // Sale의 isWarehouseStorage 확인 후 상태 변경
         Sale sale = saleBid.getSale();
         if (sale != null && sale.isWarehouseStorage()) {
             warehouseStorageCommandService.updateWarehouseStatus(sale, WarehouseStatus.ASSOCIATED_WITH_ORDER);
         }
-
 
 
         paymentCommandService.processPayment(order, buyer, paymentRequest);

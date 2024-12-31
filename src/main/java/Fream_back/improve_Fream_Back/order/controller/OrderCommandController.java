@@ -16,26 +16,10 @@ public class OrderCommandController {
 
     private final OrderCommandService orderCommandService;
 
-    // 즉시 주문 생성
-    @PostMapping("/instant")
-    public ResponseEntity<Long> createInstantOrder(@RequestBody InstantOrderRequestDto requestDto) {
-        String email = SecurityUtils.extractEmailFromSecurityContext(); // 이메일 추출
-
-        Long orderId = orderCommandService.createInstantOrder(
-                email,
-                requestDto.getSaleBidId(),
-                requestDto.getAddressId(),
-                requestDto.isWarehouseStorage(),
-                requestDto.getPayAndShipment().getPaymentRequest()
-        ).getId();
-
-        return ResponseEntity.ok(orderId);
-    }
-
     // 결제 및 배송 처리
     @PostMapping("/{orderId}/process-payment-shipment")
     public ResponseEntity<Void> processPaymentAndShipment(
-            @PathVariable Long orderId,
+            @PathVariable("orderId") Long orderId,
             @RequestBody PayAndShipmentRequestDto requestDto
     ) {
         String email = SecurityUtils.extractEmailFromSecurityContext(); // 이메일 추출

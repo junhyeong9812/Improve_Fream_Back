@@ -40,6 +40,11 @@ public class SaleBid extends BaseTimeEntity {
     @JoinColumn(name = "order_id")
     private Order order; // 매칭된 구매 엔티티
 
+
+    // 즉시 판매 플래그
+    @Column(nullable = false)
+    private boolean isInstantSale = false;
+
     public void assignSale(Sale sale) {
         this.sale = sale;
         this.status = BidStatus.MATCHED;
@@ -48,6 +53,9 @@ public class SaleBid extends BaseTimeEntity {
     public void assignOrder(Order order) {
         this.order = order;
         this.status = BidStatus.MATCHED;
+    }
+    public void markAsInstantSale() {
+        this.isInstantSale = true;
     }
 
     public void updateStatus(BidStatus newStatus) {

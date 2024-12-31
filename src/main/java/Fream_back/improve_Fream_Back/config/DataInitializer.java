@@ -3,6 +3,8 @@ package Fream_back.improve_Fream_Back.config;
 import Fream_back.improve_Fream_Back.WarehouseStorage.entity.WarehouseStorage;
 import Fream_back.improve_Fream_Back.WarehouseStorage.repository.WarehouseStorageRepository;
 import Fream_back.improve_Fream_Back.WarehouseStorage.service.WarehouseStorageCommandService;
+import Fream_back.improve_Fream_Back.address.entity.Address;
+import Fream_back.improve_Fream_Back.address.repository.AddressRepository;
 import Fream_back.improve_Fream_Back.faq.entity.*;
 import Fream_back.improve_Fream_Back.faq.repository.FAQRepository;
 import Fream_back.improve_Fream_Back.inspection.entity.*;
@@ -73,13 +75,18 @@ public class DataInitializer implements CommandLineRunner {
     private final OrderShipmentCommandService orderShipmentCommandService;
     private final WarehouseStorageCommandService warehouseStorageCommandService;
     private final PaymentRepository paymentRepository;
-
+    private final AddressRepository addressRepository;
     @Override
     public void run(String... args) {
         // 사용자 생성
         User user1 = createUserWithProfile("user1@example.com", "password123", "010-1234-5678", ShoeSize.SIZE_270, Role.USER, 25, Gender.MALE);
         User user2 = createUserWithProfile("user2@example.com", "password456", "010-9876-5432", ShoeSize.SIZE_280, Role.USER, 30, Gender.FEMALE);
         User admin = createUserWithProfile("admin@example.com", "adminpassword", "010-0000-0000", null, Role.ADMIN, 35, Gender.MALE);
+
+        // 사용자 기본 주소 생성
+        createAddress(user1, "홍길동", "010-1234-5678", "12345", "서울시 강남구 도산대로", "아파트 101호", true);
+        createAddress(user2, "김철수", "010-9876-5432", "67890", "서울시 강서구 화곡로", "빌라 202호", true);
+        createAddress(admin, "관리자", "010-0000-0000", "54321", "서울시 종로구 종로", "사무실 303호", true);
 
         // 상품 데이터 생성
         createProductData();
@@ -448,6 +455,18 @@ public class DataInitializer implements CommandLineRunner {
 
         order = orderRepository.save(order);
 
+        // 2. Create OrderBid and associate with Order
+        OrderBid orderBid = OrderBid.builder()
+                .user(user)
+                .productSize(saleBid.getProductSize())
+                .bidPrice(saleBid.getBidPrice())
+                .status(BidStatus.MATCHED) // 즉시 매칭된 상태
+                .order(order) // Order와 연관 설정
+                .build();
+
+        order.assignOrderBid(orderBid); // Order와 OrderBid 양방향 연관 설정
+        orderBidRepository.save(orderBid);
+
         // Process Payment
         GeneralPaymentRequestDto paymentRequest = new GeneralPaymentRequestDto();
         paymentRequest.setPaidAmount(saleBid.getBidPrice());
@@ -489,6 +508,21 @@ public class DataInitializer implements CommandLineRunner {
         saleBid.assignOrder(order);
         saleBid.updateStatus(Fream_back.improve_Fream_Back.sale.entity.BidStatus.MATCHED);
         saleBidRepository.save(saleBid);
+    }
+    // 주소 생성 메서드
+    private void createAddress(User user, String recipientName, String phoneNumber, String zipCode, String address, String detailedAddress, boolean isDefault) {
+        Address newAddress = Address.builder()
+                .user(user) // 연관관계 설정
+                .recipientName(recipientName)
+                .phoneNumber(phoneNumber)
+                .zipCode(zipCode)
+                .address(address)
+                .detailedAddress(detailedAddress)
+                .isDefault(isDefault)
+                .build();
+
+        addressRepository.save(newAddress);
+        user.addAddress(newAddress); // 편의 메서드를 통해 User와 Address 연관 설정
     }
 }
 

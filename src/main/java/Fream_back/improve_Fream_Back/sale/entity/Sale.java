@@ -47,11 +47,19 @@ public class Sale  extends BaseTimeEntity {
     private SaleStatus status; // 판매 상태
 
     @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private SaleBid saleBid; // Sale와 연결된 SaleBid
+
+    @OneToOne(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private SellerShipment sellerShipment;
 
     public void assignSaleBankAccount(SaleBankAccount saleBankAccount) {
         this.saleBankAccount = saleBankAccount;
         saleBankAccount.assignSale(this);
+    }
+
+    public void assignSaleBid(SaleBid saleBid) {
+        this.saleBid = saleBid;
+        saleBid.assignSale(this);
     }
 
     public void assignPayment(Payment payment) {
