@@ -87,6 +87,8 @@ public class OrderCommandService {
             // 창고 보관일 경우
             WarehouseStorage warehouseStorage = warehouseStorageCommandService.createOrderStorage(order, user);
             order.assignWarehouseStorage(warehouseStorage);
+            order.updateStatus(OrderStatus.PAYMENT_COMPLETED);
+            order.updateStatus(OrderStatus.PREPARING);
             order.updateStatus(OrderStatus.IN_WAREHOUSE);
         } else {
             // 실제 배송일 경우
@@ -129,11 +131,6 @@ public class OrderCommandService {
         );
         // 연관관계 설정
         order.assignOrderShipment(orderShipment);
-
-        // 창고 보관 여부에 따라 추가 처리
-        if (isWarehouseStorage) {
-            warehouseStorageCommandService.createOrderStorage(order, buyer);
-        }
 
 
         saleBid.assignOrder(order);
