@@ -7,6 +7,7 @@ import Fream_back.improve_Fream_Back.style.dto.StyleDetailResponseDto;
 import Fream_back.improve_Fream_Back.style.entity.QMediaUrl;
 import Fream_back.improve_Fream_Back.style.entity.QStyleOrderItem;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -116,35 +117,52 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
                 .fetch();
 
         // 2. ProductInfoDto 목록 조회
+//        List<StyleDetailResponseDto.ProductInfoDto> productInfos = queryFactory
+//                .select(Projections.constructor(
+//                        StyleDetailResponseDto.ProductInfoDto.class,
+//                        product.name,
+//                        product.englishName,
+//                        productColor.thumbnailImage.imageUrl,
+//                        productSize.salePrice.min() // 최저 판매가
+//                ))
+//                .from(styleOrderItem)
+//                .leftJoin(styleOrderItem.orderItem, orderItem)
+//                .leftJoin(orderItem.productSize, productSize)
+//                .leftJoin(productSize.productColor, productColor)
+//                .leftJoin(productColor.product, product)
+//                .leftJoin(productColor.thumbnailImage, productImage)
+//                .where(styleOrderItem.style.id.eq(styleId))
+//                .fetch();
         List<StyleDetailResponseDto.ProductInfoDto> productInfos = queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         StyleDetailResponseDto.ProductInfoDto.class,
-                        product.name,
-                        product.englishName,
-                        productColor.thumbnailImage.imageUrl,
-                        productSize.salePrice.min() // 최저 판매가
+                        product.name.as("productName"),
+                        product.englishName.as("productEnglishName"),
+                        productColor.thumbnailImage.imageUrl.as("thumbnailImageUrl"),
+                        productSize.salePrice.min().as("minSalePrice")
                 ))
                 .from(styleOrderItem)
                 .leftJoin(styleOrderItem.orderItem, orderItem)
-                .leftJoin(orderItem.productSize.productColor.product, product)
-                .leftJoin(product.colors, productColor)
-                .leftJoin(productColor.thumbnailImage, productImage)
-                .leftJoin(productColor.sizes, productSize)
-                .where(styleOrderItem.style.id.eq(styleId))
+                .leftJoin(orderItem.productSize, productSize)
+                .leftJoin(productSize.productColor, productColor)
+                .leftJoin(productColor.product, product)
+                .where(styleOrderItem.style.id.eq(styleId)
+                        .and(orderItem.isNotNull())
+                        .and(productSize.isNotNull())
+                        .and(productColor.isNotNull()))
+                .distinct()
                 .fetch();
 
         // 3. 스타일 정보 조회
         StyleDetailResponseDto styleDetail = queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         StyleDetailResponseDto.class,
-                        style.id,
-                        profile.profileName,
-                        profile.profileImageUrl,
-                        style.content,
-                        null, // 미디어 URL은 나중에 설정
-                        style.likes.size(), // 좋아요 수
-                        style.comments.size(), // 댓글 수
-                        null // 상품 정보는 나중에 설정
+                        style.id.as("id"),
+                        profile.profileName.as("profileName"),
+                        profile.profileImageUrl.as("profileImageUrl"),
+                        style.content.as("content"),
+                        ExpressionUtils.as(style.likes.size().longValue(), "likeCount"),
+                        ExpressionUtils.as(style.comments.size().longValue(), "commentCount")
                 ))
                 .from(style)
                 .leftJoin(style.profile, profile)
@@ -176,7 +194,7 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
                                 .where(mediaUrl.style.id.eq(style.id))
                                 .orderBy(mediaUrl.id.asc()) // 첫 번째 URL 가져오기
                                 .limit(1),
-                        style.likes.size() // 좋아요 수
+                        style.likes.size().longValue()  // 좋아요 수
                 ))
                 .from(style)
                 .leftJoin(style.profile, profile)

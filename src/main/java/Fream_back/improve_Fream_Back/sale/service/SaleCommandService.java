@@ -149,6 +149,9 @@ public class SaleCommandService {
         Sale sale = saleRepository.findById(saleId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Sale을 찾을 수 없습니다: " + saleId));
 
+        // 현재 상태와 전환하려는 상태 확인
+        System.out.println("현재 상태: " + sale.getStatus());
+        System.out.println("전환하려는 상태: " + newStatus);
         if (!sale.getStatus().canTransitionTo(newStatus)) {
             throw new IllegalStateException("Sale 상태를 " + newStatus + "로 전환할 수 없습니다.");
         }

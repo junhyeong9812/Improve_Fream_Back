@@ -24,6 +24,7 @@ public class StyleDetailResponseDto {
     @Data
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class ProductInfoDto {
         private String productName; // 상품명
         private String productEnglishName; // 상품 영어명

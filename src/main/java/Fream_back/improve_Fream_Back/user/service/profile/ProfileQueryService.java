@@ -20,7 +20,7 @@ public class ProfileQueryService {
 
     @Transactional(readOnly = true)
     public ProfileInfoDto getProfileInfo(String email) {
-        Profile profile = profileRepository.findByUser_Email(email)
+        Profile profile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
 
         List<BlockedProfileDto> blockedProfiles = blockedProfileQueryService.getBlockedProfiles(profile);
@@ -38,7 +38,7 @@ public class ProfileQueryService {
     //이메일 기반 조회
     @Transactional(readOnly = true)
     public Profile getProfileByEmail(String email) {
-        return profileRepository.findByUser_Email(email)
+        return profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
     }
 

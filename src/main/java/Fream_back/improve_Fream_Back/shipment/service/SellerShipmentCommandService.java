@@ -42,7 +42,7 @@ public class SellerShipmentCommandService {
             warehouseStorageCommandService.createSellerStorage(sale, sale.getSeller());
             sale.updateStatus(SaleStatus.IN_STORAGE); // 창고 보관 상태 업데이트
         } else {
-            sale.updateStatus(SaleStatus.IN_TRANSIT); // 배송 중 상태 업데이트
+//            sale.updateStatus(SaleStatus.IN_TRANSIT); // 배송 중 상태 업데이트
         }
         return shipment;
     }

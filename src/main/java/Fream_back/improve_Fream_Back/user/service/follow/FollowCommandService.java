@@ -23,7 +23,7 @@ public class FollowCommandService {
     @Transactional
     public void createFollow(String email, Long followingProfileId) {
         // 현재 사용자의 프로필 가져오기
-        Profile followerProfile = profileRepository.findByUser_Email(email)
+        Profile followerProfile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자의 프로필이 존재하지 않습니다."));
 
         // 팔로우 대상 프로필 가져오기
@@ -51,7 +51,7 @@ public class FollowCommandService {
     @Transactional
     public void deleteFollow(String email, Long followingProfileId) {
         // 팔로우를 한 사용자 (follower) 프로필 조회
-        Profile followerProfile = profileRepository.findByUser_Email(email)
+        Profile followerProfile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자의 프로필이 존재하지 않습니다."));
 
         // 팔로우된 사용자 (following) 프로필 조회

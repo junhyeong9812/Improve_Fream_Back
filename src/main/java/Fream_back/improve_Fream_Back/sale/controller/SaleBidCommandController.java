@@ -50,7 +50,7 @@ public class SaleBidCommandController {
                 requestDto.getReturnAddress(),
                 requestDto.getPostalCode(),
                 requestDto.getReceiverPhone()
-        ).getId();
+        );
         return ResponseEntity.ok(saleId);
     }
 }

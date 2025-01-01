@@ -69,7 +69,6 @@ public class Sale  extends BaseTimeEntity {
     public void assignSellerShipment(SellerShipment sellerShipment) {
         this.sellerShipment = sellerShipment;
         sellerShipment.assignSale(this); // 연관관계 설정
-        this.status = SaleStatus.IN_INSPECTION; // 상태를 검수 중으로 업데이트
     }
 
     public void updateStatus(SaleStatus newStatus) {

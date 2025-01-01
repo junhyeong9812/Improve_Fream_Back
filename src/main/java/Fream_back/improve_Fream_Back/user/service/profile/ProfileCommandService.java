@@ -53,7 +53,7 @@ public class ProfileCommandService {
 
     @Transactional
     public void updateProfile(String email, ProfileUpdateDto dto, MultipartFile profileImage) {
-        Profile profile = profileRepository.findByUser_Email(email)
+        Profile profile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
 
         // 이미지 변경

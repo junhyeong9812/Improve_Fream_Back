@@ -81,9 +81,18 @@ public class StyleCommandService {
         List<MediaUrl> existingMediaUrls = mediaUrlQueryService.findMediaUrlsByStyleId(styleId);
 
         // 4. 기존 MediaUrl 중 삭제해야 할 URL 제거
-        for (MediaUrl mediaUrl : existingMediaUrls) {
-            if (!existingUrlsFromFrontend.contains(mediaUrl.getUrl())) {
+        // 4. 기존 MediaUrl 중 삭제해야 할 URL 제거
+        if (existingUrlsFromFrontend == null || existingUrlsFromFrontend.isEmpty()) {
+            // 프론트엔드에서 아무 URL도 제공하지 않은 경우, 기존 모든 MediaUrl 삭제
+            for (MediaUrl mediaUrl : existingMediaUrls) {
                 mediaUrlCommandService.deleteMediaUrl(mediaUrl);
+            }
+        } else {
+            // 프론트엔드에서 제공한 URL과 비교하여 삭제
+            for (MediaUrl mediaUrl : existingMediaUrls) {
+                if (!existingUrlsFromFrontend.contains(mediaUrl.getUrl())) {
+                    mediaUrlCommandService.deleteMediaUrl(mediaUrl);
+                }
             }
         }
 

@@ -56,7 +56,7 @@ public class SaleBidCommandService {
         return saleBid;
     }
     @Transactional
-    public SaleBid createInstantSaleBid(Long orderBidId,
+    public Long createInstantSaleBid(Long orderBidId,
                                         String sellerEmail,
                                         String returnAddress,
                                         String postalCode,
@@ -84,7 +84,10 @@ public class SaleBidCommandService {
         sale.assignSaleBid(saleBid); // Sale과 SaleBid 양방향 연관관계 설정
 
         // SaleBid 저장
-        return saleBidRepository.save(saleBid);
+        saleBidRepository.save(saleBid);
+
+        // Sale ID 반환
+        return sale.getId();
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.style.controller;
 
+import Fream_back.improve_Fream_Back.style.dto.AddCommentRequestDto;
 import Fream_back.improve_Fream_Back.style.dto.UpdateCommentRequestDto;
 import Fream_back.improve_Fream_Back.style.entity.StyleComment;
 import Fream_back.improve_Fream_Back.style.service.StyleCommentCommandService;
@@ -18,12 +19,15 @@ public class StyleCommentCommandController {
     // 댓글 생성
     @PostMapping
     public ResponseEntity<StyleComment> addComment(
-            @RequestParam("styleId") Long styleId,
-            @RequestParam("content") String content,
-            @RequestParam(value = "parentCommentId", required = false) Long parentCommentId
+            @RequestBody AddCommentRequestDto addCommentRequestDto
     ) {
         String email = SecurityUtils.extractEmailFromSecurityContext(); // 컨텍스트에서 이메일 추출
-        StyleComment comment = styleCommentCommandService.addComment(email, styleId, content, parentCommentId);
+        StyleComment comment = styleCommentCommandService.addComment(
+                email,
+                addCommentRequestDto.getStyleId(),
+                addCommentRequestDto.getContent(),
+                addCommentRequestDto.getParentCommentId()
+        );
         return ResponseEntity.ok(comment);
     }
 

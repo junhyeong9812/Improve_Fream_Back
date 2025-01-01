@@ -17,7 +17,7 @@ public class BlockedProfileCommandService {
 
     @Transactional
     public void blockProfile(String email, Long blockedProfileId) {
-        Profile myProfile = profileRepository.findByUser_Email(email)
+        Profile myProfile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("내 프로필을 찾을 수 없습니다."));
         Profile blockedProfile = profileRepository.findById(blockedProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("차단할 프로필을 찾을 수 없습니다."));
@@ -36,7 +36,7 @@ public class BlockedProfileCommandService {
 
     @Transactional
     public void unblockProfile(String email, Long blockedProfileId) {
-        Profile myProfile = profileRepository.findByUser_Email(email)
+        Profile myProfile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("내 프로필을 찾을 수 없습니다."));
         Profile blockedProfile = profileRepository.findById(blockedProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("차단된 프로필을 찾을 수 없습니다."));

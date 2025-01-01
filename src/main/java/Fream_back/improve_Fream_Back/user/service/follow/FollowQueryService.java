@@ -17,7 +17,7 @@ public class FollowQueryService {
     private final ProfileRepository profileRepository;
 
     public Page<FollowDto> getFollowers(String email, Pageable pageable) {
-        Profile profile = profileRepository.findByUser_Email(email)
+        Profile profile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자의 프로필이 존재하지 않습니다."));
 
         Page<Follow> followers = followRepository.findFollowersByProfileId(profile.getId(), pageable);
@@ -29,7 +29,7 @@ public class FollowQueryService {
     }
 
     public Page<FollowDto> getFollowings(String email, Pageable pageable) {
-        Profile profile = profileRepository.findByUser_Email(email)
+        Profile profile = profileRepository.findByUserEmailWithFetchJoin(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자의 프로필이 존재하지 않습니다."));
 
         Page<Follow> followings = followRepository.findFollowingsByProfileId(profile.getId(), pageable);
