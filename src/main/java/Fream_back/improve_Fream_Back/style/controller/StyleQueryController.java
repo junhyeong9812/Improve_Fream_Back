@@ -19,7 +19,8 @@ public class StyleQueryController {
     private final StyleQueryService styleQueryService;
 
     @GetMapping("/{styleId}")
-    public ResponseEntity<StyleDetailResponseDto> getStyleDetail(@PathVariable Long styleId) {
+    public ResponseEntity<StyleDetailResponseDto> getStyleDetail(
+            @PathVariable("styleId") Long styleId) {
         StyleDetailResponseDto detail = styleQueryService.getStyleDetail(styleId);
         return ResponseEntity.ok(detail);
     }
@@ -35,7 +36,7 @@ public class StyleQueryController {
 
     @GetMapping("/profile/{profileId}")
     public ResponseEntity<Page<ProfileStyleResponseDto>> getStylesByProfile(
-            @PathVariable Long profileId,
+            @PathVariable("profileId") Long profileId,
             Pageable pageable
     ) {
         Page<ProfileStyleResponseDto> styles = styleQueryService.getStylesByProfile(profileId, pageable);

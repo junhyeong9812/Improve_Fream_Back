@@ -37,6 +37,7 @@ import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
 import Fream_back.improve_Fream_Back.shipment.repository.SellerShipmentRepository;
 import Fream_back.improve_Fream_Back.shipment.service.OrderShipmentCommandService;
 import Fream_back.improve_Fream_Back.user.entity.*;
+import Fream_back.improve_Fream_Back.user.repository.BankAccountRepository;
 import Fream_back.improve_Fream_Back.user.repository.ProfileRepository;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import Fream_back.improve_Fream_Back.user.service.profile.ProfileCommandService;
@@ -76,6 +77,8 @@ public class DataInitializer implements CommandLineRunner {
     private final WarehouseStorageCommandService warehouseStorageCommandService;
     private final PaymentRepository paymentRepository;
     private final AddressRepository addressRepository;
+    private final BankAccountRepository bankAccountRepository;
+
     @Override
     public void run(String... args) {
         // 사용자 생성
@@ -87,6 +90,11 @@ public class DataInitializer implements CommandLineRunner {
         createAddress(user1, "홍길동", "010-1234-5678", "12345", "서울시 강남구 도산대로", "아파트 101호", true);
         createAddress(user2, "김철수", "010-9876-5432", "67890", "서울시 강서구 화곡로", "빌라 202호", true);
         createAddress(admin, "관리자", "010-0000-0000", "54321", "서울시 종로구 종로", "사무실 303호", true);
+
+        // 사용자마다 은행 계좌 생성
+        createBankAccount(user1, "국민은행", "123-4567-8901", "홍길동");
+        createBankAccount(user2, "신한은행", "987-6543-2101", "김철수");
+        createBankAccount(admin, "우리은행", "456-7890-1234", "관리자");
 
         // 상품 데이터 생성
         createProductData();
@@ -523,6 +531,17 @@ public class DataInitializer implements CommandLineRunner {
 
         addressRepository.save(newAddress);
         user.addAddress(newAddress); // 편의 메서드를 통해 User와 Address 연관 설정
+    }
+    // 은행 계좌 생성 메서드
+    private void createBankAccount(User user, String bankName, String accountNumber, String accountHolder) {
+        BankAccount bankAccount = BankAccount.builder()
+                .user(user) // 사용자와 연관 설정
+                .bankName(bankName)
+                .accountNumber(accountNumber)
+                .accountHolder(accountHolder)
+                .build();
+
+        bankAccountRepository.save(bankAccount);
     }
 }
 

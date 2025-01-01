@@ -69,7 +69,6 @@ public class SaleBidCommandService {
 
 
         // 3. SaleBid 생성
-        // 1. SaleBid 생성
         SaleBid saleBid = SaleBid.builder()
                 .seller(sale.getSeller()) // Sale의 판매자
                 .productSize(sale.getProductSize()) // Sale의 ProductSize

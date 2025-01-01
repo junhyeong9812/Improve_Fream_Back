@@ -3,12 +3,14 @@ package Fream_back.improve_Fream_Back.style.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class StyleDetailResponseDto {
     private Long id; // Style ID
     private String profileName; // 작성자 이름

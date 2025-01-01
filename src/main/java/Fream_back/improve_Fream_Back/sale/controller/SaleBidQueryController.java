@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,8 +22,8 @@ public class SaleBidQueryController {
     // SaleBid 목록 조회
     @GetMapping
     public Page<SaleBidResponseDto> getSaleBids(
-            String saleBidStatus,
-            String saleStatus,
+            @RequestParam(value = "saleBidStatus", required = false) String saleBidStatus,
+            @RequestParam(value = "saleStatus", required = false) String saleStatus,
             Pageable pageable
     ) {
         String email = SecurityUtils.extractEmailFromSecurityContext();

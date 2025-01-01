@@ -1,10 +1,14 @@
 package Fream_back.improve_Fream_Back.sale.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class InstantSaleRequestDto {
 
     private Long orderBidId; // 주문 입찰 ID

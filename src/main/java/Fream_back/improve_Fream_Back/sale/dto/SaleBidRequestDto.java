@@ -4,6 +4,8 @@ import lombok.*;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SaleBidRequestDto {
     private Long productSizeId; // 상품 사이즈 ID
     private int bidPrice; // 입찰 가격

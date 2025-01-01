@@ -16,25 +16,25 @@ public class SaleCommandController {
     private final SaleCommandService saleCommandService;
 
     // 즉시 판매 생성
-    @PostMapping("/instant")
-    public ResponseEntity<Long> createInstantSale(@RequestBody InstantSaleRequestDto requestDto) {
-        // SecurityUtils를 통해 이메일 추출
-        String sellerEmail = SecurityUtils.extractEmailFromSecurityContext();
-
-        Long saleId = saleCommandService.createInstantSale(
-                requestDto.getOrderBidId(),
-                sellerEmail,
-                requestDto.getReturnAddress(),
-                requestDto.getPostalCode(),
-                requestDto.getReceiverPhone()
-        ).getId();
-        return ResponseEntity.ok(saleId);
-    }
+//    @PostMapping("/instant")
+//    public ResponseEntity<Long> createInstantSale(@RequestBody InstantSaleRequestDto requestDto) {
+//        // SecurityUtils를 통해 이메일 추출
+//        String sellerEmail = SecurityUtils.extractEmailFromSecurityContext();
+//
+//        Long saleId = saleCommandService.createInstantSale(
+//                requestDto.getOrderBidId(),
+//                sellerEmail,
+//                requestDto.getReturnAddress(),
+//                requestDto.getPostalCode(),
+//                requestDto.getReceiverPhone()
+//        ).getId();
+//        return ResponseEntity.ok(saleId);
+//    }
 
     // 판매 상태 업데이트 (배송 상태)
     @PostMapping("/{saleId}/shipment")
     public ResponseEntity<Void> createSellerShipment(
-            @PathVariable Long saleId,
+            @PathVariable("saleId") Long saleId,
             @RequestBody ShipmentRequestDto requestDto
     ) {
         saleCommandService.createSellerShipment(

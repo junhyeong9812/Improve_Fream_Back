@@ -1,7 +1,9 @@
 package Fream_back.improve_Fream_Back.style.controller;
 
+import Fream_back.improve_Fream_Back.style.dto.UpdateCommentRequestDto;
 import Fream_back.improve_Fream_Back.style.entity.StyleComment;
 import Fream_back.improve_Fream_Back.style.service.StyleCommentCommandService;
+import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,11 @@ public class StyleCommentCommandController {
     // 댓글 생성
     @PostMapping
     public ResponseEntity<StyleComment> addComment(
-            @RequestParam String email,
-            @RequestParam Long styleId,
-            @RequestParam String content,
-            @RequestParam(required = false) Long parentCommentId
+            @RequestParam("styleId") Long styleId,
+            @RequestParam("content") String content,
+            @RequestParam(value = "parentCommentId", required = false) Long parentCommentId
     ) {
+        String email = SecurityUtils.extractEmailFromSecurityContext(); // 컨텍스트에서 이메일 추출
         StyleComment comment = styleCommentCommandService.addComment(email, styleId, content, parentCommentId);
         return ResponseEntity.ok(comment);
     }
@@ -28,16 +30,17 @@ public class StyleCommentCommandController {
     // 댓글 수정
     @PutMapping("/{commentId}")
     public ResponseEntity<Void> updateComment(
-            @PathVariable Long commentId,
-            @RequestParam String updatedContent
+            @PathVariable("commentId") Long commentId,
+            @RequestBody UpdateCommentRequestDto updateCommentRequestDto
     ) {
-        styleCommentCommandService.updateComment(commentId, updatedContent);
+        styleCommentCommandService.updateComment(commentId,  updateCommentRequestDto.getUpdatedContent());
         return ResponseEntity.ok().build();
     }
 
     // 댓글 삭제
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable("commentId") Long commentId) {
         styleCommentCommandService.deleteComment(commentId);
         return ResponseEntity.ok().build();
     }

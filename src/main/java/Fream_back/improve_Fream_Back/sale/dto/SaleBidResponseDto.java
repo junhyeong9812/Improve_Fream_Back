@@ -2,11 +2,13 @@ package Fream_back.improve_Fream_Back.sale.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class SaleBidResponseDto {
     private Long saleBidId;
     private Long productId;

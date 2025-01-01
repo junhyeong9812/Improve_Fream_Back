@@ -17,7 +17,8 @@ public class SaleBidCommandController {
 
     // 판매 입찰 생성
     @PostMapping
-    public ResponseEntity<Long> createSaleBid(@RequestBody SaleBidRequestDto requestDto) {
+    public ResponseEntity<Long> createSaleBid(
+            @RequestBody SaleBidRequestDto requestDto) {
         String email = SecurityUtils.extractEmailFromSecurityContext(); // 이메일 추출
         Long saleBidId = saleBidCommandService.createSaleBid(
                 email,
@@ -33,13 +34,15 @@ public class SaleBidCommandController {
 
     // 판매 입찰 삭제
     @DeleteMapping("/{saleBidId}")
-    public ResponseEntity<Void> deleteSaleBid(@PathVariable("saleBidId") Long saleBidId) {
+    public ResponseEntity<Void> deleteSaleBid(
+            @PathVariable("saleBidId") Long saleBidId) {
         saleBidCommandService.deleteSaleBid(saleBidId);
         return ResponseEntity.ok().build();
     }
     // 즉시 판매 생성
     @PostMapping("/instant")
-    public ResponseEntity<Long> createInstantSale(@RequestBody InstantSaleRequestDto requestDto) {
+    public ResponseEntity<Long> createInstantSale(
+            @RequestBody InstantSaleRequestDto requestDto) {
         String sellerEmail = SecurityUtils.extractEmailFromSecurityContext(); // 이메일 추출
         Long saleId = saleBidCommandService.createInstantSaleBid(
                 requestDto.getOrderBidId(),
