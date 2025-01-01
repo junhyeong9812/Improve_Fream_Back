@@ -74,136 +74,113 @@ Fream 리빌딩 프로젝트
 - **배포 및 운영**
     - **AWS와 Docker를 통한 안정적인 배포 환경 구축**
 
-## 프로젝트 전체 구조도 (25.01.01)
-```
-├─main
-│  ├─java
-│  │  └─Fream_back
-│  │      └─improve_Fream_Back
-│  │          ├─address
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─exception
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─base
-│  │          │  └─entity
-│  │          ├─config
-│  │          │  └─customWebSoket
-│  │          ├─faq
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─inspection
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─notice
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─notification
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─order
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─payment
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  │  └─paymentInfo
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          │      └─paymentInfo
-│  │          ├─product
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  │  └─enumType
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          │      ├─brand
-│  │          │      ├─category
-│  │          │      ├─collection
-│  │          │      ├─fileStorageUtil
-│  │          │      ├─interest
-│  │          │      ├─product
-│  │          │      ├─productColor
-│  │          │      ├─productDetailImage
-│  │          │      ├─productImage
-│  │          │      └─productSize
-│  │          ├─sale
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─shipment
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─style
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  ├─entity
-│  │          │  ├─repository
-│  │          │  └─service
-│  │          ├─user
-│  │          │  ├─controller
-│  │          │  ├─dto
-│  │          │  │  ├─BankAccount
-│  │          │  │  └─follow
-│  │          │  ├─entity
-│  │          │  ├─Jwt
-│  │          │  ├─redis
-│  │          │  ├─repository
-│  │          │  ├─security
-│  │          │  └─service
-│  │          │      ├─bankaccount
-│  │          │      ├─BlockProfile
-│  │          │      ├─follow
-│  │          │      └─profile
-│  │          ├─utils
-│  │          └─WarehouseStorage
-│  │              ├─entity
-│  │              ├─repository
-│  │              └─service
-│  └─resources
-
-```
 
 
 ## 재설계 1차 개발 : 12월 9일~ 12월 13일
-  - **사용자 도메인**
-    ![image](https://github.com/user-attachments/assets/8b089d5f-132f-467b-8339-8b7d88df610c)
-  - **고객센터 도메인**
-
+  1. **사용자 도메인**
+  2. **고객센터 도메인**
 ## 재설계 2차 개발 : 12월 13일 ~ 12월 20일
-  - **상품 도메인**
-    ![image](https://github.com/user-attachments/assets/9a496beb-509c-4d10-ac98-68ef3cdba97e)
-
+  1. **상품 도메인**
+    
 ## 재설계 3차 개발 : 12월 20일 ~ 25년 1월 1일
-  - **구매 도메인**
-  - **판매 도메인**
-  - **결제 도메인**
-  - **배송 도메인**
-  - **스타일 도메인**
+  1. **구매 도메인**
+  2. **판매 도메인**
+  3. **결제 도메인**
+  4. **배송 도메인**
+  5. **스타일 도메인**
+
+# 도메인 단위 도메인 분석
+
+## 1. 창고 (Warehouse)
+### 창고 도메인 연관 엔티티
+    WarehouseStorage: 창고 메인 엔티티.
+        User: 창고 보관 사용자.
+        Order: 창고와 연관된 주문.
+        Sale: 창고와 연관된 판매.
+
+## 2. 유저 (User) + 주소 (Address)
+### 유저 도메인 연관 엔티티
+    User: 유저 메인 엔티티.
+    Profile: 유저의 프로필.
+    Point: 유저 포인트.
+    Follow: 유저 팔로우.
+    BlockedProfile: 유저 차단.
+    BankAccount: 유저 정산 계좌.
+    Address: 유저 주소록.
+    PaymentInfo: 유저 결제 정보.
+![image](https://github.com/user-attachments/assets/8667ed70-952a-4e02-a0f5-7065ba17c269)
+
+
+
+## 3. 스타일 (Style)   
+### 스타일 도메인 연관 엔티티
+- Style: 스타일 메인 엔티티.
+  MediaUrl: 스타일에 포함된 미디어 URL.
+  StyleComment: 스타일 댓글.
+  StyleLike: 스타일 좋아요.
+  StyleInterest: 스타일 관심 등록.
+  StyleOrderItem: 스타일 관련 주문 아이템.
+  
+##  4. 배송 (Shipment)
+### 배송 도메인 연관 엔티티
+    OrderShipment: 구매자 배송 정보.
+    SellerShipment: 판매자 배송 정보.
+    
+## 5. 판매 (Sale)
+### 판매 도메인 연관 엔티티
+    Sale: 판매 메인 엔티티.
+    SaleBankAccount: 판매 정산 계좌.
+    SellerShipment: 판매자 배송 정보.
+    SaleBid: 판매 입찰 정보.
+    ProductSize: 판매 상품의 사이즈 정보.
+
+##  6. 상품 (Product)
+### 상품 도메인 연관 엔티티
+    Product: 상품 메인 엔티티.
+    ProductColor: 상품 색상 정보.
+    ProductSize: 상품 사이즈 정보.
+    ProductImage: 상품 이미지.
+    ProductDetailImage: 상품 상세 이미지.
+    ProductPriceHistory: 상품 가격 변동 내역.
+    Interest: 상품 관심 등록.
+    Brand: 상품 브랜드.
+    Category: 상품 카테고리.
+    Collection: 상품 컬렉션.
+
+
+##  7. 결제 (Payment)
+### 결제 도메인 연관 엔티티
+    Payment: 결제 메인 엔티티 (상속 구조).
+        GeneralPayment: 일반 결제.
+        CardPayment: 카드 결제.
+        AccountPayment: 계좌 결제.
+    PaymentInfo: 유저 결제 정보.
+
+##  8. 주문 (Order)
+### 주문 도메인 연관 엔티티
+    Order: 주문 메인 엔티티.
+    OrderItem: 주문 아이템.
+    OrderBid: 주문 입찰 정보.
+    WarehouseStorage: 창고 보관 정보
+
+##  9. 알림 (Notification)
+### 알림 도메인 연관 엔티티
+    Notification: 알림 메인 엔티티.
+
+##  10. 공지사항 (Notice)
+### 공지사항 도메인 연관 엔티티
+    Notice: 공지사항 메인 엔티티.
+    NoticeImage: 공지사항 이미지.
+
+##  11. 검수 기준 (Inspection)
+### 검수 기준 도메인 연관 엔티티
+    InspectionStandard: 검수 기준 메인 엔티티.
+    InspectionStandardImage: 검수 기준 이미지.
+
+##  12. FAQ
+### FAQ 도메인 연관 엔티티
+    FAQ: FAQ 메인 엔티티.
+    FAQImage: FAQ 이미지.
 
 
 
