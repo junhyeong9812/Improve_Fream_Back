@@ -93,94 +93,94 @@ Fream 리빌딩 프로젝트
 
 ## 1. 창고 (Warehouse)
 ### 창고 도메인 연관 엔티티
-    WarehouseStorage: 창고 메인 엔티티.
-        User: 창고 보관 사용자.
-        Order: 창고와 연관된 주문.
-        Sale: 창고와 연관된 판매.
+- WarehouseStorage: 창고 메인 엔티티.
+  - User: 창고 보관 사용자.
+  - Order: 창고와 연관된 주문.
+  - Sale: 창고와 연관된 판매.
 
 ## 2. 유저 (User) + 주소 (Address)
 ### 유저 도메인 연관 엔티티
-    User: 유저 메인 엔티티.
-    Profile: 유저의 프로필.
-    Point: 유저 포인트.
-    Follow: 유저 팔로우.
-    BlockedProfile: 유저 차단.
-    BankAccount: 유저 정산 계좌.
-    Address: 유저 주소록.
-    PaymentInfo: 유저 결제 정보.
-![image](https://github.com/user-attachments/assets/8667ed70-952a-4e02-a0f5-7065ba17c269)
-
-
+- User: 유저 메인 엔티티.
+- Profile: 유저의 프로필.
+- Point: 유저 포인트.
+- Follow: 유저 팔로우.
+- BlockedProfile: 유저 차단.
+- BankAccount: 유저 정산 계좌.
+- Address: 유저 주소록.
+- PaymentInfo: 유저 결제 정보.
 
 ## 3. 스타일 (Style)   
 ### 스타일 도메인 연관 엔티티
 - Style: 스타일 메인 엔티티.
-  MediaUrl: 스타일에 포함된 미디어 URL.
-  StyleComment: 스타일 댓글.
-  StyleLike: 스타일 좋아요.
-  StyleInterest: 스타일 관심 등록.
-  StyleOrderItem: 스타일 관련 주문 아이템.
+- MediaUrl: 스타일에 포함된 미디어 URL.
+- StyleComment: 스타일 댓글.
+- StyleLike: 스타일 좋아요.
+- StyleInterest: 스타일 관심 등록.
+- StyleOrderItem: 스타일 관련 주문 아이템.
   
 ##  4. 배송 (Shipment)
 ### 배송 도메인 연관 엔티티
-    OrderShipment: 구매자 배송 정보.
-    SellerShipment: 판매자 배송 정보.
+- OrderShipment: 구매자 배송 정보.
+- SellerShipment: 판매자 배송 정보.
     
 ## 5. 판매 (Sale)
 ### 판매 도메인 연관 엔티티
-    Sale: 판매 메인 엔티티.
-    SaleBankAccount: 판매 정산 계좌.
-    SellerShipment: 판매자 배송 정보.
-    SaleBid: 판매 입찰 정보.
-    ProductSize: 판매 상품의 사이즈 정보.
+- Sale: 판매 메인 엔티티.
+- SaleBankAccount: 판매 정산 계좌.
+- SellerShipment: 판매자 배송 정보.
+- SaleBid: 판매 입찰 정보.
+- ProductSize: 판매 상품의 사이즈 정보.
 
 ##  6. 상품 (Product)
 ### 상품 도메인 연관 엔티티
-    Product: 상품 메인 엔티티.
-    ProductColor: 상품 색상 정보.
-    ProductSize: 상품 사이즈 정보.
-    ProductImage: 상품 이미지.
-    ProductDetailImage: 상품 상세 이미지.
-    ProductPriceHistory: 상품 가격 변동 내역.
-    Interest: 상품 관심 등록.
-    Brand: 상품 브랜드.
-    Category: 상품 카테고리.
-    Collection: 상품 컬렉션.
+- Product: 상품 메인 엔티티.
+- ProductColor: 상품 색상 정보.
+- ProductSize: 상품 사이즈 정보.
+- ProductImage: 상품 이미지.
+- ProductDetailImage: 상품 상세 이미지.
+- ProductPriceHistory: 상품 가격 변동 내역.
+- Interest: 상품 관심 등록.
+- Brand: 상품 브랜드.
+- Category: 상품 카테고리.
+- Collection: 상품 컬렉션.
 
 
 ##  7. 결제 (Payment)
 ### 결제 도메인 연관 엔티티
-    Payment: 결제 메인 엔티티 (상속 구조).
-        GeneralPayment: 일반 결제.
-        CardPayment: 카드 결제.
-        AccountPayment: 계좌 결제.
-    PaymentInfo: 유저 결제 정보.
+- Payment: 결제 메인 엔티티 (상속 구조).
+  - GeneralPayment: 일반 결제.
+  - CardPayment: 카드 결제.
+  - AccountPayment: 계좌 결제.
+- PaymentInfo: 유저 결제 정보.
 
 ##  8. 주문 (Order)
 ### 주문 도메인 연관 엔티티
-    Order: 주문 메인 엔티티.
-    OrderItem: 주문 아이템.
-    OrderBid: 주문 입찰 정보.
-    WarehouseStorage: 창고 보관 정보
+- Order: 주문 메인 엔티티.
+- OrderItem: 주문 아이템.
+- OrderBid: 주문 입찰 정보.
+- WarehouseStorage: 창고 보관 정보
 
 ##  9. 알림 (Notification)
 ### 알림 도메인 연관 엔티티
-    Notification: 알림 메인 엔티티.
+- Notification: 알림 메인 엔티티.
 
 ##  10. 공지사항 (Notice)
 ### 공지사항 도메인 연관 엔티티
-    Notice: 공지사항 메인 엔티티.
-    NoticeImage: 공지사항 이미지.
+- Notice: 공지사항 메인 엔티티.
+- NoticeImage: 공지사항 이미지.
 
 ##  11. 검수 기준 (Inspection)
 ### 검수 기준 도메인 연관 엔티티
-    InspectionStandard: 검수 기준 메인 엔티티.
-    InspectionStandardImage: 검수 기준 이미지.
+- InspectionStandard: 검수 기준 메인 엔티티.
+- InspectionStandardImage: 검수 기준 이미지.
 
 ##  12. FAQ
 ### FAQ 도메인 연관 엔티티
-    FAQ: FAQ 메인 엔티티.
-    FAQImage: FAQ 이미지.
+- FAQ: FAQ 메인 엔티티.
+- FAQImage: FAQ 이미지.
+
+# 전체 엔티티 ERD
+![image](https://github.com/user-attachments/assets/17a9805c-1f3d-4da9-9310-e3efde4b6967)
 
 
 
