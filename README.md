@@ -73,12 +73,139 @@ Fream 리빌딩 프로젝트
     - **Redis를 이용한 토큰 화이트리스트 관리**
 - **배포 및 운영**
     - **AWS와 Docker를 통한 안정적인 배포 환경 구축**
-    - **향후 Kubernetes를 통해 마이크로서비스 아키텍처 적용 예정**
+
+## 프로젝트 전체 구조도 (25.01.01)
+```
+├─main
+│  ├─java
+│  │  └─Fream_back
+│  │      └─improve_Fream_Back
+│  │          ├─address
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─exception
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─base
+│  │          │  └─entity
+│  │          ├─config
+│  │          │  └─customWebSoket
+│  │          ├─faq
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─inspection
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─notice
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─notification
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─order
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─payment
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  │  └─paymentInfo
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          │      └─paymentInfo
+│  │          ├─product
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  │  └─enumType
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          │      ├─brand
+│  │          │      ├─category
+│  │          │      ├─collection
+│  │          │      ├─fileStorageUtil
+│  │          │      ├─interest
+│  │          │      ├─product
+│  │          │      ├─productColor
+│  │          │      ├─productDetailImage
+│  │          │      ├─productImage
+│  │          │      └─productSize
+│  │          ├─sale
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─shipment
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─style
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  ├─entity
+│  │          │  ├─repository
+│  │          │  └─service
+│  │          ├─user
+│  │          │  ├─controller
+│  │          │  ├─dto
+│  │          │  │  ├─BankAccount
+│  │          │  │  └─follow
+│  │          │  ├─entity
+│  │          │  ├─Jwt
+│  │          │  ├─redis
+│  │          │  ├─repository
+│  │          │  ├─security
+│  │          │  └─service
+│  │          │      ├─bankaccount
+│  │          │      ├─BlockProfile
+│  │          │      ├─follow
+│  │          │      └─profile
+│  │          ├─utils
+│  │          └─WarehouseStorage
+│  │              ├─entity
+│  │              ├─repository
+│  │              └─service
+│  └─resources
+
+```
 
 
-## 재설계 1차 프로젝트 : 12월 9일~ 12월 13일
+## 재설계 1차 개발 : 12월 9일~ 12월 13일
   - **사용자 도메인**
     ![image](https://github.com/user-attachments/assets/8b089d5f-132f-467b-8339-8b7d88df610c)
+  - **고객센터 도메인**
+
+## 재설계 2차 개발 : 12월 13일 ~ 12월 20일
+  - **상품 도메인**
+    ![image](https://github.com/user-attachments/assets/9a496beb-509c-4d10-ac98-68ef3cdba97e)
+
+## 재설계 3차 개발 : 12월 20일 ~ 25년 1월 1일
+  - **구매 도메인**
+  - **판매 도메인**
+  - **결제 도메인**
+  - **배송 도메인**
+  - **스타일 도메인**
+
+
 
 # 사용자 관련 기능 및 API 명세서
 ## 1.1 로그인
