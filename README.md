@@ -1,28 +1,160 @@
-Fream 리빌딩 프로젝트
-<br>
-기존의 Kream클론 프로젝트에서 부족한 점을 개선하고 리빌딩하기 위한 프로젝트
-<br>
-**기존 프로젝트** : https://github.com/junhyeong9812/fream_back
-<br>
-<br>
-**엔티티 설계 과정** : https://unleashed-moon-059.notion.site/Kream-15a256e3f89b80438417cdd16f30f3d0
-<br>
-<br>
-**PostMan API경로** : https://web.postman.co/workspace/5b556cbc-5c81-44b7-8ebd-85f4023ecae3/request/38241845-816ab6bf-2756-4868-8860-f03fe7544a49?tab=body
-<br>
+# Fream 리빌딩 프로젝트
 
-### 개요
+## 1. 프로젝트 개요
+- 기존 Kream 클론 프로젝트에서 부족했던 점을 개선하고, e-Commerce와 커뮤니티 기능을 통합한 리셀 플랫폼을 다시 설계/구현한 프로젝트입니다.
+
+## 2. 주요 기능
+- **유저 계정**: 회원가입, 로그인, 프로필, 팔로우/차단
+- **상품 관리**: 등록, 수정, 삭제, 이미지 관리
+- **구매/판매/결제/배송**: 실제 리셀 프로세스 구현
+- **스타일 커뮤니티**: 스타일 등록/좋아요/댓글
+- **알림/공지/FAQ**: 실시간 알림(WebSocket), 공지, FAQ 관리
+
+## 3. 기술 스택
+- **Backend**: Spring Boot, JPA, QueryDSL, Spring Security, Redis
+- **DB**: H2(개발), MySQL/AWS RDS(운영)
+- **Infra**: AWS EC2, S3, Docker 등
+
+## 4. 환경 요구사항 (Prerequisites)
+
+1. **Java 11+**
+   - 설치 확인: `java -version`
+2. **Docker & Docker Compose**
+   - Redis 구동을 위해 필요
+3. **Git**
+   - 저장소 클론을 위해 필요
+  
+> **참고**: 이 프로젝트에는 Gradle Wrapper(`gradlew`, `gradlew.bat`)가 포함되어 있으므로,  
+> 별도의 Gradle 설치 없이도 `./gradlew` 명령을 통해 빌드하고 실행할 수 있습니다.
+
+## 5. 설치 및 실행
+
+### 5.1 프로젝트 클론
+```bash
+git clone https://github.com/your-repo/Improve_Fream_Back.git
+cd Improve_Fream_Back
 ```
-이번 프로젝트는 기존에 진행했던 KREAM 리셀 사이트 클론 프로젝트에서의 경험과 아쉬움을 바탕으로, 처음부터 다시 설계하고 구현하는 **리셀 플랫폼 리빌딩 프로젝트**입니다. KREAM은 e-Commerce의 기본적인 요소와 커뮤니티 기능(스타일 공유, 댓글, 추천 등)을 모두 갖춘 플랫폼으로, 웹 개발에 필요한 주요 기술을 종합적으로 익히기에 적합한 프로젝트입니다.
 
-이번 프로젝트는 다음과 같은 기술 스택을 활용하여 개발 중입니다:
-
-1. **백엔드**: Spring Boot, JPA, H2 Database
-2. **프론트엔드**: React.js, TypeScript
-3. **데이터 관리**: DTO를 활용한 데이터 독립성 확보, QueryDSL을 통한 효율적 조회
-4. **구조 설계**: 도메인 주도 설계(DDD)를 통해 유지보수성과 확장성을 고려한 모듈화
+### 5-2.Docker로 Redis 실행
+1. Docker & Docker Compose 설치 확인
+    - docker -v
+    - docker-compose -v
+    - 위 명령어로 버전이 표시되면 설치가 잘 된 것입니다.
+2. docker-compose.yml 파일 확인
+    - docker-compose up -d 명령어로 Redis 컨테이너를 백그라운드로 실행시킵니다.
+3. Redis 실행 확인
+    - docker ps → redis_server(또는 redis 컨테이너 이름)이 실행 중인지 확인
+    - docker logs redis_server로 에러 로그 여부 확인
+  
+### 5.3 로컬 환경설정 (application-local.yml)
+    - 이 프로젝트는 민감 정보를 분리 관리하기 위해 application-local.yml 파일을 사용합니다.
+    -아래와 같이 H2 인메모리 DB 및 Redis 설정이 포함된 샘플을 참고하여, 개인 키/패스워드를 직접 작성해주세요:
 ```
+src/main/resources/application-local.yml
+```
+    - application-local.yml 샘플
+```
+spring:
+  datasource:
+    # In-memory 모드
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
 
+  servlet:
+    multipart:
+      max-file-size: 1GB  # 업로드 가능한 최대 파일 크기
+      max-request-size: 1GB  # 요청의 전체 크기
+
+  jpa:
+    hibernate:
+      ddl-auto: create  # 개발 편의를 위해 create, 필요에 따라 create-drop/update 등 지정
+    properties:
+      hibernate:
+        format_sql: true
+        # show_sql: true  # SQL 로그가 필요할 경우 주석 해제
+
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
+        one-indexed-parameters: true
+
+  redis:
+    host: localhost
+    port: 6379
+    # password:  # 비밀번호가 있을 경우 추가
+    # database: 0
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "YOUR_EMAIL@gmail.com"  # 실제 Gmail 주소
+    password: "YOUR_EMAIL_APP_PASSWORD"  # Gmail 앱 비밀번호 (2단계 인증 시 생성되는 App Password)
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+
+logging.level:
+  org.hibernate.SQL: debug
+  # org.hibernate.type: trace  # 필요하면 주석 해제 (쿼리 파라미터까지 로깅)
+
+jwt:
+  secret: "YOUR_JWT_SECRET_KEY"      # JWT 서명에 사용할 비밀 키
+  expiration: 3600000               # JWT 만료 시간 (밀리초 단위, 예: 1시간)
+
+imp:
+  key: "PORTONE_API_KEY"            # 아임포트(PortOne) API Key (필요 시)
+  secret: "PORTONE_API_SECRET"      # 아임포트(PortOne) Secret Key (필요 시)
+
+```
+### 5.4 스프링 부트 빌드 & 실행
+1. Gradle 빌드
+```
+./gradlew clean build
+```
+    - (Windows 환경은 gradlew.bat clean build)
+2. 애플리케이션 실행
+```
+java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
+```
+    - 또는 IDE에서 Spring Boot 메인 클래스 실행
+
+3. H2 콘솔 접속 (개발용)
+    - 브라우저에서 http://localhost:8080/h2-console
+    - JDBC URL: jdbc:h2:mem:testdb, 사용자: sa
+    - 접속 후 테이블/데이터 확인 가능
+
+### 5.5 테스트 데이터 삽입 (DataInitializer)
+본 프로젝트에는 DataInitializer 클래스를 통해 테스트용 기본 데이터가 자동으로 삽입됩니다.
+- 위치 
+    ```
+    src/main/java/Fream_back/improve_Fream_Back/config/DataInitializer.java
+    ```
+- 주요 역할:
+  - 기본 사용자(User), 관리자(Admin) 계정 생성
+    - 주소(Address), 은행계좌(BankAccount) 등록
+    - 상품(Brand, Category, Product, ProductColor, ProductSize) 생성
+    - 주문(Order), 입찰(OrderBid, SaleBid), 배송(Shipment), 창고(WarehouseStorage) 등 리셀 프로세스 예시 데이터
+    - 공지사항(Notice), FAQ, 검수(Inspection), 알림(Notification) 등의 샘플 데이터
+스프링 부트 애플리케이션이 시작될 때, CommandLineRunner를 구현한 이 클래스의 run() 메서드가 실행되어 개발/테스트 환경에서 편리하게 샘플 데이터를 확인할 수 있습니다.
+```
+주의: 운영(Production) 환경에서는 보통 이 클래스를 비활성화하거나, @Profile("local") 처리하여 실행되지 않도록 합니다.
+```
+## 6. 추가 정보 (기획 의도, 도메인 분석 등)
+아래 내용은 프로젝트의 배경, 도메인 설계, ERD 등을 담고 있습니다.  
+필요하신 분만 펼쳐서 확인하세요.
+
+<details>
+<summary><strong>기획 의도 & 프로젝트 목표</strong></summary>
 ### 기획의도
 ```
 기존 프로젝트에서 발견했던 한계점을 해결하고, 더 깊이 있는 학습을 통해 실무 수준의 결과물을 만들어내고자 이번 프로젝트를 시작했습니다.
@@ -88,7 +220,10 @@ Fream 리빌딩 프로젝트
   3. **결제 도메인**
   4. **배송 도메인**
   5. **스타일 도메인**
+</details>
 
+<details>
+<summary><strong>도메인 분석 & ERD</strong></summary>
 # 도메인 단위 도메인 분석
 
 ## 1. 창고 (Warehouse)
@@ -181,7 +316,7 @@ Fream 리빌딩 프로젝트
 
 # 전체 엔티티 ERD
 ![image](https://github.com/user-attachments/assets/17a9805c-1f3d-4da9-9310-e3efde4b6967)
-
+</details>
 
 
 # 사용자 관련 기능 및 API 명세서
@@ -852,39 +987,6 @@ Authorization: Bearer <JWT Token>
   - 웹 소캣을 활용한 알림 기능 구현
 
 
-# 환경 설정
-이 프로젝트는 민감한 정보를 분리 관리하기 위해 **application.yml**과 application-<profile>.yml 파일을 사용합니다. 로컬 개발 환경에서는 기본적으로 application-local.yml을 사용하도록 설정되어 있습니다.
-
-## 1 필수 설정 파일
-1. application.yml
-- 기본 설정을 포함하며, Git에 포함되어 있습니다.
-- 프로파일에 따라 추가 설정 파일(application-local.yml, application-prod.yml)을 로드합니다.
-2. application-local.yml
-- 로컬 개발 환경에서 필요한 민감한 정보를 포함합니다.
-- 이 파일은 Git에 포함되지 않으며, 다음 경로에 생성해야 합니다:
-```
-src/main/resources/application-local.yml
-```
-##2 application-local.yml 샘플
-```
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/mydb
-    username: myuser
-    password: mypassword
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: your-email@gmail.com
-    password: your-email-password
-jwt:
-  secret: your-secret-key
-  expiration: 3600000      # JWT 만료 시간 (밀리초 단위, 예: 1시간)
-portone:
-  api-key: ${PORTONE_API_KEY} # 포트원의 API 키
-  api-secret: ${PORTONE_API_SECRET} # 포트원의 Secret 키
-
-```
 
 
 
