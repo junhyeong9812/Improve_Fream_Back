@@ -324,671 +324,214 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 
 
 # 사용자 관련 기능 및 API 명세서
-## 1.1 로그인
-- **URL: /api/users/login**
-- **Method: POST**
-- **Description: 사용자의 email과 password로 로그인. 성공 시 JWT 토큰 발급.**
-### Request Body
-```
-{
-  "email": "string",
-  "password": "string"
-}
-```
+## 1. 사용자(User) / 프로필(Profile) / 팔로우(Follow) / 차단(Block)
+### 1.1 /api/users
+   - POST /register : 사용자 회원가입
+   - POST /login : 사용자 로그인 (JWT 토큰 발급)
+   - POST /find-email : 전화번호로 이메일 찾기
+   - POST /reset-password : 이메일·전화번호 확인 후 비밀번호 초기화 가능 여부 확인
+   - POST /reset-password-sandEmail : 임시 비밀번호 이메일 전송
+   - POST /reset : 비밀번호 변경
+   - PUT /update-login-info : 로그인 정보(이메일·비밀번호 등) 업데이트
+   - GET /login-info : 로그인 정보 조회
+   - DELETE /delete-account : 회원 탈퇴
 
-### Response (200 OK)
-```
-{
-  "token": "string"
-}
-```
-<br>
-### Response (401 Unauthorized)
-```
-{
-  "status": "error",
-  "message": "Invalid credentials."
-}
-```
-## 1.2 회원가입
-- **URL: /api/users/register**
-- **Method: POST**
-- **Description: 회원 정보를 받아 사용자 등록.**
+### 1.2 /api/profiles
+   - GET / : 내 프로필 조회
+   - PUT / (multipart) : 프로필 업데이트(이미지, 공개범위 등)
+   - GET /{profileId}/image : 특정 프로필 이미지 조회
 
-### Request Body
-```
-{
-  "email": "string",
-  "password": "string",
-  "phoneNumber": "string",
-  "referralCode": "string",
-  "shoeSize": "string",
-  "isOver14": true,
-  "termsAgreement": true,
-  "privacyAgreement": true,
-  "optionalPrivacyAgreement": true,
-  "adConsent": true
-}
-```
-### Response (201 Created)
-```
-{
-  "status": "success",
-  "userEmail": "string"
-}
-```
-### Response (400 Bad Request)
-```
-{
-  "status": "error",
-  "message": "Invalid input."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "회원가입 처리 중 문제가 발생했습니다."
-}
-```
-## 1.3 이메일 찾기
-- **URL: /api/users/find-email**
-- **Method: POST**
-- **Description: 사용자의 전화번호로 이메일을 조회.**
-### Request Body
-```
-{
-  "phoneNumber": "string"
-}
-```
-### Response (200 OK)
-```
-{
-  "email": "string"
-}
-```
-### Response (404 Not Found)
-```
-{
-  "status": "error",
-  "message": "이메일을 찾을 수 없습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "이메일 찾기 처리 중 문제가 발생했습니다."
-}
-```
-### 1.4 비밀번호 초기화 가능 여부 확인
-- **URL: /api/users/reset-password**
-- **Method: POST**
-- **Description: 이메일과 전화번호를 통해 비밀번호 초기화 가능 여부 확인.**
-### Request Body
-```
-{
-  "email": "string",
-  "phoneNumber": "string"
-}
-```
-### Response (200 OK)
-```
-{
-  "status": "ok"
-}
-```
-### Response (404 Not Found)
-```
-{
-  "status": "error",
-  "message": "해당 이메일 및 전화번호로 사용자를 찾을 수 없습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "비밀번호 찾기 처리 중 문제가 발생했습니다."
-}
-```
-### 1.5 비밀번호 변경
-- **URL: /api/users/reset**
-- **Method: POST**
-- **Description: 새로운 비밀번호를 설정.**
-### Request Body
-```
-{
-  "email": "string",
-  "phoneNumber": "string",
-  "newPassword": "string",
-  "confirmPassword": "string"
-}
-```
-### Response (200 OK)
-```
-"비밀번호가 성공적으로 변경되었습니다."
-```
-### Response (400 Bad Request)
-```
-"비밀번호와 비밀번호 확인이 일치하지 않습니다."
-```
-### Response (500 Internal Server Error)
-```
-"비밀번호 변경 중 문제가 발생했습니다."
-```
+### 1.3 /api/follows
+   - POST /{profileId} : 해당 프로필 팔로우
+   - DELETE /{profileId} : 팔로우 취소
+   - GET /followers : 내 팔로워 목록 조회
+   - GET /followings : 내 팔로잉 목록 조회
 
-## 1.6 로그인 정보 변경
-- **URL: /api/users/update-login-info**
-- **Method: PUT**
-- **Description: 사용자의 로그인 정보를 업데이트.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Body
-```
-{
-  "newEmail": "string",
-  "password": "string",
-  "newPassword": "string",
-  "newPhoneNumber": "string",
-  "newShoeSize": "string",
-  "adConsent": true,
-  "privacyConsent": true,
-  "smsConsent": true,
-  "emailConsent": true
-}
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "로그인 정보가 성공적으로 변경되었습니다."
-}
-```
-### Response (400 Bad Request)
-```
-{
-  "status": "error",
-  "message": "잘못된 입력 값입니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "로그인 정보 변경 처리 중 문제가 발생했습니다."
-}
-```
-## 1.7 로그인 정보 조회
-- **URL: /api/users/login-info**
-- **Method: GET**
-- **Description: 사용자의 로그인 정보를 조회.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-{
-  "email": "string",
-  "phoneNumber": "string",
-  "shoeSize": "string",
-  "optionalPrivacyAgreement": true,
-  "smsConsent": true,
-  "emailConsent": true
-}
-```
-### Response (404 Not Found)
-```
-null
-```
-### Response (500 Internal Server Error)
-```
-null
-```
-## 1.8 회원 탈퇴
-- **URL: /api/users/delete-account**
-- **Method: DELETE**
-- **Description: 사용자의 계정을 삭제.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "회원 탈퇴가 완료되었습니다."
-}
-```
-### Response (404 Not Found)
-```
-{
-  "status": "error",
-  "message": "사용자를 찾을 수 없습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "회원 탈퇴 처리 중 문제가 발생했습니다."
-}
-```
-## 1.9 비밀번호 찾기 - 이메일로 임시 비밀번호 전송
-- **URL: /api/users/reset-password-sandEmail**
-- **Method: POST**
-- **Description: 사용자의 이메일로 임시 비밀번호를 전송합니다. 임시 비밀번호는 랜덤으로 생성되며, 이메일 전송 후 암호화되어 저장됩니다.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Body
-```
-{
-  "email": "string",
-  "phoneNumber": "string"
-}
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "임시 비밀번호가 이메일로 전송되었습니다."
-}
-```
-### Response (404 Not Found)
-```
-{
-  "status": "error",
-  "message": "해당 이메일 및 전화번호로 사용자를 찾을 수 없습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "비밀번호 찾기 처리 중 문제가 발생했습니다."
-}
-```
+### 1.4 /api/profiles/blocked
+   - POST / : 특정 프로필 차단
+   - DELETE / : 특정 프로필 차단 해제
+   - GET / : 내가 차단한 프로필 목록 조회
 
+### 1.5 /api/bank-account
+   - POST / : 판매 정산 계좌 생성·수정
+   - GET / : 판매 정산 계좌 조회
+   - DELETE / : 판매 정산 계좌 삭제
 
+--------------------------------------------
 
-## 2.1 프로필 조회
-- **URL: /api/profiles**
-- **Method: GET**
-- **Description: 사용자의 프로필 정보를 조회.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-{
-  "profileImage": "string",
-  "profileName": "string",
-  "realName": "string",
-  "bio": "string",
-  "isPublic": true,
-  "blockedProfiles": [
-    {
-      "profileId": "number",
-      "profileName": "string",
-      "profileImageUrl": "string"
-    }
-  ]
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "프로필 정보를 불러오는 중 문제가 발생했습니다."
-}
-```
-## 2.2 프로필 업데이트
--**URL: /api/profiles**
--**Method: PUT**
--** Description: 사용자의 프로필 정보를 업데이트. 이미지 파일은 Multipart 형식으로 받음.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Body (Multipart Form Data)
-```
-{
-  "profileImage": "file (binary)",
-  "dto": {
-    "profileName": "string",
-    "realName": "string",
-    "bio": "string",
-    "isPublic": "boolean"
-  }
-}
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "프로필이 성공적으로 업데이트되었습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "프로필 업데이트 중 문제가 발생했습니다."
-}
-```
-## 2.3 프로필 이미지 제공
-- **URL: /api/profiles/{profileId}/image**
-- **Method: GET**
-- **Description: 특정 프로필의 프로필 이미지를 제공.**
-## Path Parameters
-```
-profileId: 프로필 ID
-```
-### Response (200 OK)
-```
-Content-Type: 이미지 파일 형식 (e.g., image/jpeg)
-```
-### Response (404 Not Found)
-```
-{
-  "status": "error",
-  "message": "이미지 파일이 존재하지 않습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "프로필 이미지를 불러오는 중 문제가 발생했습니다."
-}
-```
+## 2. 주소(Address)
+### /api/addresses
+   - POST / : 주소록 생성
+   - PUT / : 주소록 수정
+   - DELETE /{addressId} : 주소록 삭제
+   - GET / : 내 주소 목록 조회
+   - GET /{addressId} : 특정 주소 조회
 
-## 3.1 팔로우 생성
-- **URL: /api/follows/{profileId}**
-- **Method: POST**
-- **Description: 특정 프로필을 팔로우.
+--------------------------------------------
 
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Path Parameters
-```
-profileId: 팔로우할 프로필 ID
-```
-### Response (200 OK)
-```
-"팔로우가 성공적으로 추가되었습니다."
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "팔로우 생성 중 문제가 발생했습니다."
-}
-```
-## 3.2 팔로우 삭제
-- **URL: /api/follows/{profileId}**
-- **Method: DELETE**
-- **Description: 특정 프로필 팔로우를 취소.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Path Parameters
-```
-profileId: 취소할 팔로우 프로필 ID
-```
-### Response (200 OK)
-```
-"팔로우가 성공적으로 삭제되었습니다."
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "팔로우 삭제 중 문제가 발생했습니다."
-}
-```
-## 3.3 팔로워 목록 조회
-- **URL: /api/follows/followers**
-- **Method: GET**
-- **Description: 로그인 사용자의 팔로워 목록을 조회.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Query Parameters
-```
-page: 페이지 번호 (default: 0)
+## 3. FAQ
+### /faqs
+   - POST / (multipart) : FAQ 생성 (관리자 권한)
+   - PUT /{id} (multipart) : FAQ 수정 (관리자 권한)
+   - DELETE /{id} : FAQ 삭제 (관리자 권한)
+   - GET / : FAQ 목록 조회(카테고리 필터 가능)
+   - GET /{id} : FAQ 단일 조회
+   - GET /search : FAQ 검색
 
-size: 페이지 크기 (default: 20)
-```
-### Response (200 OK)
-```
-{
-  "content": [
-    {
-      "profileId": "number",
-      "profileName": "string",
-      "profileImageUrl": "string"
-    }
-  ],
-  "pageable": {
-    "page": "number",
-    "size": "number"
-  }
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "팔로워 목록 조회 중 문제가 발생했습니다."
-}
-```
-## 3.4 팔로잉 목록 조회
-- **URL: /api/follows/followings**
-- **Method: GET**
-- **Description: 로그인 사용자의 팔로잉 목록을 조회.**
+--------------------------------------------
 
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Query Parameters
-```
-page: 페이지 번호 (default: 0)
+## 4. 검수(Inspection)
+### /inspections
+   - POST / (multipart) : 검수 기준 생성 (관리자 권한)
+   - PUT /{id} (multipart) : 검수 기준 수정 (관리자 권한)
+   - DELETE /{id} : 검수 기준 삭제 (관리자 권한)
+   - GET / : 검수 기준 목록 조회(카테고리 필터 가능)
+   - GET /{id} : 검수 기준 단일 조회
 
-size: 페이지 크기 (default: 20)
-```
-### Response (200 OK)
-```
-{
-  "content": [
-    {
-      "profileId": "number",
-      "profileName": "string",
-      "profileImageUrl": "string"
-    }
-  ],
-  "pageable": {
-    "page": "number",
-    "size": "number"
-  }
-}
-```
-### Response (500 Internal Server Error)
+--------------------------------------------
 
+## 5. 공지사항(Notice)
+### /notices
+   - POST / (multipart) : 공지사항 생성 (관리자 권한)
+   - PUT /{noticeId} (multipart) : 공지사항 수정
+   - DELETE /{noticeId} : 공지사항 삭제
+   - GET /{noticeId} : 단일 공지 조회
+   - GET /search : 공지사항 검색
+   - GET / : 공지사항 목록 조회(카테고리 필터 가능)
+   - GET /files/{fileName} : 첨부파일 미리보기
 
-## 4.1 프로필 차단
-- **URL: /api/profiles/blocked**
-- **Method: POST**
-- **Description: 특정 프로필을 차단.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Parameters
-```
-blockedProfileId: (Long) 차단할 프로필의 ID
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "프로필 차단이 완료되었습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "프로필 차단 중 문제가 발생했습니다."
-}
-```
-## 4.2 프로필 차단 해제
-- **URL: /api/profiles/blocked**
-- **Method: DELETE**
-- **Description: 특정 프로필에 대한 차단을 해제.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Parameters
-```
-blockedProfileId: (Long) 차단 해제할 프로필의 ID
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "프로필 차단이 해제되었습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "프로필 차단 해제 중 문제가 발생했습니다."
-}
-```
-## 4.3 차단된 프로필 목록 조회
-- **URL: /api/profiles/blocked**
-- **Method: GET**
-- **Description: 사용자가 차단한 프로필 목록을 조회.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-[
-  {
-    "profileId": "number",
-    "profileName": "string",
-    "profileImageUrl": "string"
-  }
-]
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "차단된 프로필 목록 조회 중 문제가 발생했습니다."
-}
-```
-## 5.1 입금 계좌 정보 생성 및 수정
-- **URL: /api/bank-account**
-- **Method: POST**
-- **Description: 판매 정산 계좌 정보를 등록하거나 수정.**
+--------------------------------------------
 
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Request Body
-```
-{
-  "bankName": "string",
-  "accountNumber": "string",
-  "accountHolder": "string"
-}
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "판매 정산 계좌가 성공적으로 등록/수정되었습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "입금 계좌 정보 등록/수정 중 문제가 발생했습니다."
-}
-```
-## 5.2 입금 계좌 정보 조회
-- **URL: /api/bank-account**
-- **Method: GET**
-- **Description: 사용자의 판매 정산 계좌 정보를 조회.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-{
-  "bankName": "string",
-  "accountNumber": "string",
-  "accountHolder": "string"
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "입금 계좌 정보 조회 중 문제가 발생했습니다."
-}
-```
-## 5.3 입금 계좌 정보 삭제
-- **URL: /api/bank-account**
-- **Method: DELETE**
-- **Description: 사용자의 판매 정산 계좌 정보를 삭제.**
-### Request Header
-```
-Authorization: Bearer <JWT Token>
-```
-### Response (200 OK)
-```
-{
-  "status": "success",
-  "message": "판매 정산 계좌가 성공적으로 삭제되었습니다."
-}
-```
-### Response (500 Internal Server Error)
-```
-{
-  "status": "error",
-  "message": "입금 계좌 정보 삭제 중 문제가 발생했습니다."
-}
-```
+## 6. 알림(Notification)
+### /api/notifications
+   - POST / : 특정 유저 알림 생성
+   - POST /broadcast : 전체 유저에게 알림 생성
+   - PATCH /{id}/read : 알림 읽음 처리
+   - GET /filter/category : 카테고리별 알림 조회
+   - GET /filter/type : 유형별 알림 조회
+   - GET /filter/category/read-status : 카테고리 + 읽음여부 필터
+   - GET /filter/type/read-status : 유형 + 읽음여부 필터
+   - (WebSocket) @MessageMapping("/ping") : Ping 처리(TTL 갱신)
 
+--------------------------------------------
 
+## 7. 주문(Order) & 구매 입찰(OrderBid)
+### 7.1 /api/order-bids (Command)
+   - POST / : 구매 입찰(OrderBid) 생성
+   - DELETE /{orderBidId} : 구매 입찰 삭제
+   - POST /instant : 즉시 구매 생성(결제·배송 등)
 
+### 7.2 /api/order-bids (Query)
+   - GET / : 내 구매 입찰 목록 조회 (bidStatus·orderStatus 필터)
+   - GET /count : 내 구매 입찰 상태 카운트 조회
 
+### 7.3 /api/orders (Command)
+   - POST /{orderId}/process-payment-shipment : 결제 & 배송처리
 
+--------------------------------------------
 
-  - 고객센터 도메인
+## 8. 결제(Payment)
+### /api/payment-info
+   - POST / : 결제 정보(PaymentInfo) 생성
+   - DELETE /{id} : 결제 정보 삭제
+   - GET / : 결제 정보 목록 조회
+   - GET /{id} : 결제 정보 단일 조회
+   - POST /test-payment : 테스트 결제/환불 시나리오
 
-  - 웹 소캣을 활용한 알림 기능 구현
+--------------------------------------------
+
+## 9. 상품(Product) & 카테고리(Category) & 브랜드(Brand) & 컬렉션(Collection) & 관심상품(Interest)
+### 9.1 /api/products
+   - GET / : 상품 검색(키워드, 카테고리, 브랜드, 컬러, 사이즈, 가격범위 등)
+   - GET /{productId}/detail : 상품 상세 조회(colorName)
+   - GET /{productId}/images : 상품 이미지 파일 제공
+   - POST / : 상품 등록(관리자 권한)
+   - PUT /{productId} : 상품 수정(관리자 권한)
+   - DELETE /{productId} : 상품 삭제(관리자 권한)
+
+### 9.2 /api/product-colors
+   - POST /{productId} : 상품 컬러 추가(썸네일, detailImages 등)
+   - PUT /{productColorId} : 상품 컬러 수정
+   - DELETE /{productColorId} : 상품 컬러 삭제
+
+### 9.3 /api/interests
+   - GET /{userId} : 유저의 관심상품 목록 조회
+   - POST /{productColorId}/toggle : 관심상품 토글(추가/삭제)
+
+### 9.4 /api/categories
+   - POST / : 카테고리 생성(관리자 권한)
+   - PUT /{categoryId} : 카테고리 수정
+   - DELETE /{categoryId} : 카테고리 삭제
+   - GET /main : 메인(상위) 카테고리 목록
+   - GET /sub/{mainCategoryName} : 하위 카테고리 목록
+
+### 9.5 /api/brands
+   - POST / : 브랜드 생성(관리자 권한)
+   - PUT /{brandId} : 브랜드 수정
+   - DELETE /{brandName} : 브랜드 삭제
+   - GET / : 모든 브랜드 조회
+   - GET /{brandName} : 특정 브랜드 조회
+
+### 9.6 /api/collections
+   - POST / : 컬렉션 생성(관리자 권한)
+   - PUT /{collectionId} : 컬렉션 수정
+   - DELETE /{collectionName} : 컬렉션 삭제
+   - GET / : 전체 컬렉션 조회
+
+--------------------------------------------
+
+## 10. 판매(Sale) & 판매 입찰(SaleBid)
+
+### 10.1 /api/sale-bids (Command)
+   - POST / : 판매 입찰(SaleBid) 생성
+   - DELETE /{saleBidId} : 판매 입찰 삭제
+   - POST /instant : 즉시 판매 생성
+
+### 10.2 /api/sale-bids (Query)
+   - GET / : 내 판매 입찰 목록 조회(saleBidStatus, saleStatus 필터)
+   - GET /count : 내 판매 입찰 상태 카운트 조회
+
+### 10.3 /api/sales
+   - POST /{saleId}/shipment : 판매자 배송정보 등록(택배사, 운송장번호)
+
+--------------------------------------------
+
+## 11. 배송(Shipment)
+### 11.1 /api/shipments/order
+   - PATCH /{shipmentId}/status : 구매자(Order) 배송 정보 업데이트
+
+### 11.2 /api/shipments/seller
+   - POST / : 판매자(Seller) 배송 정보 생성
+   - PATCH /{shipmentId} : 판매자 배송 정보 업데이트
+
+--------------------------------------------
+
+## 12. 스타일(Style) & 댓글(StyleComment) & 좋아요(StyleLike) & 관심(StyleInterest)
+### 12.1 /api/styles/commands
+   - POST / : 스타일 생성(내용, 이미지 등)
+   - POST /{styleId}/view : 스타일 조회수 증가
+   - PUT /{styleId} : 스타일 수정
+   - DELETE /{styleId} : 스타일 삭제
+
+### 12.2 /api/styles/comments/commands
+   - POST / : 댓글 생성
+   - PUT /{commentId} : 댓글 수정
+   - DELETE /{commentId} : 댓글 삭제
+
+### 12.3 /api/styles/comments/likes/commands
+   - POST /{commentId}/toggle : 댓글 좋아요 토글
+
+### 12.4 /api/styles/interests/commands
+   - POST /{styleId}/toggle : 스타일 관심 토글
+
+### 12.5 /api/styles/likes/commands
+   - POST /{styleId}/toggle : 스타일 좋아요 토글
+
+### 12.6 /api/styles/queries
+   - GET /{styleId} : 특정 스타일 상세 조회
+   - GET / : 스타일 목록 조회(필터)
+   - GET /profile/{profileId} : 해당 프로필의 스타일 목록
+
 
 
 
