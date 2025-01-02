@@ -155,6 +155,7 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 
 <details>
 <summary><strong>기획 의도 & 프로젝트 목표</strong></summary>
+   
 ### 기획의도
 ```
 기존 프로젝트에서 발견했던 한계점을 해결하고, 더 깊이 있는 학습을 통해 실무 수준의 결과물을 만들어내고자 이번 프로젝트를 시작했습니다.
@@ -220,10 +221,12 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
   3. **결제 도메인**
   4. **배송 도메인**
   5. **스타일 도메인**
+     
 </details>
 
 <details>
 <summary><strong>도메인 분석 & ERD</strong></summary>
+   
 # 도메인 단위 도메인 분석
 
 ## 1. 창고 (Warehouse)
@@ -316,6 +319,7 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 
 # 전체 엔티티 ERD
 ![image](https://github.com/user-attachments/assets/17a9805c-1f3d-4da9-9310-e3efde4b6967)
+
 </details>
 
 
@@ -985,32 +989,6 @@ Authorization: Bearer <JWT Token>
   - 고객센터 도메인
 
   - 웹 소캣을 활용한 알림 기능 구현
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
