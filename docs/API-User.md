@@ -1,4 +1,4 @@
-# User-related Endpoints Documentation
+# User-related 엔드포인트 기능 및 로직 정리
 
 ## 1. 엔드포인트 개요
 유저 관련 작업을 수행하기 위한 엔드포인트로, 다음과 같은 주요 기능을 제공합니다:
