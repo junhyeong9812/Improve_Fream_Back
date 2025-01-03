@@ -323,8 +323,19 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 </details>
 
 
-# 사용자 관련 기능 및 API 명세서
+# API 명세서
+
+## 설정 관련 문서
+- [README-Config](docs/README-Config.md)
+- [README-DataInitializer](docs/README-DataInitializer.md)
+- [README-Security](docs/README-Security.md)
+- [README-Utils](docs/README-Utils.md)
+
+
 ## 1. 사용자(User) / 프로필(Profile) / 팔로우(Follow) / 차단(Block)
+
+#### API 문서 : [API-User](docs/API-User.md)
+
 ### 1.1 /api/users
    - POST /register : 사용자 회원가입
    - POST /login : 사용자 로그인 (JWT 토큰 발급)
@@ -336,16 +347,20 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
    - GET /login-info : 로그인 정보 조회
    - DELETE /delete-account : 회원 탈퇴
 
+
+
 ### 1.2 /api/profiles
    - GET / : 내 프로필 조회
    - PUT / (multipart) : 프로필 업데이트(이미지, 공개범위 등)
    - GET /{profileId}/image : 특정 프로필 이미지 조회
+
 
 ### 1.3 /api/follows
    - POST /{profileId} : 해당 프로필 팔로우
    - DELETE /{profileId} : 팔로우 취소
    - GET /followers : 내 팔로워 목록 조회
    - GET /followings : 내 팔로잉 목록 조회
+
 
 ### 1.4 /api/profiles/blocked
    - POST / : 특정 프로필 차단
@@ -360,6 +375,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 2. 주소(Address)
+
+#### API 문서 : [API-User](docs/API-User.md)
+
 ### /api/addresses
    - POST / : 주소록 생성
    - PUT / : 주소록 수정
@@ -370,6 +388,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 3. FAQ
+
+#### API 문서 : [API-FAQ](docs/API-FAQ.md)
+
 ### /faqs
    - POST / (multipart) : FAQ 생성 (관리자 권한)
    - PUT /{id} (multipart) : FAQ 수정 (관리자 권한)
@@ -381,6 +402,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 4. 검수(Inspection)
+
+#### API 문서 : [API-Inspection](docs/API-Inspection.md)
+
 ### /inspections
    - POST / (multipart) : 검수 기준 생성 (관리자 권한)
    - PUT /{id} (multipart) : 검수 기준 수정 (관리자 권한)
@@ -391,6 +415,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 5. 공지사항(Notice)
+
+#### API 문서 : [API-Notice](docs/API-Notice.md)
+
 ### /notices
    - POST / (multipart) : 공지사항 생성 (관리자 권한)
    - PUT /{noticeId} (multipart) : 공지사항 수정
@@ -403,6 +430,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 6. 알림(Notification)
+
+#### API 문서 : [API-Notification](docs/API-Notification.md)
+
 ### /api/notifications
    - POST / : 특정 유저 알림 생성
    - POST /broadcast : 전체 유저에게 알림 생성
@@ -416,6 +446,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 7. 주문(Order) & 구매 입찰(OrderBid)
+
+#### API 문서 : [API-OrderAndSale](docs/API-OrderAndSale.md)
+
 ### 7.1 /api/order-bids (Command)
    - POST / : 구매 입찰(OrderBid) 생성
    - DELETE /{orderBidId} : 구매 입찰 삭제
@@ -431,6 +464,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 8. 결제(Payment)
+
+#### API 문서 : [API-Payment](docs/API-Payment.md)
+
 ### /api/payment-info
    - POST / : 결제 정보(PaymentInfo) 생성
    - DELETE /{id} : 결제 정보 삭제
@@ -441,6 +477,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 9. 상품(Product) & 카테고리(Category) & 브랜드(Brand) & 컬렉션(Collection) & 관심상품(Interest)
+
+#### API 문서 : [API-Product](docs/API-Product.md)
+
 ### 9.1 /api/products
    - GET / : 상품 검색(키워드, 카테고리, 브랜드, 컬러, 사이즈, 가격범위 등)
    - GET /{productId}/detail : 상품 상세 조회(colorName)
@@ -482,6 +521,8 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 
 ## 10. 판매(Sale) & 판매 입찰(SaleBid)
 
+#### API 문서 : [API-OrderAndSale](docs/API-OrderAndSale.md)
+
 ### 10.1 /api/sale-bids (Command)
    - POST / : 판매 입찰(SaleBid) 생성
    - DELETE /{saleBidId} : 판매 입찰 삭제
@@ -497,6 +538,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 11. 배송(Shipment)
+
+#### API 문서 : [API-Shipment](docs/API-Shipment.md)
+
 ### 11.1 /api/shipments/order
    - PATCH /{shipmentId}/status : 구매자(Order) 배송 정보 업데이트
 
@@ -507,6 +551,9 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 --------------------------------------------
 
 ## 12. 스타일(Style) & 댓글(StyleComment) & 좋아요(StyleLike) & 관심(StyleInterest)
+
+#### API 문서 : [API-Style](docs/API-Style.md)
+
 ### 12.1 /api/styles/commands
    - POST / : 스타일 생성(내용, 이미지 등)
    - POST /{styleId}/view : 스타일 조회수 증가
