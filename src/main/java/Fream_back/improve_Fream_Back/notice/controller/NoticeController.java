@@ -116,17 +116,17 @@ public class NoticeController {
         return ResponseEntity.ok(notices);
     }
 
-    // 파일 미리보기 (읽기 작업)
-    @GetMapping("/files/{fileName}")
-    public ResponseEntity<byte[]> getFilePreview(@PathVariable("fileName") String fileName) throws IOException {
-        byte[] fileData = noticeQueryService.getFilePreview(fileName);
-
-        String mimeType = Files.probeContentType(Paths.get("notice/" + fileName));
-
-        return ResponseEntity.ok()
-                .header("Content-Type", mimeType)
-                .body(fileData);
-    }
+//    // 파일 미리보기 (읽기 작업)
+//    @GetMapping("/files/{fileName}")
+//    public ResponseEntity<byte[]> getFilePreview(@PathVariable("fileName") String fileName) throws IOException {
+//        byte[] fileData = noticeQueryService.getFilePreview(fileName);
+//
+//        String mimeType = Files.probeContentType(Paths.get("notice/" + fileName));
+//
+//        return ResponseEntity.ok()
+//                .header("Content-Type", mimeType)
+//                .body(fileData);
+//    }
 
     // 공지사항 파일 반환 (읽기 작업)
     @GetMapping("/files/{fileName}")
