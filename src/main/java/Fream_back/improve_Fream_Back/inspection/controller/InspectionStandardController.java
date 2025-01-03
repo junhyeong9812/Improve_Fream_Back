@@ -8,14 +8,21 @@ import Fream_back.improve_Fream_Back.inspection.service.InspectionStandardComman
 import Fream_back.improve_Fream_Back.inspection.service.InspectionStandardQueryService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/inspections")
@@ -25,6 +32,11 @@ public class InspectionStandardController {
     private final InspectionStandardCommandService commandService;
     private final InspectionStandardQueryService queryService;
     private final UserQueryService userQueryService; // 권한 확인 서비스
+
+    // 애플리케이션 실행 디렉토리를 기준으로 경로 설정
+    private static final String INSPECTION_DIRECTORY =
+            System.getProperty("user.dir") + "/InspectionFiles/";
+
 
     private String extractEmailFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -113,17 +125,35 @@ public class InspectionStandardController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 검수 기준 검색 (Query)
-     * @param keyword 검색 키워드
-     * @param pageable 페이징 정보
-     * @return 검색된 검수 기준 리스트
-     */
-//    @GetMapping("/search")
-//    public ResponseEntity<Page<InspectionStandardResponseDto>> searchStandards(
-//            @RequestParam String keyword,
-//            Pageable pageable) {
-//        Page<InspectionStandardResponseDto> response = queryService.searchStandards(keyword, pageable);
-//        return ResponseEntity.ok(response);
-//    }
+
+
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<Resource> getInspectionFile(@PathVariable("fileName") String fileName) {
+        try {
+            Path filePath = Paths.get(INSPECTION_DIRECTORY).resolve(fileName).normalize();
+
+            // 파일 존재 여부 확인
+            if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            // 파일 리소스 생성
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 리소스가 읽을 수 있는지 확인
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            // Content-Disposition 헤더 설정
+            String contentDisposition = "inline; filename=\"" + resource.getFilename() + "\"";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                    .body(resource);
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

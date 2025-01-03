@@ -7,15 +7,23 @@ import Fream_back.improve_Fream_Back.faq.entity.FAQCategory;
 import Fream_back.improve_Fream_Back.faq.service.FAQCommandService;
 import Fream_back.improve_Fream_Back.faq.service.FAQQueryService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/faqs")
@@ -25,6 +33,8 @@ public class FAQController {
     private final FAQCommandService faqCommandService; // 쓰기 작업 서비스
     private final FAQQueryService faqQueryService;     // 읽기 작업 서비스
     private final UserQueryService userQueryService; // 권한 확인 서비스
+
+    private static final String FAQ_DIRECTORY = System.getProperty("user.dir") + "/FAQ/";
 
     private String extractEmailFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -100,5 +110,24 @@ public class FAQController {
     ) {
         Page<FAQResponseDto> results = faqQueryService.searchFAQs(keyword, pageable);
         return ResponseEntity.ok(results);
+    }
+    // 특정 파일 다운로드
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<Resource> downloadFAQFile(@PathVariable("fileName") String fileName) {
+        try {
+            Path filePath = Paths.get(FAQ_DIRECTORY, fileName);
+            if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            Resource resource = new UrlResource(filePath.toUri());
+            String contentDisposition = "attachment; filename=\"" + fileName + "\"";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                    .body(resource);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

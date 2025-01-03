@@ -8,8 +8,13 @@ import Fream_back.improve_Fream_Back.notice.service.NoticeCommandService;
 import Fream_back.improve_Fream_Back.notice.service.NoticeQueryService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
@@ -27,6 +33,9 @@ public class NoticeController {
     private final NoticeCommandService noticeCommandService;
     private final NoticeQueryService noticeQueryService;
     private final UserQueryService userQueryService; // 권한 확인 서비스
+
+    private static final String NOTICE_DIRECTORY = System.getProperty("user.dir") + "/NoticeFiles/";
+
 
     private String extractEmailFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -117,5 +126,32 @@ public class NoticeController {
         return ResponseEntity.ok()
                 .header("Content-Type", mimeType)
                 .body(fileData);
+    }
+
+    // 공지사항 파일 반환 (읽기 작업)
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<Resource> getNoticeFile(@PathVariable String fileName) {
+        try {
+            // 파일 경로 생성
+            Path filePath = Paths.get(NOTICE_DIRECTORY).resolve(fileName).normalize();
+
+            // 파일 유효성 검사
+            if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 파일 리소스 반환
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new IOException("파일을 읽을 수 없습니다.");
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
