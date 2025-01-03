@@ -41,7 +41,7 @@ public class PaymentInfoController {
 
     // 결제 정보 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletePaymentInfo(@PathVariable Long id) {
+    public ResponseEntity<String> deletePaymentInfo(@PathVariable("id") Long id) {
         String email = extractEmailFromSecurityContext();
         paymentInfoCommandService.deletePaymentInfo(email, id);
         return ResponseEntity.ok("결제 정보가 성공적으로 삭제되었습니다.");
@@ -57,7 +57,7 @@ public class PaymentInfoController {
 
     // 결제 정보 단일 조회
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentInfoDto> getPaymentInfo(@PathVariable Long id) {
+    public ResponseEntity<PaymentInfoDto> getPaymentInfo(@PathVariable("id") Long id) {
         String email = extractEmailFromSecurityContext();
         PaymentInfoDto paymentInfo = paymentInfoQueryService.getPaymentInfo(email, id);
         return ResponseEntity.ok(paymentInfo);

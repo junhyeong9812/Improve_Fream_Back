@@ -27,6 +27,13 @@ public class PortOneApiClient {
 
     @Value("${imp.secret}")
     private String impSecret;
+
+    @Value("${imp.pg}")
+    private String pg; // PG 설정 값
+
+    @Value("${imp.storeId}")
+    private String storeId;
+
     public String getAccessToken() {
         String url = BASE_URL + "/users/getToken";
 
@@ -68,11 +75,15 @@ public class PortOneApiClient {
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("merchant_uid", UUID.randomUUID().toString());
+        requestBody.put("storeId", storeId); // `application.yml`에서 가져온 스토어 아이디 추가
+        requestBody.put("method", "card"); // 결제 방식
+        requestBody.put("currency", "KRW"); // 결제 통화 설정
         requestBody.put("amount", "100");
         requestBody.put("card_number", dto.getCardNumber());
         requestBody.put("expiry", dto.getExpirationDate());
         requestBody.put("birth", dto.getBirthDate());
         requestBody.put("pwd_2digit", dto.getCardPassword());
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer "+ accessToken); // 인증 토큰 포함
@@ -114,6 +125,7 @@ public class PortOneApiClient {
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("merchant_uid", UUID.randomUUID().toString());
+        requestBody.put("method", "card"); // 결제 방식 설정 (수기결제/키인결제)
         requestBody.put("amount", String.valueOf(amount));
         requestBody.put("card_number", paymentInfo.getCardNumber());
         requestBody.put("expiry", paymentInfo.getExpirationDate());
