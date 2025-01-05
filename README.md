@@ -151,6 +151,54 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 ```
 주의: 운영(Production) 환경에서는 보통 이 클래스를 비활성화하거나, @Profile("local") 처리하여 실행되지 않도록 합니다.
 ```
+### 5.6 GeoLite2-City.mmdb 설정 (GeoIP 서비스)
+
+본 프로젝트는 사용자 위치 정보를 조회하기 위해 GeoLite2-City.mmdb 파일을 사용합니다.
+이 파일은 MaxMind에서 제공하며, 해당 파일을 다운로드하여 프로젝트 리소스 폴더에 추가해야 합니다.
+
+#### 파일 다운로드 및 설정
+1. **GeoLite2-City.mmdb 다운로드**
+    - [MaxMind GeoLite2 다운로드 페이지](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data?lang=en)에 접속합니다.
+    - 계정을 생성하거나 로그인 후 GeoLite2-City 데이터베이스 파일을 다운로드합니다.
+
+2. **프로젝트 리소스 폴더에 파일 추가**
+    - 다운로드 받은 `GeoLite2-City.mmdb` 파일을 프로젝트의 `src/main/resources` 디렉토리에 복사합니다.
+
+3. **GeoIP 서비스 초기화**
+    - GeoIP 기능을 사용하는 `GeoIPService` 클래스는 `src/main/resources`에 위치한 `GeoLite2-City.mmdb` 파일을 자동으로 로드합니다.
+    - 파일이 없거나 잘못된 경로에 위치하면 애플리케이션 실행 시 에러가 발생하므로, 반드시 올바르게 설정해야 합니다.
+
+#### 파일 경로 확인 및 주의사항
+- 파일 경로: `src/main/resources/GeoLite2-City.mmdb`
+- **운영 환경 보안 주의:** GeoLite2-City 데이터베이스는 민감한 정보를 포함하지 않으나, 파일 접근 권한을 제한하여 보안을 강화해야 합니다.
+
+#### 예제 코드 (GeoIPService 클래스에서의 파일 경로 설정)
+```java
+public class GeoIPService {
+
+    private final DatabaseReader databaseReader;
+
+    public GeoIPService() throws IOException {
+        File database = new File(getClass().getClassLoader().getResource("GeoLite2-City.mmdb").getFile());
+        this.databaseReader = new DatabaseReader.Builder(database).build();
+    }
+
+    // 위치 정보 조회 메서드 생략
+}
+```
+
+#### 테스트 방법
+1. 애플리케이션 실행 후 특정 IP 주소로 위치 정보 조회 테스트를 수행합니다.
+2. GeoIP 관련 메서드 호출 시 정확한 위치 정보(나라, 지역, 도시)가 반환되면 설정이 올바르게 완료된 것입니다.
+
+---
+
+### 주의사항
+- **파일 업데이트:** GeoLite2-City 데이터베이스는 정기적으로 업데이트되므로, 최신 버전을 주기적으로 다운로드하여 사용을 권장합니다.
+- **MaxMind 라이선스 준수:** GeoLite2 데이터베이스는 MaxMind의 라이선스 조건에 따라 사용해야 합니다.
+
+
+
 ## 6. 추가 정보 (기획 의도, 도메인 분석 등)
 아래 내용은 프로젝트의 배경, 도메인 설계, ERD 등을 담고 있습니다.  
 필요하신 분만 펼쳐서 확인하세요.
@@ -318,6 +366,14 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
 ### FAQ 도메인 연관 엔티티
 - FAQ: FAQ 메인 엔티티.
 - FAQImage: FAQ 이미지.
+
+## 13. Access Log
+### Access Log 도메인 연관 엔티티
+- UserAccessLog: 사용자 접근 로그 메인 엔티티.
+
+## 14. Weather Data
+### Weather Data 도메인 연관 엔티티
+- WeatherData: 날씨 데이터 메인 엔티티.
 
 # 전체 엔티티 ERD
 ![image](https://github.com/user-attachments/assets/17a9805c-1f3d-4da9-9310-e3efde4b6967)
@@ -581,8 +637,25 @@ java -jar build/libs/Improve_Fream_Back-0.0.1-SNAPSHOT.jar
    - GET / : 스타일 목록 조회(필터)
    - GET /profile/{profileId} : 해당 프로필의 스타일 목록
 
+## 13. 접근 로그(Access Log)
 
+#### API 문서 : [API-AccessLog](docs/API-AccessLog.md)
 
+### 13.1 /access-log/commands
+- POST /create : 사용자 접근 로그 생성
+    - 클라이언트의 IP 주소, 브라우저 정보, 디바이스 타입 등 다양한 정보를 기반으로 접근 로그를 저장합니다.
+
+---
+
+## 14. 날씨 데이터(Weather)
+
+#### API 문서 : [API-Weather](docs/API-Weather.md)
+
+### 14.1 /api/weather/queries
+- GET /current : 현재 시간과 가장 가까운 날씨 데이터 조회
+    - 최근 데이터를 기준으로 가장 가까운 시간대의 날씨 정보를 반환합니다.
+- GET /today : 당일의 모든 날씨 데이터 조회
+    - 오늘 날짜에 해당하는 모든 날씨 데이터를 시간 순으로 반환합니다.
 
 
 
