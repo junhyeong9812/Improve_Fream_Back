@@ -7,10 +7,7 @@ import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/sale-bids") // 공통 경로를 클래스 레벨로 이동
@@ -36,4 +33,16 @@ public class SaleBidQueryController {
         String email = SecurityUtils.extractEmailFromSecurityContext();
         return saleBidQueryService.getSaleBidStatusCounts(email);
     }
+    // 단일 SaleBid 조회
+    @GetMapping("/{saleBidId}")
+    public SaleBidResponseDto getSaleBidDetail(@PathVariable("saleBidId") Long saleBidId) {
+        String email = SecurityUtils.extractEmailFromSecurityContext(); // 현재 사용자 이메일 가져오기
+        SaleBidResponseDto saleBidResponse = saleBidQueryService.getSaleBidDetail(saleBidId, email);
+
+        // null 값 예외 처리
+        if (saleBidResponse == null) {
+            throw new IllegalArgumentException("해당 SaleBid 데이터를 찾을 수 없습니다. ID: " + saleBidId);
+        }
+
+        return saleBidResponse;    }
 }

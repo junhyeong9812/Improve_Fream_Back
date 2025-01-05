@@ -117,4 +117,47 @@ public class OrderBidRepositoryImpl implements OrderBidRepositoryCustom {
 
         return new OrderBidStatusCountDto(pendingCount, matchedCount, cancelledOrCompletedCount);
     }
+    @Override
+    public OrderBidResponseDto findOrderBidById(Long orderBidId,String email) {
+        QOrderBid orderBid = QOrderBid.orderBid;
+        QOrder order = QOrder.order;
+        QProductSize productSize = QProductSize.productSize;
+        QProductColor productColor = QProductColor.productColor;
+        QProduct product = QProduct.product;
+        QProductImage productImage = QProductImage.productImage;
+        QOrderShipment orderShipment = QOrderShipment.orderShipment;
+        QUser user = QUser.user;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        OrderBidResponseDto.class,
+                        orderBid.id,
+                        product.id,
+                        product.name,
+                        product.englishName,
+                        productSize.size,
+                        productColor.colorName,
+                        productImage.imageUrl,
+                        orderBid.bidPrice,
+                        orderBid.status.stringValue(),
+                        order.status.stringValue(),
+                        orderShipment.status.stringValue(),
+                        orderBid.createdDate,
+                        orderBid.modifiedDate
+                ))
+                .from(orderBid)
+                .join(orderBid.user, user)
+                .join(orderBid.productSize, productSize)
+                .join(productSize.productColor, productColor)
+                .join(productColor.product, product)
+                .join(productColor.thumbnailImage, productImage)
+                .leftJoin(orderBid.order, order)
+                .leftJoin(order.orderShipment, orderShipment)
+                .where(
+                        orderBid.id.eq(orderBidId),
+                        orderBid.user.email.eq(email) // 이메일 조건 추가
+                )
+                .fetchOne();
+    }
+
 }

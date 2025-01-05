@@ -34,7 +34,7 @@ public class SaleBidRepositoryImpl implements SaleBidRepositoryCustom {
         QProduct product = QProduct.product;
         QProductImage productImage = QProductImage.productImage;
         QSellerShipment sellerShipment = QSellerShipment.sellerShipment;
-//        QUser user = QUser.user; // 유저 엔티티
+        QUser user = QUser.user; // 유저 엔티티
 
 
         // Main Query
@@ -117,4 +117,43 @@ public class SaleBidRepositoryImpl implements SaleBidRepositoryCustom {
 
         return new SaleBidStatusCountDto(pendingCount, matchedCount, cancelledOrCompletedCount);
     }
+    @Override
+    public SaleBidResponseDto findSaleBidById(Long saleBidId, String email) {
+        QSaleBid saleBid = QSaleBid.saleBid;
+        QSale sale = QSale.sale;
+        QProductSize productSize = QProductSize.productSize;
+        QProductColor productColor = QProductColor.productColor;
+        QProduct product = QProduct.product;
+        QProductImage productImage = QProductImage.productImage;
+        QSellerShipment sellerShipment = QSellerShipment.sellerShipment;
+
+        return queryFactory
+                .select(Projections.constructor(
+                        SaleBidResponseDto.class,
+                        saleBid.id,
+                        product.id,
+                        product.name,
+                        product.englishName,
+                        productSize.size,
+                        productColor.colorName,
+                        productImage.imageUrl,
+                        saleBid.bidPrice,
+                        saleBid.status.stringValue(),
+                        sale.status.stringValue(),
+                        sellerShipment.status.stringValue(),
+                        saleBid.createdDate,
+                        saleBid.modifiedDate
+                ))
+                .from(saleBid)
+                .join(saleBid.seller).on(saleBid.seller.email.eq(email))
+                .join(saleBid.productSize, productSize)
+                .join(productSize.productColor, productColor)
+                .join(productColor.product, product)
+                .join(productColor.thumbnailImage, productImage)
+                .leftJoin(saleBid.sale, sale)
+                .leftJoin(sale.sellerShipment, sellerShipment)
+                .where(saleBid.id.eq(saleBidId))
+                .fetchOne();
+    }
+
 }

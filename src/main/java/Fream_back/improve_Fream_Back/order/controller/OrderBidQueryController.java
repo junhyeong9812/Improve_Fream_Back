@@ -7,13 +7,10 @@ import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/order-bids") // 공통 경로를 클래스 레벨로 이동
+@RequestMapping("/api/order-bids")
 @RequiredArgsConstructor
 public class OrderBidQueryController {
 
@@ -35,5 +32,13 @@ public class OrderBidQueryController {
     public OrderBidStatusCountDto getOrderBidStatusCounts() {
         String email = SecurityUtils.extractEmailFromSecurityContext();
         return orderBidQueryService.getOrderBidStatusCounts(email);
+    }
+
+    // 단일 OrderBid 조회
+    @GetMapping("/{orderBidId}")
+    public OrderBidResponseDto getOrderBidDetail(@PathVariable("orderBidId") Long orderBidId) {
+        String email = SecurityUtils.extractEmailFromSecurityContext(); // 현재 사용자 이메일 가져오기
+        return orderBidQueryService.getOrderBidDetail(orderBidId, email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 OrderBid가 존재하지 않습니다. ID: " + orderBidId));
     }
 }

@@ -32,4 +32,8 @@ public class OrderBidQueryService {
     public OrderBidStatusCountDto getOrderBidStatusCounts(String email) {
         return orderBidRepository.countOrderBidsByStatus(email);
     }
+    @Transactional(readOnly = true)
+    public Optional<OrderBidResponseDto> getOrderBidDetail(Long orderBidId, String email) {
+        return Optional.ofNullable(orderBidRepository.findOrderBidById(orderBidId, email));
+    }
 }

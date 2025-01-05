@@ -39,4 +39,8 @@ public class SaleBidQueryService {
     public SaleBidStatusCountDto getSaleBidStatusCounts(String email) {
         return saleBidRepository.countSaleBidsByStatus(email);
     }
+    @Transactional(readOnly = true)
+    public SaleBidResponseDto getSaleBidDetail(Long saleBidId, String email) {
+        return saleBidRepository.findSaleBidById(saleBidId, email);
+    }
 }

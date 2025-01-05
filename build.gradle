@@ -69,6 +69,9 @@ dependencies {
 	//송장추적
 	implementation 'org.jsoup:jsoup:1.16.1'
 
+	//GeoIp
+	implementation 'com.maxmind.geoip2:geoip2:3.0.1'
+
 
 }
 tasks.named('test') {

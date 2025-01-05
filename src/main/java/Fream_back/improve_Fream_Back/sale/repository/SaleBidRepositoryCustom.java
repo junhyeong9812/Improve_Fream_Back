@@ -7,4 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface SaleBidRepositoryCustom {
     Page<SaleBidResponseDto> findSaleBidsByFilters(String email, String saleBidStatus, String saleStatus, Pageable pageable);
-    SaleBidStatusCountDto countSaleBidsByStatus(String email);}
+    SaleBidStatusCountDto countSaleBidsByStatus(String email);
+    SaleBidResponseDto findSaleBidById(Long saleBidId, String email);
+}
+
