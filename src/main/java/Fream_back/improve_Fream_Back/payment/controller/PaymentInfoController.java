@@ -70,7 +70,7 @@ public class PaymentInfoController {
             System.out.println("Received DTO: " + dto);
             // 1. 테스트 결제 요청
             String impUid = portOneApiClient.requestTestPayment(dto);
-
+            System.out.println(" 환불시작 ");
             // 2. 테스트 결제 환불
             portOneApiClient.cancelTestPayment(impUid);
 

@@ -73,12 +73,12 @@ public class PortOneApiClient {
         String url = BASE_URL + "/subscribe/payments/onetime";
         String accessToken = getAccessToken(); // 인증 토큰 발급
 
-        Map<String, String> requestBody = new HashMap<>();
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("pg", "nice");
         requestBody.put("merchant_uid", UUID.randomUUID().toString());
-        requestBody.put("storeId", storeId); // `application.yml`에서 가져온 스토어 아이디 추가
         requestBody.put("method", "card"); // 결제 방식
         requestBody.put("currency", "KRW"); // 결제 통화 설정
-        requestBody.put("amount", "100");
+        requestBody.put("amount", 100);
         requestBody.put("card_number", dto.getCardNumber());
         requestBody.put("expiry", dto.getExpirationDate());
         requestBody.put("birth", dto.getBirthDate());
@@ -118,15 +118,34 @@ public class PortOneApiClient {
             throw new RuntimeException("결제 요청 중 오류 발생", e);
         }
     }
+//    private void validatePaymentInfo(PaymentInfoCreateDto dto) {
+//        if (dto.getAmount() == null || dto.getAmount() <= 0) {
+//            throw new IllegalArgumentException("결제 금액(amount)은 필수 입력 값입니다.");
+//        }
+//        if (dto.getCardNumber() == null || dto.getCardNumber().isEmpty()) {
+//            throw new IllegalArgumentException("카드 번호(card_number)는 필수 입력 값입니다.");
+//        }
+//        if (dto.getExpirationDate() == null || dto.getExpirationDate().isEmpty()) {
+//            throw new IllegalArgumentException("카드 유효기간(expiry)은 필수 입력 값입니다.");
+//        }
+//        if (dto.getBirthDate() == null || dto.getBirthDate().isEmpty()) {
+//            throw new IllegalArgumentException("생년월일(birth)은 필수 입력 값입니다.");
+//        }
+//        if (dto.getCardPassword() == null || dto.getCardPassword().isEmpty()) {
+//            throw new IllegalArgumentException("카드 비밀번호 앞 2자리(pwd_2digit)는 필수 입력 값입니다.");
+//        }
+//    }
 
     public Map<String, Object> processCardPayment(PaymentInfo paymentInfo, double amount) {
         String url = BASE_URL + "/subscribe/payments/onetime";
         String accessToken = getAccessToken();
 
-        Map<String, String> requestBody = new HashMap<>();
+        Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("merchant_uid", UUID.randomUUID().toString());
+        requestBody.put("pg", "nice");
         requestBody.put("method", "card"); // 결제 방식 설정 (수기결제/키인결제)
-        requestBody.put("amount", String.valueOf(amount));
+        requestBody.put("amount", amount);
+        requestBody.put("currency", "KRW"); // 결제 통화 설정
         requestBody.put("card_number", paymentInfo.getCardNumber());
         requestBody.put("expiry", paymentInfo.getExpirationDate());
         requestBody.put("birth", paymentInfo.getBirthDate());
