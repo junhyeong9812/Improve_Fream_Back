@@ -1,12 +1,12 @@
 package Fream_back.improve_Fream_Back.accessLog.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserAccessLogDto {
     private String refererUrl; // 참조 URL
     private String userAgent; // 브라우저 및 OS 정보
