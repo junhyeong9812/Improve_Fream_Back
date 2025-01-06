@@ -26,7 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
-@RequestMapping("/faqs")
+@RequestMapping("/faq")
 @RequiredArgsConstructor
 public class FAQController {
 

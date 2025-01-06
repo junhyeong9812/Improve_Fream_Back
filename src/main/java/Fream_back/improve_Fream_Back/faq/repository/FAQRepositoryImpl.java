@@ -22,8 +22,9 @@ public class FAQRepositoryImpl implements FAQRepositoryCustom {
         BooleanBuilder builder = new BooleanBuilder();
 
         if (keyword != null && !keyword.isEmpty()) {
-            builder.or(fAQ.question.containsIgnoreCase(keyword))
-                    .or(fAQ.answer.containsIgnoreCase(keyword));
+            // 대소문자 무시와 한글 검색을 위한 like 사용
+            builder.or(fAQ.question.like("%" + keyword + "%"))
+                    .or(fAQ.answer.like("%" + keyword + "%"));
         }
 
         List<FAQ> results = queryFactory.selectFrom(fAQ)

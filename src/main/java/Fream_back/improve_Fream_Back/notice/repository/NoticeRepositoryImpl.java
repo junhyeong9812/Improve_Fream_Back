@@ -22,8 +22,9 @@ public class NoticeRepositoryImpl implements NoticeRepositoryCustom {
         BooleanBuilder builder = new BooleanBuilder();
 
         if (keyword != null && !keyword.isEmpty()) {
-            builder.or(notice.title.containsIgnoreCase(keyword))
-                    .or(notice.content.containsIgnoreCase(keyword));
+            // 대소문자 무시와 한글 검색을 위한 like 사용
+            builder.or(notice.title.like("%" + keyword + "%"))
+                    .or(notice.content.like("%" + keyword + "%"));
         }
 
         List<Notice> results = queryFactory.selectFrom(notice)
