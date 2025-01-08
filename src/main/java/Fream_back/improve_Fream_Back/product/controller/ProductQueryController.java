@@ -55,35 +55,30 @@ public class ProductQueryController {
     public ResponseEntity<ProductDetailResponseDto> getProductDetail(
             @PathVariable("productId") Long productId,
             @RequestParam("colorName") String colorName) {
-        //  실제 상품 상세 가져옴
+        // 1) 상품 상세 (DB 조회)
         ProductDetailResponseDto detailDto = productQueryService.getProductDetail(productId, colorName);
 
-        // 한줄로 처리
+        // 2) 이메일 추출 (익명 시 “anonymous”)
         String email = SecurityUtils.extractEmailOrAnonymous();
 
-        // 나이/성별
+        // 3) 로그인 사용자라면 나이, 성별 조회
         Integer age = 0;
         Gender gender = Gender.OTHER;
         if (!"anonymous".equals(email)) {
             try {
                 User user = userQueryService.findByEmail(email);
-                age = user.getAge() == null ? 0 : user.getAge();
-                gender = user.getGender() == null ? Gender.OTHER : user.getGender();
+                age = (user.getAge() == null) ? 0 : user.getAge();
+                gender = (user.getGender() == null) ? Gender.OTHER : user.getGender();
             } catch (IllegalArgumentException e) {
+                // 만약 이메일이 있지만 User가 없다면 anonymous로 처리
                 email = "anonymous";
             }
         }
 
-        //  카프카에 뷰 이벤트 발행
-        //    detailDto.getColorId() = productColorId
-        viewEventProducer.sendViewEvent(
-                detailDto.getColorId(),
-                email,
-                age,
-                gender
-        );
+        // 4) Producer에게 카프카 이벤트 발행
+        viewEventProducer.sendViewEvent(detailDto.getColorId(), email, age, gender);
 
-        // 5) 클라이언트에 상품 상세 응답
+        // 5) 결과 반환
         return ResponseEntity.ok(detailDto);
     }
 
