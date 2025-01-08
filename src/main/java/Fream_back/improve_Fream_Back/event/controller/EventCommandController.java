@@ -3,6 +3,8 @@ package Fream_back.improve_Fream_Back.event.controller;
 import Fream_back.improve_Fream_Back.event.dto.CreateEventRequest;
 import Fream_back.improve_Fream_Back.event.dto.UpdateEventRequest;
 import Fream_back.improve_Fream_Back.event.service.EventCommandService;
+import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.List;
 public class EventCommandController {
 
     private final EventCommandService eventCommandService;
+    private final UserQueryService userQueryService;
 
     /**
      * 이벤트 생성
@@ -31,6 +34,12 @@ public class EventCommandController {
             @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile,
             @RequestParam(value = "simpleImageFiles", required = false) List<MultipartFile> simpleImageFiles
     ) {
+        // 1. 이메일 추출
+        String email = SecurityUtils.extractEmailFromSecurityContext();
+        // 2. 관리자 권한 체크
+        userQueryService.checkAdminRole(email);
+
+        // 3. 생성 로직
         Long eventId = eventCommandService.createEvent(dto, thumbnailFile, simpleImageFiles);
         return ResponseEntity.ok(eventId);
     }
@@ -41,19 +50,34 @@ public class EventCommandController {
      */
     @PatchMapping("/{eventId}")
     public ResponseEntity<Long> updateEvent(
-            @PathVariable Long eventId,
+            @PathVariable("eventId") Long eventId,
             @ModelAttribute UpdateEventRequest dto,
             @RequestParam(value = "thumbnailFile", required = false) MultipartFile thumbnailFile,
             @RequestParam(value = "simpleImageFiles", required = false) List<MultipartFile> simpleImageFiles
     ) {
+        String email = SecurityUtils.extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email);
+
         Long updatedId = eventCommandService.updateEvent(eventId, dto, thumbnailFile, simpleImageFiles);
         return ResponseEntity.ok(updatedId);
     }
+
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<Void> deleteEvent(@PathVariable("eventId") Long eventId) {
+        String email = SecurityUtils.extractEmailFromSecurityContext();
+        userQueryService.checkAdminRole(email);
+
+        eventCommandService.deleteEvent(eventId);
+        return ResponseEntity.ok().build();
+    }
+
+
+
     // 서버 내부에 저장된 파일을 직접 읽어서 ResponseEntity<Resource>로 응답
     @GetMapping("/{eventId}/images/{fileName}")
     public ResponseEntity<?> getEventImage(
-            @PathVariable Long eventId,
-            @PathVariable String fileName
+            @PathVariable("eventId") Long eventId,
+            @PathVariable("fileName") String fileName
     ) {
         // 디렉토리 + 파일명
         String directory = System.getProperty("user.dir") + "/event/" + eventId + "/";

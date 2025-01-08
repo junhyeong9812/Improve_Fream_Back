@@ -72,6 +72,11 @@ dependencies {
 	//GeoIp
 	implementation 'com.maxmind.geoip2:geoip2:3.0.1'
 
+	// Spring for Apache Kafka
+	implementation 'org.springframework.kafka:spring-kafka'
+	// Kafka test
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
+
 
 }
 tasks.named('test') {

@@ -12,4 +12,12 @@ public class SecurityUtils {
         }
         throw new IllegalStateException("인증된 사용자가 없습니다."); // 인증 실패 처리
     }
+    public static String extractEmailOrAnonymous() {
+        try {
+            return extractEmailFromSecurityContext();
+        } catch (IllegalStateException e) {
+            // 인증 안 된 경우
+            return "anonymous";
+        }
+    }
 }

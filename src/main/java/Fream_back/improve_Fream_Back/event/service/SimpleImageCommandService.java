@@ -40,6 +40,13 @@ public class SimpleImageCommandService {
         }
     }
 
+    // 기존 이미지 전체 삭제 (DB에서)
+    public void deleteAllByEvent(Long eventId) {
+        // 여기서도 "조회"가 필요하지만, 커맨드 서비스 자체에서
+        // "전체 삭제"만 수행하기 위해 단순히 repository.deleteByEventId(eventId) 같은 방식을 사용 가능
+        simpleImageRepository.deleteByEventId(eventId);
+    }
+
     // 심플이미지 수정/삭제 등 추가 로직
 }
 

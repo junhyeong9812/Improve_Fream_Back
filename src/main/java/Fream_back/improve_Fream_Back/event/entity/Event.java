@@ -33,8 +33,7 @@ public class Event extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDateTime endDate; // 이벤트 종료 날짜
 
-    @Column(nullable = false)
-    private String thumbnailImageUrl; // 썸네일 이미지 URL
+    private String thumbnailFileName; //이미지 파일명
 
     @Builder.Default
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -50,11 +49,13 @@ public class Event extends BaseTimeEntity {
         simpleImage.assignEvent(this);
     }
 
-    public void updateEvent(String title, String description, LocalDateTime startDate, LocalDateTime endDate, String thumbnailImageUrl) {
+    public void updateThumbnailFileName(String newFileName) {
+        this.thumbnailFileName = newFileName;
+    }
+    public void updateEvent(String title, String description, LocalDateTime startDate, LocalDateTime endDate) {
         if (title != null) this.title = title;
         if (description != null) this.description = description;
         if (startDate != null) this.startDate = startDate;
         if (endDate != null) this.endDate = endDate;
-        if (thumbnailImageUrl != null) this.thumbnailImageUrl = thumbnailImageUrl;
     }
 }
