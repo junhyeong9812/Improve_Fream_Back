@@ -209,5 +209,29 @@ WebSocket /api/notifications/ping
 
 ---
 
+## 5. 프론트 웹소켓 연결 로직 정의
+```
+   // 1) 로그인 성공 후
+const token = result.data.token;  // JWT
+// 2) WebSocket 연결
+let socket = new SockJS('/ws?token=' + token);
+stompClient = Stomp.over(socket);
+stompClient.connect({}, function(frame) {
+    console.log("WebSocket connected: " + frame);
+
+    // 3) 구독
+    stompClient.subscribe('/topic/some-notice', function(msg) {
+       console.log("Received: " + msg);
+    });
+
+    // 4) 주기적으로 ping
+    setInterval(()=>{
+       stompClient.send("/app/ping", {}, {});
+    }, 30000); // 30초마다 ping
+});
+
+```
+
+
 이 문서는 Notification 엔드포인트의 주요 기능과 로직, 카테고리 및 유형을 설명합니다.
 
