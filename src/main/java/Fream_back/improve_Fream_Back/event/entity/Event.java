@@ -24,6 +24,7 @@ public class Event extends BaseTimeEntity {
     private String title; // 이벤트 제목
 
     @Column(nullable = false)
+    @Lob
     private String description; // 이벤트 설명
 
     @Column(nullable = false)

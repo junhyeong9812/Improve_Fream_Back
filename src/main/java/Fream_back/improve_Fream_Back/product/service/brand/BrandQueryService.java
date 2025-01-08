@@ -31,4 +31,9 @@ public class BrandQueryService {
                 .map(BrandResponseDto::fromEntity) // 엔티티 -> DTO 변환
                 .collect(Collectors.toList());
     }
+    public Brand findById(Long brandId){
+        return brandRepository.findById(brandId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 브랜드가 존재하지 않습니다."));
+    }
+
 }

@@ -15,7 +15,7 @@ public class SimpleImage {
     private Long id;
 
     @Column(nullable = false)
-    private String imageUrl; // 이미지 URL
+    private String savedFileName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
