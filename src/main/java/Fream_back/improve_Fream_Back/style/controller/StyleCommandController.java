@@ -2,6 +2,7 @@ package Fream_back.improve_Fream_Back.style.controller;
 
 import Fream_back.improve_Fream_Back.style.entity.Style;
 import Fream_back.improve_Fream_Back.style.service.StyleCommandService;
+import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
 import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ import java.util.List;
 public class StyleCommandController {
 
     private final StyleCommandService styleCommandService;
-
+    private final NginxCachePurgeUtil nginxCachePurgeUtil;
     // 스타일 생성
     @PostMapping
     public ResponseEntity<Long> createStyle(
@@ -26,6 +27,7 @@ public class StyleCommandController {
     ) {
         String email = SecurityUtils.extractEmailFromSecurityContext(); // 컨텍스트에서 이메일 추출
         Style createdStyle = styleCommandService.createStyle(email, orderItemIds, content, mediaFiles);
+        nginxCachePurgeUtil.purgeStyleCache();
         return ResponseEntity.ok(createdStyle.getId());
     }
 

@@ -4,6 +4,7 @@ import Fream_back.improve_Fream_Back.product.dto.ProductColorCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductColorUpdateRequestDto;
 import Fream_back.improve_Fream_Back.product.service.productColor.ProductColorCommandService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ public class ProductColorCommandController {
 
     private final ProductColorCommandService productColorCommandService;
     private final UserQueryService userQueryService; // 권한 확인 서비스
+    private final NginxCachePurgeUtil nginxCachePurgeUtil;
 
     // SecurityContext에서 이메일 추출
     private String extractEmailFromSecurityContext() {
@@ -42,8 +44,12 @@ public class ProductColorCommandController {
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
 
         productColorCommandService.createProductColor(requestDto, thumbnailImage, images, detailImages, productId);
+        nginxCachePurgeUtil.purgeProductCache();
         return ResponseEntity.ok().build();
     }
+
+
+
 
     @PutMapping("/{productColorId}")
     public ResponseEntity<Void> updateProductColor(

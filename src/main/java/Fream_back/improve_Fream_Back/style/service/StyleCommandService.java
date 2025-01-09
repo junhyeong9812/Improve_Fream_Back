@@ -8,6 +8,7 @@ import Fream_back.improve_Fream_Back.style.repository.StyleRepository;
 import Fream_back.improve_Fream_Back.user.entity.Profile;
 import Fream_back.improve_Fream_Back.user.service.profile.ProfileQueryService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
+import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,7 @@ public class StyleCommandService {
                 savedStyle.addMediaUrl(mediaUrl); // 연관관계 메서드 호출
             }
         }
+
 
         return savedStyle;
     }

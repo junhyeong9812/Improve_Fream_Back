@@ -14,6 +14,7 @@ import Fream_back.improve_Fream_Back.product.service.productImage.ProductImageQu
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeCommandService;
 import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeQueryService;
 import Fream_back.improve_Fream_Back.utils.FileUtils;
+import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,8 @@ public class ProductColorCommandService {
     private final ProductDetailImageCommandService productDetailImageCommandService;
     private final ProductImageQueryService productImageQueryService;
     private final ProductDetailImageQueryService productDetailImageQueryService;
+    private final NginxCachePurgeUtil nginxCachePurgeUtil;
+
 
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";
