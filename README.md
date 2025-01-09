@@ -3,7 +3,8 @@
 ## 1. 프로젝트 개요
 - 기존 Kream 클론 프로젝트에서 부족했던 점을 개선하고, e-Commerce와 커뮤니티 기능을 통합한 리셀 플랫폼을 다시 설계/구현한 프로젝트입니다.
 ### 프로젝트 아키텍처
-![image](https://github.com/user-attachments/assets/856072f4-9ef5-4b2e-8bb9-4e75c0c5527e)
+![image](https://github.com/user-attachments/assets/29ba258c-ac8a-491e-843d-70aa0fe1ce6f)
+
 
 
 
@@ -393,6 +394,7 @@ public class GeoIPService {
 - [README-Security](docs/README-Security.md)
 - [README-Utils](docs/README-Utils.md)
 - [README-Kafka](docs/README-Kafka.md)
+- [README-Nignx](docs/README-Nginx.md)
 
 
 ## 1. 사용자(User) / 프로필(Profile) / 팔로우(Follow) / 차단(Block)
