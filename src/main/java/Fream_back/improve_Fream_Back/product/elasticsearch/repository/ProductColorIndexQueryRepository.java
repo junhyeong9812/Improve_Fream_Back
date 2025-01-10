@@ -39,4 +39,25 @@ public class ProductColorIndexQueryRepository {
                 .distinct()
                 .fetch();
     }
+    public ProductColor findOneForIndexing(Long colorId) {
+        QProductColor productColor = QProductColor.productColor;
+        QProduct product = QProduct.product;
+        QBrand brand = QBrand.brand;
+        QCategory category = QCategory.category;
+        QCollection collection = QCollection.collection;
+        QProductSize productSize = QProductSize.productSize;
+        QInterest interest = QInterest.interest;
+
+        return queryFactory
+                .selectFrom(productColor)
+                .leftJoin(productColor.product, product).fetchJoin()
+                .leftJoin(product.brand, brand).fetchJoin()         // brand
+                .leftJoin(product.category, category).fetchJoin()   // category
+                .leftJoin(product.collection, collection).fetchJoin()  // collection
+                .leftJoin(productColor.sizes, productSize).fetchJoin()
+                .leftJoin(productColor.interests, interest).fetchJoin()
+                .where(productColor.id.eq(colorId))
+                .distinct()
+                .fetchOne();
+    }
 }

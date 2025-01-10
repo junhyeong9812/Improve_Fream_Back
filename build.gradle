@@ -81,6 +81,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 	implementation 'co.elastic.clients:elasticsearch-java:8.7.0'
 
+	// Spring Batch Starter
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 tasks.named('test') {
 	useJUnitPlatform()

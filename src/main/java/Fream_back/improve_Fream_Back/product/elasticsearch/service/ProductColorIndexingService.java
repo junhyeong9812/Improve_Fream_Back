@@ -33,6 +33,22 @@ public class ProductColorIndexingService {
         productColorEsRepository.saveAll(indexList);
     }
 
+    @Transactional(readOnly = true)
+    public void indexColorById(Long colorId) {
+        // 1) DB에서 해당 colorId만 조회
+        ProductColor pc = queryRepository.findOneForIndexing(colorId);
+        if (pc == null) {
+            throw new IllegalArgumentException("해당 ProductColor가 존재하지 않습니다. id=" + colorId);
+        }
+
+        // 2) 변환(엔티티 -> 인덱스 DTO)
+        ProductColorIndex indexObj = toIndex(pc);
+
+        // 3) Elasticsearch에 save (단건)
+        productColorEsRepository.save(indexObj);
+    }
+
+
     private ProductColorIndex toIndex(ProductColor pc) {
         Product p = pc.getProduct();
         int minPrice = pc.getSizes().stream()

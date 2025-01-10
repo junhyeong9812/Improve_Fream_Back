@@ -44,7 +44,7 @@ public class ProductColorCommandService {
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";
 
-    public void createProductColor(
+    public Long createProductColor(
             ProductColorCreateRequestDto requestDto,
             MultipartFile productImage,
             List<MultipartFile> productImages, // 일반 이미지 리스트
@@ -102,6 +102,8 @@ public class ProductColorCommandService {
 
         // 사이즈 생성
         productSizeCommandService.createProductSizes(savedColor,  product.getCategory().getId(),requestDto.getSizes(),product.getReleasePrice());
+
+        return savedColor.getId();
     }
 
     private void validateColorType(String colorName) {

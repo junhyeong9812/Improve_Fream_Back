@@ -2,6 +2,7 @@ package Fream_back.improve_Fream_Back.product.controller;
 
 import Fream_back.improve_Fream_Back.product.dto.ProductColorCreateRequestDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductColorUpdateRequestDto;
+import Fream_back.improve_Fream_Back.product.elasticsearch.service.ProductColorIndexingService;
 import Fream_back.improve_Fream_Back.product.service.productColor.ProductColorCommandService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
@@ -22,6 +23,7 @@ public class ProductColorCommandController {
     private final ProductColorCommandService productColorCommandService;
     private final UserQueryService userQueryService; // 권한 확인 서비스
     private final NginxCachePurgeUtil nginxCachePurgeUtil;
+    private final ProductColorIndexingService productColorIndexingService;
 
     // SecurityContext에서 이메일 추출
     private String extractEmailFromSecurityContext() {
@@ -43,7 +45,8 @@ public class ProductColorCommandController {
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
 
-        productColorCommandService.createProductColor(requestDto, thumbnailImage, images, detailImages, productId);
+        Long newColorId = productColorCommandService.createProductColor(requestDto, thumbnailImage, images, detailImages, productId);
+        productColorIndexingService.indexColorById(newColorId);
         nginxCachePurgeUtil.purgeProductCache();
         return ResponseEntity.ok().build();
     }
