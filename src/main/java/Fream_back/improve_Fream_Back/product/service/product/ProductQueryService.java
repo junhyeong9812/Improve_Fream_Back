@@ -66,5 +66,6 @@ public class ProductQueryService {
                 colorIds, sortOption, pageable
         );
     }
+
 }
 
