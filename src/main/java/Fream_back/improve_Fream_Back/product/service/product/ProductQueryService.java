@@ -56,5 +56,15 @@ public class ProductQueryService {
             throw new IllegalArgumentException("해당 상품 또는 색상이 존재하지 않습니다.", e);
         }
     }
+    // “ES colorId 목록”을 기반으로 DB 재조회
+    public Page<ProductSearchResponseDto> searchProductsByColorIds(
+            List<Long> colorIds,
+            SortOption sortOption,
+            Pageable pageable
+    ) {
+        return productQueryDslRepository.searchProductsByColorIds(
+                colorIds, sortOption, pageable
+        );
+    }
 }
 

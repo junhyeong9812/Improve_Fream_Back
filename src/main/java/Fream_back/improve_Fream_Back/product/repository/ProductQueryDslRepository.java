@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -550,6 +551,89 @@ public class ProductQueryDslRepository {
                 .otherColors(otherColors) // 다른 색상 정보 추가
                 .build();
     }
+
+    public Page<ProductSearchResponseDto> searchProductsByColorIds(
+            List<Long> colorIds,
+            SortOption sortOption,
+            Pageable pageable
+    ) {
+        if (colorIds == null || colorIds.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // QProduct, QProductColor, QProductSize, etc.
+        QProduct product = QProduct.product;
+        QProductColor productColor = QProductColor.productColor;
+        QProductSize productSize = QProductSize.productSize;
+        QInterest interest = QInterest.interest;
+
+        // 기본 쿼리
+        JPQLQuery<Tuple> query = queryFactory.select(
+                        product.id,
+                        product.name,
+                        product.englishName,
+                        product.releasePrice,
+                        productColor.id,
+                        productColor.colorName,
+                        productColor.thumbnailImage.imageUrl,
+                        productSize.purchasePrice.min(), // 최저 구매가
+                        interest.count()                 // 관심 수
+                )
+                .from(product)
+                .leftJoin(product.colors, productColor)
+                .leftJoin(productColor.sizes, productSize)
+                .leftJoin(productColor.interests, interest)
+                .where(productColor.id.in(colorIds))   // colorId로 필터
+                .groupBy(product.id, productColor.id)
+                .distinct();
+
+        // 정렬 로직
+        if (sortOption != null) {
+            // 예: field = "price", order = "asc"
+            if ("price".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? productSize.purchasePrice.min().asc()
+                        : productSize.purchasePrice.min().desc());
+            } else if ("releaseDate".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? product.releaseDate.asc()
+                        : product.releaseDate.desc());
+            } else if ("interestCount".equalsIgnoreCase(sortOption.getField())) {
+                query.orderBy("asc".equalsIgnoreCase(sortOption.getOrder())
+                        ? productColor.interests.size().sum().asc()
+                        : productColor.interests.size().sum().desc());
+            } else {
+                // 기본 정렬
+                query.orderBy(product.id.asc());
+            }
+        } else {
+            query.orderBy(product.id.asc());
+        }
+
+        // 페이징
+        long total = query.fetchCount();  // QueryDSL에서 fetchCount() (버전에 따라 .fetch().size()로 대체)
+        List<Tuple> results = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        List<ProductSearchResponseDto> content = results.stream()
+                .map(tuple -> ProductSearchResponseDto.builder()
+                        .id(tuple.get(product.id))
+                        .name(tuple.get(product.name))
+                        .englishName(tuple.get(product.englishName))
+                        .releasePrice(tuple.get(product.releasePrice))
+                        .colorId(tuple.get(productColor.id))
+                        .colorName(tuple.get(productColor.colorName))
+                        .thumbnailImageUrl(tuple.get(productColor.thumbnailImage.imageUrl))
+                        .price(tuple.get(productSize.purchasePrice.min()))
+                        .interestCount(tuple.get(interest.count()))
+                        .build())
+                .toList();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
 
 
 }
