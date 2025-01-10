@@ -110,6 +110,15 @@ spring:
           ssl:
             trust: smtp.gmail.com
 
+  kafka:
+    bootstrap-servers: localhost:9092  # or "kafka:9092" if using docker-compose
+    consumer:
+      group-id: "my-group"
+      auto-offset-reset: "earliest"
+
+  elasticsearch:
+    uris: http://elasticsearch:9200
+
 logging.level:
   org.hibernate.SQL: debug
   # org.hibernate.type: trace  # 필요하면 주석 해제 (쿼리 파라미터까지 로깅)
