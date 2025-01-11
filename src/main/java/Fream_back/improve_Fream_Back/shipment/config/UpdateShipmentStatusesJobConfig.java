@@ -18,6 +18,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.*;
+import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,7 @@ public class UpdateShipmentStatusesJobConfig {
                 .<OrderShipment, OrderShipment>chunk(50, transactionManager)
                 .reader(shipmentItemReader())    // 1) 읽기
                 .processor(shipmentItemProcessor()) // 2) 처리(스크래핑 + 상태 업데이트)
-                .writer(shipmentItemWriter())    // 3) 쓰기(DB 반영)
+                .writer(shipmentJpaItemWriter())    // 3) 쓰기(DB 반영)
                 .faultTolerant()
                 .skip(Exception.class)           // 네트워크/파싱 등 예외 시 Skip
                 .skipLimit(50)
@@ -135,15 +136,10 @@ public class UpdateShipmentStatusesJobConfig {
      */
     @Bean
     @StepScope
-    public ItemWriter<OrderShipment> shipmentItemWriter() {
-        return new ItemWriter<>() {
-            @Override
-            public void write(Chunk<? extends OrderShipment> chunk) throws Exception {
-                for (OrderShipment shipment : chunk) {
-                    orderShipmentRepository.save(shipment);
-                }
-            }
-        };
+    public JpaItemWriter<OrderShipment> shipmentJpaItemWriter() {
+        JpaItemWriter<OrderShipment> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(entityManagerFactory);
+        return writer;
     }
 
     /**

@@ -7,6 +7,7 @@ Shipment(배송) 관련 작업을 수행하기 위한 엔드포인트로, 다음
 - **배송 정보 생성**: 주문 및 판매와 연관된 배송 정보 생성
 - **배송 정보 수정**: 배송 상태 또는 송장 번호 업데이트
 - **배송 상태 조회 및 업데이트**: 현재 배송 상태를 외부 API(CJ 대한통운)에서 확인하고 업데이트
+- [추가] **대량 송장 번호(배송 상태) 자동 갱신**: 스프링 배치를 통해 일정 주기로 일괄 처리
 - **배송 상태 관리**: 주문과 연관된 배송 상태 및 알림 처리
 
 이 모든 기능은 관리자 권한이 필요한 작업과 그렇지 않은 작업으로 나뉘며, 인증이 필요한 경우 헤더의 토큰을 기반으로 수행됩니다.
@@ -116,6 +117,24 @@ PATCH /api/shipments/seller/{shipmentId}
     - 구매자에게 "배송이 완료되었습니다" 알림 전송.
 4. 상태가 변경되지 않은 경우 다음 상태로 전환을 확인.
 
+#### 스프링 배치 적용 시나리오
+1. **스케줄링**
+
+- @Scheduled(cron = "0 0 */6 * * *") 등으로 6시간마다 배치 Job 실행
+- 또는 별도 JobScheduler(Quartz, Kubernetes CronJob 등)로 실행 가능
+
+2. **Batch Job**(updateShipmentStatusesJob)
+- Step(updateShipmentStatusesStep)에서 “Chunk-Oriented Processing”으로 아래 로직을 수행
+1. **Reader**: JpaPagingItemReader를 사용해 DB에서 **status ∈ {IN_TRANSIT, OUT_FOR_DELIVERY}**인 배송 정보를 50개씩 페이징 조회
+2. **Processor**: 각 OrderShipment의 송장번호를 이용해 CJ 대한통운 페이지를 스크래핑(Jsoup).
+   - 배송 완료면 ShipmentStatus.DELIVERED, Order → COMPLETED 등 상태 변경 & 알림 전송
+   - 배송중이면 IN_TRANSIT, 출발이면 OUT_FOR_DELIVERY
+3. **Writer**: 변경된 배송 객체를 DB에 저장
+- .faultTolerant().skip(Exception.class).skipLimit(N)로 네트워크/파싱 오류에 대한 스킵·재시도 가능
+- 실행 후 배치 메타데이터를 통해 언제 몇 건이 처리되었는지 확인 가능
+이 과정을 통해 대량의 송장 상태를 한번에 갱신하면서, “배달 완료” 시점에 주문도 자동으로 마무리 처리할 수 있습니다.
+
+
 **외부 API 사용:**
 - URL: `https://trace.cjlogistics.com/next/tracking.html?wblNo={trackingNumber}`
 - HTML 파싱으로 현재 배송 상태 추출.
@@ -184,6 +203,15 @@ PATCH /api/shipments/seller/{shipmentId}
 ### **SellerShipmentCommandService**
 - `createSellerShipment()`: 판매자 배송 정보 생성
 - `updateShipment()`: 판매자 배송 정보 수정
+
+### (25년 1월12일 업데이트) **UpdateShipmentStatusesJobConfig**
+- `updateShipmentStatusesJob()`: 배송 상태 자동 갱신용 Job
+- `updateShipmentStatusesStep()`: Chunk-Oriented Step
+- `shipmentItemReader()`: 상태가 IN_TRANSIT 또는 OUT_FOR_DELIVERY인 배송 목록 조회(JPA 페이징)
+- `shipmentItemProcessor()`: CJ대한통운에서 상태 파싱, DELIVERED 시 주문 완료 + 알림
+- `shipmentItemWriter()`: 변경된 배송 엔티티 DB 저장
+- `.faultTolerant().skip(Exception.class).skipLimit(50)` → 스크래핑 실패 시 Skip
+
 
 ---
 
