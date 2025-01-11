@@ -6,6 +6,7 @@ import Fream_back.improve_Fream_Back.notification.entity.Notification;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationCategory;
 import Fream_back.improve_Fream_Back.notification.entity.NotificationType;
 import Fream_back.improve_Fream_Back.notification.repository.NotificationRepository;
+import Fream_back.improve_Fream_Back.order.entity.Order;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -130,5 +131,17 @@ public class NotificationCommandService {
     public void deleteNotificationsByUser(String email) {
         List<Notification> notifications = notificationRepository.findAllByUserEmail(email);
         notificationRepository.deleteAll(notifications);
+    }
+    public void notifyShipmentCompleted(Order order) {
+        User buyer = order.getUser();
+        // 예: "구매자"를 기준으로 알림 생성
+        // 필요하다면 seller(판매자)에게도 알림을 보낼 수 있음
+
+        createNotification(
+                buyer.getId(),
+                NotificationCategory.SHOPPING,
+                NotificationType.BID,
+                "[notifyShipmentCompleted] 상품이 배송 완료되었습니다. 주문 ID: " + order.getId()
+        );
     }
 }

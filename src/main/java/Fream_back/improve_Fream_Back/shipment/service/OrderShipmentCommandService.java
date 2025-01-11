@@ -99,6 +99,31 @@ public class OrderShipmentCommandService {
         }
     }
     @Transactional
+    public void completeOrder(Long orderId) {
+        // 1) OrderBid or Order 엔티티 조회 (프로젝트 구조에 따라 다름)
+        //    예: "주문" 테이블이 있다면...
+        OrderBid orderBid = orderBidQueryService.findByOrderId(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("OrderBid가 존재하지 않습니다. orderId=" + orderId));
+        Order order = orderBid.getOrder();
+
+        // 2) 주문 상태를 COMPLETED로 변경
+        order.updateStatus(OrderStatus.COMPLETED);
+
+        // 3) 필요하다면 판매 상태 변경 로직 (ex: sale.setStatus(SOLD)) 이나 창고 갱신 호출
+        updateSaleStatusToSold(orderId);
+
+        // 4) 알림 또는 기타 후속 로직
+        //    예: "주문이 완료되었습니다." 알림
+        User buyer = order.getUser();
+        notificationCommandService.createNotification(
+                buyer.getId(),
+                NotificationCategory.SHOPPING,
+                NotificationType.BID,
+                "[completeOrder] 주문이 완료 처리되었습니다. 주문 ID: " + order.getId()
+        );
+    }
+
+    @Transactional
     public void updateTrackingInfo(Long shipmentId, String courier, String trackingNumber) {
         OrderShipment shipment = orderShipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Shipment 정보를 찾을 수 없습니다: " + shipmentId));

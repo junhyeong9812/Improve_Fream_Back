@@ -32,6 +32,7 @@ public class UserAccessLog {
     @Column(name = "DEVICE_TYPE")
     private String deviceType; // 디바이스 타입 (Mobile, Desktop 등)
 
+    @Builder.Default
     @Column(name = "ACCESS_TIME")
     private LocalDateTime accessTime = LocalDateTime.now(); // 접근 시간
 
@@ -42,6 +43,8 @@ public class UserAccessLog {
 
     private String pageUrl; // 방문한 페이지 URL
     private String email; // 사용자 이메일 (토큰 기반)
+
+    @Builder.Default
     @Column(name = "IS_ANONYMOUS", nullable = false)
     private boolean isAnonymous = true; // 기본값으로 익명 사용자로 설정
 

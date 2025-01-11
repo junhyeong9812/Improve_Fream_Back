@@ -30,6 +30,7 @@ public class OrderBid extends BaseTimeEntity {
 
     private int bidPrice; // 입찰 가격
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private BidStatus status = BidStatus.PENDING; // 입찰 상태 (대기 중, 매칭 완료 등)
 

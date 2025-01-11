@@ -16,6 +16,11 @@ import Fream_back.improve_Fream_Back.product.service.productSize.ProductSizeQuer
 import Fream_back.improve_Fream_Back.utils.FileUtils;
 import Fream_back.improve_Fream_Back.utils.NginxCachePurgeUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +44,8 @@ public class ProductColorCommandService {
     private final ProductImageQueryService productImageQueryService;
     private final ProductDetailImageQueryService productDetailImageQueryService;
     private final NginxCachePurgeUtil nginxCachePurgeUtil;
-
+    private final JobLauncher jobLauncher;      // 배치 런처
+    private final Job createSizesJob;           // 위에서 정의한 잡
 
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";
@@ -102,6 +108,22 @@ public class ProductColorCommandService {
 
         // 사이즈 생성
         productSizeCommandService.createProductSizes(savedColor,  product.getCategory().getId(),requestDto.getSizes(),product.getReleasePrice());
+//        JobParameters jobParameters = new JobParametersBuilder()
+//                .addLong("productColorId", savedColor.getId())
+//                .addLong("categoryId", product.getCategory().getId())
+//                .addString("requestedSizes", String.join(",", requestDto.getSizes()))
+//                .addLong("releasePrice",(long)product.getReleasePrice())
+//                .addLong("timestamp", System.currentTimeMillis()) // 실행마다 달라야 함
+//                .toJobParameters();
+//
+//        // 3) 배치 Job 실행
+//        try {
+//            jobLauncher.run(createSizesJob, jobParameters);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            // 예외 처리
+//        }
+
 
         return savedColor.getId();
     }
