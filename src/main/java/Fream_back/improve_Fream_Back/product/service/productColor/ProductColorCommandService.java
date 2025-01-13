@@ -21,6 +21,8 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,7 +47,9 @@ public class ProductColorCommandService {
     private final ProductDetailImageQueryService productDetailImageQueryService;
     private final NginxCachePurgeUtil nginxCachePurgeUtil;
     private final JobLauncher jobLauncher;      // 배치 런처
-    private final Job createSizesJob;           // 위에서 정의한 잡
+    @Qualifier("createSizesJob")
+    @Autowired
+    private Job createSizesJob;           // 위에서 정의한 잡
 
     // 기본 파일 저장 경로
     private final String BASE_DIRECTORY = System.getProperty("user.dir") +  "/product/";

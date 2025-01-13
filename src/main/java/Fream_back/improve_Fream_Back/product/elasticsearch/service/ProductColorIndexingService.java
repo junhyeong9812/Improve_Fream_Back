@@ -1,6 +1,8 @@
 package Fream_back.improve_Fream_Back.product.elasticsearch.service;
 
 
+import Fream_back.improve_Fream_Back.product.elasticsearch.dto.ProductColorIndexDto;
+import Fream_back.improve_Fream_Back.product.elasticsearch.dto.ProductColorSizeRow;
 import Fream_back.improve_Fream_Back.product.elasticsearch.index.ProductColorIndex;
 import Fream_back.improve_Fream_Back.product.elasticsearch.repository.ProductColorEsRepository;
 import Fream_back.improve_Fream_Back.product.elasticsearch.repository.ProductColorIndexQueryRepository;
@@ -19,34 +21,127 @@ public class ProductColorIndexingService {
     private final ProductColorIndexQueryRepository queryRepository;
     private final ProductColorEsRepository productColorEsRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void indexAllColors() {
-        // 1) DB에서 ProductColor + 연관 정보 조회
-        List<ProductColor> colorList = queryRepository.findAllForIndexing();
+        // 1) DTO 목록 (기본 필드 + minPrice, maxPrice, interestCount)
+        List<ProductColorIndexDto> dtoList = queryRepository.findAllForIndexingDto();
 
-        // 2) 변환 (Entity -> Index DTO)
-        List<ProductColorIndex> indexList = colorList.stream()
-                .map(this::toIndex)
+        // 2) 사이즈 목록 (colorId, size)
+        List<ProductColorSizeRow> sizeRows = queryRepository.findAllSizesForIndexing();
+
+        // 3) 사이즈를 colorId별로 grouping
+        Map<Long, List<String>> sizeMap = sizeRows.stream()
+                .collect(Collectors.groupingBy(
+                        ProductColorSizeRow::getColorId,
+                        Collectors.mapping(ProductColorSizeRow::getSize, Collectors.toList())
+                ));
+
+        // 4) 두 정보를 합쳐서 ProductColorIndex 생성
+        List<ProductColorIndex> indexList = dtoList.stream()
+                .map(dto -> {
+                    List<String> sizes = sizeMap.getOrDefault(dto.getColorId(), Collections.emptyList());
+
+                    return ProductColorIndex.builder()
+                            .colorId(dto.getColorId())
+                            .productId(dto.getProductId())
+                            .productName(dto.getProductName())
+                            .productEnglishName(dto.getProductEnglishName())
+                            .brandName(dto.getBrandName())
+                            .categoryName(dto.getCategoryName())
+                            .collectionName(dto.getCollectionName())
+                            .brandId(dto.getBrandId())
+                            .categoryId(dto.getCategoryId())
+                            .collectionId(dto.getCollectionId())
+                            .colorName(dto.getColorName())
+                            .gender(dto.getGender())
+                            .releasePrice(dto.getReleasePrice())
+                            .minPrice(dto.getMinPrice())
+                            .maxPrice(dto.getMaxPrice())
+                            .interestCount(dto.getInterestCount())
+                            .sizes(sizes)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
-        // 3) Elasticsearch에 저장
+        // 5) Elasticsearch에 저장
         productColorEsRepository.saveAll(indexList);
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * 단일 colorId 대상 인덱싱
+     * (상품 색상 추가/업데이트 시 호출)
+     */
+    @Transactional
     public void indexColorById(Long colorId) {
-        // 1) DB에서 해당 colorId만 조회
-        ProductColor pc = queryRepository.findOneForIndexing(colorId);
-        if (pc == null) {
-            throw new IllegalArgumentException("해당 ProductColor가 존재하지 않습니다. id=" + colorId);
+        // 1) 기본 정보 (minPrice, maxPrice, interestCount 등)
+        ProductColorIndexDto dto = queryRepository.findOneForIndexingDto(colorId);
+        if (dto == null) {
+            throw new IllegalArgumentException("해당 colorId가 존재하지 않습니다. colorId=" + colorId);
         }
 
-        // 2) 변환(엔티티 -> 인덱스 DTO)
-        ProductColorIndex indexObj = toIndex(pc);
+        // 2) 사이즈 목록
+        List<ProductColorSizeRow> sizeRows = queryRepository.findSizesByColorId(colorId);
+        // colorId 하나이므로, sizeRows 전체가 동일 colorId
+        List<String> sizes = sizeRows.stream()
+                .map(ProductColorSizeRow::getSize)
+                .toList();
 
-        // 3) Elasticsearch에 save (단건)
+        // 3) ProductColorIndex 빌드
+        ProductColorIndex indexObj = ProductColorIndex.builder()
+                .colorId(dto.getColorId())
+                .productId(dto.getProductId())
+                .productName(dto.getProductName())
+                .productEnglishName(dto.getProductEnglishName())
+                .brandName(dto.getBrandName())
+                .categoryName(dto.getCategoryName())
+                .collectionName(dto.getCollectionName())
+                .brandId(dto.getBrandId())
+                .categoryId(dto.getCategoryId())
+                .collectionId(dto.getCollectionId())
+                .colorName(dto.getColorName())
+                .gender(dto.getGender())
+                .releasePrice(dto.getReleasePrice())
+                .minPrice(dto.getMinPrice())
+                .maxPrice(dto.getMaxPrice())
+                .interestCount(dto.getInterestCount())
+                .sizes(sizes) // 사이즈 목록을 최종 주입
+                .build();
+
+        // 4) Elasticsearch에 저장 (upsert)
         productColorEsRepository.save(indexObj);
     }
+
+
+
+
+//    @Transactional(readOnly = true)
+//    public void indexAllColors() {
+//        // 1) DB에서 ProductColor + 연관 정보 조회
+//        List<ProductColor> colorList = queryRepository.findAllForIndexing();
+//
+//        // 2) 변환 (Entity -> Index DTO)
+//        List<ProductColorIndex> indexList = colorList.stream()
+//                .map(this::toIndex)
+//                .collect(Collectors.toList());
+//
+//        // 3) Elasticsearch에 저장
+//        productColorEsRepository.saveAll(indexList);
+//    }
+//
+//    @Transactional(readOnly = true)
+//    public void indexColorById(Long colorId) {
+//        // 1) DB에서 해당 colorId만 조회
+//        ProductColor pc = queryRepository.findOneForIndexing(colorId);
+//        if (pc == null) {
+//            throw new IllegalArgumentException("해당 ProductColor가 존재하지 않습니다. id=" + colorId);
+//        }
+//
+//        // 2) 변환(엔티티 -> 인덱스 DTO)
+//        ProductColorIndex indexObj = toIndex(pc);
+//
+//        // 3) Elasticsearch에 save (단건)
+//        productColorEsRepository.save(indexObj);
+//    }
 
 
     private ProductColorIndex toIndex(ProductColor pc) {
