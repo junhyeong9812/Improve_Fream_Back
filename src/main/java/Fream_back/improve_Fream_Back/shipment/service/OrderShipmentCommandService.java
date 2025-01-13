@@ -240,5 +240,42 @@ public class OrderShipmentCommandService {
         }
     }
 
+    /**
+     * 단일 송장에 대해 즉시 상태를 갱신하고, 최종 상태를 반환
+     */
+    @Transactional
+    public ShipmentStatus updateAndCheckShipmentStatus(Long shipmentId, String courier, String trackingNumber) throws Exception {
+
+        // 1) 기존 Shipment 로드
+        OrderShipment shipment = orderShipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Shipment 정보를 찾을 수 없습니다: " + shipmentId));
+
+        // 2) 송장 정보 업데이트 (택배사, 송장번호)
+        shipment.updateTrackingInfo(courier, trackingNumber);
+        // 배송 상태도 IN_TRANSIT으로 바꿔둠 (필요하다면)
+        shipment.updateStatus(ShipmentStatus.IN_TRANSIT);
+
+        // 3) CJ대한통운 HTML 스크래핑으로 현재 상태 조회
+        String currentStatus = getCurrentTrackingStatus(trackingNumber);
+        ShipmentStatus newStatus = mapToShipmentStatus(currentStatus);
+
+        // 4) 상태가 DELIVERED인 경우 등등 로직
+        if (newStatus == ShipmentStatus.DELIVERED) {
+            shipment.updateStatus(ShipmentStatus.DELIVERED);
+            // 주문 완료 로직 (completeOrder)
+            completeOrder(shipment.getOrder().getId());
+        }
+        else if (newStatus == ShipmentStatus.OUT_FOR_DELIVERY) {
+            shipment.updateStatus(ShipmentStatus.OUT_FOR_DELIVERY);
+        }
+        else {
+            shipment.updateStatus(ShipmentStatus.IN_TRANSIT);
+        }
+
+        // 5) 더티체킹으로 DB 반영
+        // 6) 최종 상태 반환
+        return shipment.getStatus();
+    }
+
 }
 

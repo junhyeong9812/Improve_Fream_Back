@@ -1,10 +1,9 @@
 package Fream_back.improve_Fream_Back.config;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
+import org.springframework.batch.support.DatabaseType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -17,14 +16,21 @@ import javax.sql.DataSource;
 public class BatchInfraConfig {
 
     @Bean
-    public JobRepository jobRepository(DataSource dataSource, PlatformTransactionManager transactionManager) throws Exception {
+    public JobRepository jobRepository(
+            DataSource dataSource,
+            PlatformTransactionManager transactionManager
+    ) throws Exception {
         JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
         factory.setDataSource(dataSource);
         factory.setTransactionManager(transactionManager);
-        // DB 타입, Isolation level, Table prefix 등 필요한 설정 가능
+
+        // ★ 현재 H2 인메모리로 사용
+        factory.setDatabaseType(DatabaseType.H2.name());
+        // factory.setDatabaseType(DatabaseType.MYSQL.name()); // <-- 추후 MySQL로 전환 시 활성화
+
+        // factory.setTablePrefix("BATCH_"); // 테이블 접두어 설정 가능
+        factory.afterPropertiesSet();
         return factory.getObject();
     }
-
-
 
 }
