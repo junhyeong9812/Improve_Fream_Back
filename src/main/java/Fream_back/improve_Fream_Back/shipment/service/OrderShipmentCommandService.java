@@ -14,6 +14,7 @@ import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
 import Fream_back.improve_Fream_Back.shipment.repository.OrderShipmentRepository;
 import Fream_back.improve_Fream_Back.user.entity.User;
+import Fream_back.improve_Fream_Back.utils.CjTrackingPlaywright;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -200,21 +201,25 @@ public class OrderShipmentCommandService {
     }
 
     private String getCurrentTrackingStatus(String trackingNumber) throws Exception {
-        String url = "https://trace.cjlogistics.com/next/tracking.html?wblNo=" + trackingNumber;
-        Document doc = Jsoup.connect(url).get();
-
-        // HTML에서 tbody[id=statusDetail]의 마지막 <tr>의 5번째 <td> 추출
-        Elements rows = doc.select("tbody#statusDetail tr");
-        if (rows.isEmpty()) {
-            throw new IllegalStateException("배송 정보가 없습니다.");
-        }
-        Element lastRow = rows.last();
-        Elements cells = lastRow.select("td");
-        if (cells.size() < 5) {
-            throw new IllegalStateException("배송 상태 정보를 찾을 수 없습니다.");
-        }
-        return cells.get(4).text();
+        CjTrackingPlaywright playwrightUtil = new CjTrackingPlaywright();
+        return playwrightUtil.getCurrentTrackingStatus(trackingNumber);
     }
+//    private String getCurrentTrackingStatus(String trackingNumber) throws Exception {
+//        String url = "https://trace.cjlogistics.com/next/tracking.html?wblNo=" + trackingNumber;
+//        Document doc = Jsoup.connect(url).get();
+//        System.out.println("doc = " + doc);
+//        // HTML에서 tbody[id=statusDetail]의 마지막 <tr>의 5번째 <td> 추출
+//        Elements rows = doc.select("tbody#statusDetail tr");
+//        if (rows.isEmpty()) {
+//            throw new IllegalStateException("배송 정보가 없습니다.");
+//        }
+//        Element lastRow = rows.last();
+//        Elements cells = lastRow.select("td");
+//        if (cells.size() < 5) {
+//            throw new IllegalStateException("배송 상태 정보를 찾을 수 없습니다.");
+//        }
+//        return cells.get(4).text();
+//    }
     private ShipmentStatus mapToShipmentStatus(String statusText) {
         return switch (statusText) {
             case "배송완료" -> ShipmentStatus.DELIVERED;
@@ -249,18 +254,21 @@ public class OrderShipmentCommandService {
         // 1) 기존 Shipment 로드
         OrderShipment shipment = orderShipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Shipment 정보를 찾을 수 없습니다: " + shipmentId));
-
+        System.out.println("shipment = " + shipment);
         // 2) 송장 정보 업데이트 (택배사, 송장번호)
         shipment.updateTrackingInfo(courier, trackingNumber);
+        System.out.println(" 송장 정보 업데이트 ");
         // 배송 상태도 IN_TRANSIT으로 바꿔둠 (필요하다면)
-        shipment.updateStatus(ShipmentStatus.IN_TRANSIT);
-
+//        shipment.updateStatus(ShipmentStatus.IN_TRANSIT);
+        System.out.println("1234");
         // 3) CJ대한통운 HTML 스크래핑으로 현재 상태 조회
         String currentStatus = getCurrentTrackingStatus(trackingNumber);
+        System.out.println("currentStatus = " + currentStatus);
         ShipmentStatus newStatus = mapToShipmentStatus(currentStatus);
-
+        System.out.println("newStatus = " + newStatus);
         // 4) 상태가 DELIVERED인 경우 등등 로직
         if (newStatus == ShipmentStatus.DELIVERED) {
+            shipment.updateStatus(ShipmentStatus.OUT_FOR_DELIVERY);
             shipment.updateStatus(ShipmentStatus.DELIVERED);
             // 주문 완료 로직 (completeOrder)
             completeOrder(shipment.getOrder().getId());

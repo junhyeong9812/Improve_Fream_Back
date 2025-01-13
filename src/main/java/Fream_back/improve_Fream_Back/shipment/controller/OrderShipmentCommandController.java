@@ -38,6 +38,8 @@ public class OrderShipmentCommandController {
             @PathVariable("shipmentId") Long shipmentId,
             @RequestBody OrderShipmentRequestDto requestDto
     ) {
+        System.out.println("requestDto = " + requestDto.getCourier());
+        System.out.println("requestDto = " + requestDto.getTrackingNumber());
         try {
             // 1) Service에서 상태 업데이트 & 조회
             ShipmentStatus updatedStatus = orderShipmentCommandService.updateAndCheckShipmentStatus(
@@ -51,10 +53,31 @@ public class OrderShipmentCommandController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            e.printStackTrace(); // 전체 스택트레이스 찍기
             return ResponseEntity.badRequest().build();
         }
     }
+    @PostMapping("/{shipmentId}/check-status-string")
+    public ResponseEntity<String> updateAndCheckStatusAsString(
+            @PathVariable("shipmentId") Long shipmentId,
+            @RequestBody OrderShipmentRequestDto requestDto
+    ) {
+        try {
+            ShipmentStatus updatedStatus
+                    = orderShipmentCommandService.updateAndCheckShipmentStatus(
+                    shipmentId,
+                    requestDto.getCourier(),
+                    requestDto.getTrackingNumber()
+            );
 
+            // 문자열로 반환
+            return ResponseEntity.ok(updatedStatus.name());
 
+        } catch (Exception e) {
+            e.printStackTrace(); // 어떤 예외인지 확인
+            // 예외 메시지까지 Body에 담아줄 수 있음
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
 
 }

@@ -16,7 +16,8 @@ public enum ShipmentStatus {
     IN_TRANSIT {
         @Override
         public boolean canTransitionTo(ShipmentStatus nextStatus) {
-            return nextStatus == OUT_FOR_DELIVERY || nextStatus == DELAYED || nextStatus == CANCELED;
+            return nextStatus == OUT_FOR_DELIVERY || nextStatus == DELAYED || nextStatus == CANCELED
+                    || nextStatus == DELIVERED;
         }
     },
     OUT_FOR_DELIVERY {
