@@ -4,7 +4,9 @@ import Fream_back.improve_Fream_Back.user.dto.BankAccount.BankAccountDto;
 import Fream_back.improve_Fream_Back.user.dto.BankAccount.BankAccountInfoDto;
 import Fream_back.improve_Fream_Back.user.service.bankaccount.BankAccountCommandService;
 import Fream_back.improve_Fream_Back.user.service.bankaccount.BankAccountQueryService;
+import Fream_back.improve_Fream_Back.user.validate.BankAccountControllerValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class BankAccountController {
     private final BankAccountCommandService bankAccountCommandService;
     private final BankAccountQueryService bankAccountQueryService;
+
 
     // SecurityContextHolder에서 이메일 추출
     private String extractEmailFromSecurityContext() {
@@ -29,9 +32,21 @@ public class BankAccountController {
     // 입금 계좌 정보 생성 및 수정
     @PostMapping
     public ResponseEntity<String> createOrUpdateBankAccount(@RequestBody BankAccountDto dto) {
-        String email = extractEmailFromSecurityContext();
-        bankAccountCommandService.createOrUpdateBankAccount(email, dto);
-        return ResponseEntity.ok("판매 정산 계좌가 성공적으로 등록/수정되었습니다.");
+        try {
+            // 1) DTO 검증
+            BankAccountControllerValidator.validateBankAccountDto(dto);
+
+            // 2) 검증 통과 후 로직
+            String email = extractEmailFromSecurityContext();
+            bankAccountCommandService.createOrUpdateBankAccount(email, dto);
+
+            return ResponseEntity.ok("판매 정산 계좌가 성공적으로 등록/수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("계좌정보 등록/수정 처리 중 문제가 발생했습니다.");
+        }
     }
 
     // 입금 계좌 정보 조회
