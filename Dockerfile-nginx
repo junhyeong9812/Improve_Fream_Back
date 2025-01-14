@@ -45,17 +45,30 @@ RUN make && make install
 
 # 2) 최종 런타임 이미지 생성
 FROM alpine:3.18
-RUN apk add --no-cache \
-    pcre \
-    openssl \
-    zlib
+RUN apk add --no-cache pcre openssl zlib
+#RUN apk add --no-cache \
+#    pcre \
+#    openssl \
+#    zlib \
+
+# --------------------------------------------------
+# [신규] 1) "nginx" 그룹/유저 생성 (system 계정)
+#        홈디렉토리 없이, 로그인 불가
+RUN addgroup -S nginx && adduser -S -G nginx \
+    -h /nonexistent \
+    -s /sbin/nologin \
+    nginx
+
+# --------------------------------------------------
 
 COPY --from=builder /etc/nginx /etc/nginx
 COPY --from=builder /usr/local/sbin/nginx /usr/local/sbin/nginx
 
 # 기본 설정(예시)
-RUN mkdir -p /var/cache/nginx
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /var/cache/nginx \
+    && chown -R nginx:nginx /var/cache/nginx
+    # ↑ 캐시 디렉토리를 nginx 유저에게 소유권 부여 (필요시)
+COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
