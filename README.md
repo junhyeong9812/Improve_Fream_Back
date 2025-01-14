@@ -3,7 +3,8 @@
 ## 1. 프로젝트 개요
 - 기존 Kream 클론 프로젝트에서 부족했던 점을 개선하고, e-Commerce와 커뮤니티 기능을 통합한 리셀 플랫폼을 다시 설계/구현한 프로젝트입니다.
 ### 프로젝트 아키텍처
-![image](https://github.com/user-attachments/assets/5ba3c651-2cf8-40f5-a682-9f2c5118836d)
+![image](https://github.com/user-attachments/assets/8c430732-6db7-4d6e-a8e8-4f3dbc8eb3f7)
+
 
 
 
