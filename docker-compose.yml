@@ -92,3 +92,5 @@ services:
 #      - ./nginx/cache:/var/cache/nginx  # 캐시 디렉토리
     ports:
       - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

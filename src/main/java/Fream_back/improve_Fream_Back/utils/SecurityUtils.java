@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.utils;
 
+import Fream_back.improve_Fream_Back.user.Jwt.UserInfo;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -19,5 +20,13 @@ public class SecurityUtils {
             // 인증 안 된 경우
             return "anonymous";
         }
+    }
+    // 나이/성별 등 추가 정보도 가져오려면?
+    public static UserInfo extractUserInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getDetails() instanceof UserInfo) {
+            return (UserInfo) authentication.getDetails();
+        }
+        return null;
     }
 }

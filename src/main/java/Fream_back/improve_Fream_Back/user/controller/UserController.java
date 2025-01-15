@@ -1,6 +1,7 @@
 package Fream_back.improve_Fream_Back.user.controller;
 
 import Fream_back.improve_Fream_Back.user.Jwt.JwtTokenProvider;
+import Fream_back.improve_Fream_Back.user.Jwt.TokenDto;
 import Fream_back.improve_Fream_Back.user.dto.*;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.redis.RedisService;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -54,12 +56,18 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginRequestDto) {
         try {
-            // 검증 추가
+            // 검증
             UserControllerValidator.validateLoginRequestDto(loginRequestDto);
 
-            // 검증 통과 후 로직
-            String token = authService.login(loginRequestDto);
-            return ResponseEntity.ok(Map.of("token", token));
+            // 로직 -> 여기서 TokenDto 받기
+            TokenDto tokenDto = authService.login(loginRequestDto);
+
+            // JSON 응답으로 accessToken, refreshToken 모두 내려주기
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("accessToken", tokenDto.getAccessToken());
+            responseBody.put("refreshToken", tokenDto.getRefreshToken());
+
+            return ResponseEntity.ok(responseBody);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("status", "error", "message", e.getMessage()));
@@ -154,6 +162,7 @@ public class UserController {
     @PutMapping("/update-login-info")
     public ResponseEntity<Map<String, String>> updateLoginInfo(
             @RequestHeader("Authorization") String authorizationHeader,
+            @RequestHeader(value = "RefreshToken", required = false) String refreshTokenHeader,
             @RequestBody LoginInfoUpdateDto dto) {
         try {
             // 1) 현재 이메일(= oldEmail) 추출
@@ -167,40 +176,38 @@ public class UserController {
             userUpdateService.updateLoginInfo(oldEmail, dto);
 
             // 4) 새 이메일 플래그 체크
-            //    - dto.getNewEmail()이 null/공백이 아님
-            //    - oldEmail과도 다름
             String newEmail = dto.getNewEmail();
             boolean emailChanged = (newEmail != null && !newEmail.isBlank() && !newEmail.equals(oldEmail));
 
-            // 5) 이메일이 실제 바뀐 경우 → 토큰 재발급
-            String newToken = null;
+            // 5) 이메일 변경 시 → 토큰 재발급
             if (emailChanged) {
-                // (a) 기존 토큰 문자열 추출
-                String oldToken = authorizationHeader.replace("Bearer ", "");
+                // 5-1) 기존 토큰
+                String oldAccessToken = authorizationHeader.replace("Bearer ", "");
+                String oldRefreshToken = (refreshTokenHeader != null)
+                        ? refreshTokenHeader.replace("Bearer ", "")
+                        : null;
 
-                // (b) Redis 화이트리스트에서 기존 토큰 삭제
-                redisService.removeTokenFromWhitelist(oldToken);
+                // 5-2) userUpdateService 쪽 메서드 호출로 기존 토큰 제거 & 새 토큰 발급
+                //      (newEmail 로 DB 다시 조회하여 나이, 성별 꺼낸 다음 TokenPair 생성)
+                TokenDto newTokens = userUpdateService.reissueTokenAfterEmailChange(
+                        oldAccessToken, oldRefreshToken, oldEmail, newEmail
+                );
 
-                // (c) 새 이메일로 새 토큰 발급
-                newToken = jwtTokenProvider.generateToken(newEmail);
-                redisService.addTokenToWhitelist(newToken);
+                // 5-3) 응답에 새 토큰 담아서 반환
+                Map<String, String> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("message", "로그인 정보가 성공적으로 변경되었습니다.");
+                response.put("accessToken", newTokens.getAccessToken());
+                response.put("refreshToken", newTokens.getRefreshToken());
+
+                return ResponseEntity.ok(response);
             }
 
-            // 6) 응답 생성
-            if (newToken != null) {
-                // 새 토큰이 있으면 함께 내려줌
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "message", "로그인 정보가 성공적으로 변경되었습니다.",
-                        "newToken", newToken
-                ));
-            } else {
-                // 이메일이 변경 안 됐거나, 새 토큰 발급이 불필요한 경우
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "message", "로그인 정보가 성공적으로 변경되었습니다."
-                ));
-            }
+            // 이메일 변경 안 됐으면 그냥 메시지 반환
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "로그인 정보가 성공적으로 변경되었습니다."
+            ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", "error", "message", e.getMessage()));

@@ -1,8 +1,11 @@
 package Fream_back.improve_Fream_Back.user.service;
 
+import Fream_back.improve_Fream_Back.user.Jwt.JwtTokenProvider;
+import Fream_back.improve_Fream_Back.user.Jwt.TokenDto;
 import Fream_back.improve_Fream_Back.user.dto.LoginInfoUpdateDto;
 import Fream_back.improve_Fream_Back.user.entity.ShoeSize;
 import Fream_back.improve_Fream_Back.user.entity.User;
+import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import Fream_back.improve_Fream_Back.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +18,8 @@ public class UserUpdateService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RedisService redisService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void updateLoginInfo(String email, LoginInfoUpdateDto dto) {
@@ -44,4 +49,32 @@ public class UserUpdateService {
                 dto.getSmsConsent(),
                 dto.getEmailConsent());
     }
+    @Transactional
+    public TokenDto reissueTokenAfterEmailChange(
+            String oldAccessToken,
+            String oldRefreshToken,
+            String oldEmail,
+            String newEmail
+    ) {
+        // 1) newEmail 로 DB에서 사용자 찾기
+        User newUser = userRepository.findByEmail(newEmail)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일을 가진 사용자가 없습니다: " + newEmail));
+
+        // 2) Redis에서 old 토큰들 제거
+        if (oldAccessToken != null) {
+            redisService.removeAccessToken(oldAccessToken);
+        }
+        if (oldRefreshToken != null) {
+            redisService.removeRefreshToken(oldRefreshToken);
+        }
+
+        // 3) 새 이메일 + User 정보로 토큰 재발급
+        //    User에 age, gender 필드가 있다고 가정
+        return jwtTokenProvider.generateTokenPair(
+                newUser.getEmail(),
+                newUser.getAge(),
+                newUser.getGender()
+        );
+    }
+
 }

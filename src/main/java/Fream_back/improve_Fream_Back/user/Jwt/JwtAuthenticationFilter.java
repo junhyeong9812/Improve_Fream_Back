@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.user.Jwt;
 
+import Fream_back.improve_Fream_Back.user.entity.Gender;
 import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,49 +25,73 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = extractToken(request); // 토큰 추출
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException
+    {
+        String accessToken = extractAccessToken(request);
 
-        // 토큰이 유효한지 검증
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 토큰 검증 후 Redis 화이트리스트에 존재하는지 확인
-            if (redisService.isTokenInWhitelist(token)) {
-                String email = jwtTokenProvider.getEmailFromToken(token);
-                // 인증 객체에 이메일 설정
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, null);
+        // JWT 서명 + 만료시간 검증
+        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+            // Redis 화이트리스트 (또는 accessTokenValid) 검사
+            if (redisService.isAccessTokenValid(accessToken)) {
+                // 토큰에서 이메일 추출
+                String email = jwtTokenProvider.getEmailFromToken(accessToken);
+                // Redis에서 추가 정보(나이, 성별) 가져오기
+                Integer age = redisService.getAgeByAccessToken(accessToken);
+                Gender gender = redisService.getGenderByAccessToken(accessToken);
+
+                // 스프링 시큐리티 인증 객체 구성
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(email, null, null);
+
+                // 여기서 UserInfo를 생성해서 details로 넣어줌
+                UserInfo userInfo = new UserInfo(age, gender);
+                authentication.setDetails(userInfo);
+
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                // 헤더에 토큰을 설정 (컨트롤러에서 사용할 수 있게)
-                request.setAttribute("Authorization", "Bearer " + token);
             } else {
-                // 화이트리스트에 없으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
-                // 헤더에 메시지 추가만 하고, 필터 체인 계속 진행
-//                request.setAttribute("Authorization", "Token is not in the whitelist");
-                // 화이트리스트에 없으면 인증 실패
                 SecurityContextHolder.clearContext();
             }
         } else {
-            // 토큰이 없거나 유효하지 않으면 인증 실패 (하지만 필터에서 바로 응답을 보내지 않음)
-//            request.setAttribute("Authorization", "Invalid or expired token");
-            // 토큰이 없거나 유효하지 않으면 인증 실패
             SecurityContextHolder.clearContext();
         }
 
-        // 필터 체인에서 다음 필터로 요청 전달
         filterChain.doFilter(request, response);
     }
 
-    // HTTP 요청의 Authorization 헤더에서 JWT 토큰을 추출하는 메서드
-    private String extractToken(HttpServletRequest request) {
+
+
+    // === 토큰 추출 (헤더 기준) ===
+    private String extractAccessToken(HttpServletRequest request) {
+        // 예: "Authorization: Bearer xxxxx..."
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);  // "Bearer "를 제외한 토큰 부분 반환
+            return header.substring(7);
         }
         return null;
     }
 
-    @Override
-    public void destroy() {
-        // 필요시 필터 정리 작업
+    private String extractRefreshToken(HttpServletRequest request) {
+        // 예: "RefreshToken: Bearer xxxxx..."
+        String header = request.getHeader("RefreshToken");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
+    }
+
+    /**
+     * 나이, 성별을 담는 임시 클래스(또는 Principal 커스텀 클래스로 대체 가능)
+     */
+    public static class UserInfo {
+        private final Integer age;
+        private final Gender gender;
+        public UserInfo(Integer age, Gender gender) {
+            this.age = age;
+            this.gender = gender;
+        }
+        public Integer getAge() { return age; }
+        public Gender getGender() { return gender; }
     }
 }

@@ -15,7 +15,7 @@ public class NginxCachePurgeUtil {
     // docker-compose 환경에서 nginx 컨테이너 호스트명
 
     public void purgeProductCache() {
-        String purgeUrl = nginxUrl + "/purge/api/products/";
+        String purgeUrl = nginxUrl + "/purge_products/api/products/";
         RequestEntity<Void> requestEntity = RequestEntity
                 .method(HttpMethod.valueOf("PURGE"), URI.create(purgeUrl))
                 .build();
@@ -27,7 +27,7 @@ public class NginxCachePurgeUtil {
     }
 
     public void purgeStyleCache() {
-        String purgeUrl = nginxUrl + "/purge/api/styles/queries";
+        String purgeUrl = nginxUrl + "/purge_styles/api/styles/queries";
         RequestEntity<Void> requestEntity = RequestEntity
                 .method(HttpMethod.valueOf("PURGE"), URI.create(purgeUrl))
                 .build();
