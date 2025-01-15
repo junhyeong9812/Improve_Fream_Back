@@ -47,7 +47,8 @@ public class ProductColorIndexQueryRepository {
                         p.releasePrice.as("releasePrice"),
                         ps.purchasePrice.min().as("minPrice"),
                         ps.purchasePrice.max().as("maxPrice"),
-                        it.id.countDistinct().as("interestCount")
+                        it.id.countDistinct().as("interestCount"),
+                        p.releaseDate.as("releaseDate")
                 ))
                 .from(pc)
                 .leftJoin(pc.product, p)
@@ -104,7 +105,8 @@ public class ProductColorIndexQueryRepository {
                         p.releasePrice.as("releasePrice"),
                         ps.purchasePrice.min().as("minPrice"),
                         ps.purchasePrice.max().as("maxPrice"),
-                        it.id.countDistinct().as("interestCount")
+                        it.id.countDistinct().as("interestCount"),
+                        p.releaseDate.as("releaseDate")
                 ))
                 .from(pc)
                 .leftJoin(pc.product, p)

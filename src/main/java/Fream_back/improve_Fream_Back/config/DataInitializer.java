@@ -50,6 +50,7 @@ import java.util.*;
 
 @Configuration
 @RequiredArgsConstructor
+@org.springframework.core.annotation.Order(1)
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;

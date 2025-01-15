@@ -2,8 +2,13 @@ package Fream_back.improve_Fream_Back.product.elasticsearch.service;
 
 import Fream_back.improve_Fream_Back.product.elasticsearch.index.ProductColorIndex;
 import Fream_back.improve_Fream_Back.product.elasticsearch.repository.ProductColorEsRepository;
+import Fream_back.improve_Fream_Back.product.repository.SortOption;
 import co.elastic.clients.json.JsonData;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -28,7 +33,7 @@ public class ProductColorSearchService {
     /**
      * 고급 검색 (멀티매치 + 오타 허용 + 동의어 등)
      */
-    public List<ProductColorIndex> search(
+    public Page<ProductColorIndex> search(
             String keyword,
             List<Long> categoryIds,
             List<String> genders,
@@ -37,7 +42,9 @@ public class ProductColorSearchService {
             List<String> colorNames,
             List<String> sizes,
             Integer minPrice,
-            Integer maxPrice
+            Integer maxPrice,
+            SortOption sortOption,   // 새로 추가: 정렬 기준 (price, releaseDate, etc.) + order (asc/desc)
+            Pageable pageable       // 새로 추가: 페이징 (page=..., size=...)
     ) {
         // 1) 최상위 BoolQuery
         BoolQuery.Builder boolBuilder = new BoolQuery.Builder();
@@ -138,23 +145,101 @@ public class ProductColorSearchService {
             // "maxPrice >= userMaxPrice" 방식
         }
 
+        // (추가) "조건이 전혀 없으면" → match_all
+        BoolQuery builtBool = boolBuilder.build();
+        boolean noConditions = builtBool.must().isEmpty()
+                && builtBool.should().isEmpty()
+                && builtBool.filter().isEmpty()
+                && builtBool.mustNot().isEmpty();
+
         // 최종 BoolQuery 빌드
-        Query finalQuery = new Query.Builder()
-                .bool(boolBuilder.build())
-                .build();
+        Query finalQuery;
+        if (noConditions) {
+            // 아무 필터가 없을 때는 match_all
+            finalQuery = new Query.Builder()
+                    .matchAll(m->m)
+                    .build();
+        } else {
+            // 기존 BoolQuery 사용
+            finalQuery = new Query.Builder()
+                    .bool(builtBool)
+                    .build();
+        }
 
         // 10) NativeQuery로 감싸기
-        NativeQuery nativeQuery = NativeQuery.builder()
-                .withQuery(finalQuery)
-                .build();
+//        NativeQuery nativeQuery = NativeQuery.builder()
+//                .withQuery(finalQuery)
+//                .build();
+        // 3) NativeQuery 생성
+        var nativeQueryBuilder = NativeQuery.builder()
+                .withQuery(finalQuery);
 
-        // 11) 검색 실행
-        SearchHits<ProductColorIndex> hits = esOperations.search(nativeQuery, ProductColorIndex.class);
+        // 4) 정렬 처리 (SortOption)
+        if (sortOption != null && sortOption.getField() != null) {
+            String rawField = sortOption.getField();
+            if (rawField.equalsIgnoreCase("releaseDate")) {
+                rawField = "releaseDate";
+            } else if (rawField.equalsIgnoreCase("interestCount")) {
+                rawField = "interestCount";
+            } else if (rawField.equalsIgnoreCase("price")) {
+                rawField = "minPrice";
+            } else {
+                rawField = "productId";
+            }
 
-        // 결과 반환
-        return hits.getSearchHits().stream()
+            co.elastic.clients.elasticsearch._types.SortOrder finalOrder =
+                    (sortOption.getOrder() != null && sortOption.getOrder().equalsIgnoreCase("desc"))
+                            ? co.elastic.clients.elasticsearch._types.SortOrder.Desc
+                            : co.elastic.clients.elasticsearch._types.SortOrder.Asc;
+
+            final String finalField = rawField;   // <-- 람다 내에서 쓸 최종 값
+
+            nativeQueryBuilder.withSort(s ->
+                    s.field(f -> f.field(finalField).order(finalOrder))
+            );
+        } else {
+            // sortOption이 없거나 field가 없으면 디폴트 정렬: productId asc
+            nativeQueryBuilder.withSort(s -> s.field(f -> f.field("productId").order(co.elastic.clients.elasticsearch._types.SortOrder.Asc)));
+        }
+
+        // 5) 페이징 처리
+        //    Spring Data Elasticsearch의 "NativeQuery"도 .withPageable() 지원
+        //    만약 pageable이 null이면 page=0, size=20 같은 디폴트로 세팅
+        Pageable finalPageable = pageable != null ? pageable : PageRequest.of(0, 20);
+        nativeQueryBuilder.withPageable(finalPageable);
+
+        NativeQuery nativeQuery = nativeQueryBuilder.build();
+
+        // 6) 검색 실행 (Page 기능)
+        SearchHits<ProductColorIndex> searchHits = esOperations.search(nativeQuery, ProductColorIndex.class);
+
+        // 7) SearchHits → Page 로 변환
+        //    Spring Data ES 4.x+에서 Page 구현체를 얻으려면 별도 변환 필요
+        //    간단히 “searchHits.stream()”를 Collect해서 PageImpl 만들 수도 있음
+        List<ProductColorIndex> content = searchHits.getSearchHits().stream()
                 .map(h -> h.getContent())
                 .collect(Collectors.toList());
+
+        // 총 개수(ES에서 track_total_hits=true 인 경우에만 정확히 나올 수 있음),
+        // 또는 searchHits.getTotalHits()가 approximate 일 수 있음
+        long totalHits = searchHits.getTotalHits();
+
+        // PageImpl
+        Page<ProductColorIndex> pageResult = new PageImpl<>(
+                content,
+                finalPageable,
+                totalHits
+        );
+
+        return pageResult;
+
+//        // 11) 검색 실행
+//        SearchHits<ProductColorIndex> hits = esOperations.search(nativeQuery, ProductColorIndex.class);
+//
+//        // 결과 반환
+//        return hits.getSearchHits().stream()
+//                .map(h -> h.getContent())
+//                .collect(Collectors.toList());
     }
 
     /**

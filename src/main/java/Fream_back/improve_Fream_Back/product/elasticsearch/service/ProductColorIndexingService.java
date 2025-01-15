@@ -58,6 +58,7 @@ public class ProductColorIndexingService {
                             .minPrice(dto.getMinPrice())
                             .maxPrice(dto.getMaxPrice())
                             .interestCount(dto.getInterestCount())
+                            .releaseDate(dto.getReleaseDate()) // 새로 추가
                             .sizes(sizes)
                             .build();
                 })
@@ -104,6 +105,7 @@ public class ProductColorIndexingService {
                 .minPrice(dto.getMinPrice())
                 .maxPrice(dto.getMaxPrice())
                 .interestCount(dto.getInterestCount())
+                .releaseDate(dto.getReleaseDate()) // 새로 추가
                 .sizes(sizes) // 사이즈 목록을 최종 주입
                 .build();
 

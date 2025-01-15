@@ -12,6 +12,7 @@ public class ProductColorIndexDto {
     private String brandName;
     private String categoryName;
     private String collectionName;
+    private String releaseDate;
     private Long brandId;
     private Long categoryId;
     private Long collectionId;

@@ -2,6 +2,7 @@ package Fream_back.improve_Fream_Back.product.elasticsearch.index;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -47,6 +48,8 @@ public class ProductColorIndex {
     private Long brandId;
     private Long categoryId;
     private Long collectionId;
+    @Field(type = FieldType.Date, format = DateFormat.date, pattern = "yyyy-MM-dd")
+    private String releaseDate;
 
     private int releasePrice; // 발매가
     private int minPrice;     // size 중 최저 purchasePrice
