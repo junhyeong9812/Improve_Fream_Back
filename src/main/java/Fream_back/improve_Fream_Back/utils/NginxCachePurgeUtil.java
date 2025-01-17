@@ -25,6 +25,17 @@ public class NginxCachePurgeUtil {
             // 로그 처리 (logger.warn, etc.)
         }
     }
+    public void purgeEsCache() {
+        String purgeUrl = nginxUrl + "/purge_es/api/es/products/";
+        RequestEntity<Void> requestEntity = RequestEntity
+                .method(HttpMethod.valueOf("PURGE"), URI.create(purgeUrl))
+                .build();
+        try {
+            restTemplate.exchange(requestEntity, String.class);
+        } catch (Exception e) {
+            // 로그 처리 (logger.warn, etc.)
+        }
+    }
 
     public void purgeStyleCache() {
         String purgeUrl = nginxUrl + "/purge_styles/api/styles/queries";

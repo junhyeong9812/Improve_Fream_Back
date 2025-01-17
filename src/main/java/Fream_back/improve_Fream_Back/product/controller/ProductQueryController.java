@@ -1,5 +1,6 @@
 package Fream_back.improve_Fream_Back.product.controller;
 
+import Fream_back.improve_Fream_Back.common.commonDto;
 import Fream_back.improve_Fream_Back.product.dto.*;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
 import Fream_back.improve_Fream_Back.product.repository.SortOption;
@@ -30,13 +31,13 @@ public class ProductQueryController {
     private final ViewEventProducer viewEventProducer;
 
     @GetMapping
-    public ResponseEntity<Page<ProductSearchResponseDto>> searchProducts(
+    public ResponseEntity<commonDto.PageDto<ProductSearchResponseDto>> searchProducts(
             @ModelAttribute ProductSearchDto searchRequest,
             Pageable pageable) {
         // 유효성 검증
         searchRequest.validate();
 
-        Page<ProductSearchResponseDto> response = productQueryService.searchProducts(
+        Page<ProductSearchResponseDto> pageResult = productQueryService.searchProducts(
                 searchRequest.getKeyword(),
                 searchRequest.getCategoryIds(),
                 searchRequest.getGenders(),
@@ -48,7 +49,17 @@ public class ProductQueryController {
                 searchRequest.getMaxPrice(),
                 searchRequest.getSortOption(),
                 pageable);
+        commonDto.PageDto<ProductSearchResponseDto> response = toPageDto(pageResult);
         return ResponseEntity.ok(response);
+    }
+    private <T> commonDto.PageDto<T> toPageDto(Page<T> pageResult) {
+        return new commonDto.PageDto<>(
+                pageResult.getContent(),
+                pageResult.getTotalElements(),
+                pageResult.getTotalPages(),
+                pageResult.getNumber(),  // 현재 페이지 index(0-based)
+                pageResult.getSize()
+        );
     }
     //뷰포인트가 없는 방식
     @GetMapping("/{productId}/detail")

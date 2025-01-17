@@ -16,6 +16,7 @@ public class ProductColorIndexDto {
     private Long brandId;
     private Long categoryId;
     private Long collectionId;
+    private String thumbnailUrl;
 
     private String colorName;
     private String gender;

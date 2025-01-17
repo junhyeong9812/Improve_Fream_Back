@@ -19,7 +19,6 @@ public class ProductColorIndex {
 
     @Id
     private Long colorId;                // 색상 ID (문서 식별자)
-
     private Long productId;              // 상품 ID
 
     // 검색/필터 대상 필드
@@ -43,6 +42,9 @@ public class ProductColorIndex {
 
     @Field(type = FieldType.Keyword)
     private String gender; // MALE, FEMALE, KIDS, UNISEX (또는 한글(남자/여자/어린이/공용)까지 넣을 수도 있음)
+
+    @Field(type = FieldType.Text) // 혹은 Keyword
+    private String thumbnailUrl;
 
     // 필터링/정렬용
     private Long brandId;

@@ -1,0 +1,63 @@
+# Dockerfile.elasticsearch
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+
+# 0) nori 플러그인 설치
+RUN elasticsearch-plugin install analysis-nori
+
+# --- (1) root로 전환 ---
+USER root
+
+RUN apt-get update && apt-get install -y locales
+
+# 원하는 locale 생성
+RUN locale-gen en_US.UTF-8
+
+# 환경변수 설정
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+# (2) sed, dos2unix 설치
+RUN apt-get update && apt-get install -y sed dos2unix
+
+# (3) 임시 디렉토리 생성
+RUN mkdir -p /tmp/es-setup
+WORKDIR /tmp/es-setup
+
+# (4) 로컬의 userdict_ko.txt, synonyms.txt 등을 임시 위치로 복사
+COPY userdict_ko.txt .
+COPY synonyms.txt .
+
+# (5) CRLF → LF 변환 (dos2unix)
+RUN dos2unix userdict_ko.txt
+RUN dos2unix synonyms.txt
+
+# (6) ES 설정 디렉토리 생성 후 이동
+RUN mkdir -p /usr/share/elasticsearch/config/analysis
+RUN mv userdict_ko.txt /usr/share/elasticsearch/config/analysis/userdict_ko.txt
+RUN mv synonyms.txt /usr/share/elasticsearch/config/analysis/synonyms.txt
+
+# (7) 권한 설정 (필요시)
+RUN chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/config
+
+# (8) 다시 elasticsearch 유저로 전환
+USER elasticsearch
+
+# 1) synonyms.txt를 ES config/analysis 폴더에 COPY
+#RUN mkdir -p /usr/share/elasticsearch/config/analysis
+# 1) userdict_ko.txt (Nori 사용자 사전)
+#COPY userdict_ko.txt /usr/share/elasticsearch/config/analysis/userdict_ko.txt
+#COPY usersyn.txt /usr/share/elasticsearch/config/analysis/usersyn.txt
+# 2) synonyms.txt (동의어)
+#COPY synonyms.txt /usr/share/elasticsearch/config/analysis/synonyms.txt
+
+
+
+
+# 2) 필요 환경변수 설정(단일 노드, 보안 비활성)
+ENV discovery.type=single-node
+ENV xpack.security.enabled=false
+
+# (추가) JVM 옵션, 메모리 설정, etc.를 여기서 수정 가능
+# e.g. ENV ES_JAVA_OPTS="-Xms512m -Xmx512m"
+
+# 최종적으로 ES 실행

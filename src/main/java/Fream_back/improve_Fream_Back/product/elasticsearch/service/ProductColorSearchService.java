@@ -1,8 +1,11 @@
 package Fream_back.improve_Fream_Back.product.elasticsearch.service;
 
+import Fream_back.improve_Fream_Back.order.repository.OrderBidRepository;
+import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
 import Fream_back.improve_Fream_Back.product.elasticsearch.index.ProductColorIndex;
 import Fream_back.improve_Fream_Back.product.elasticsearch.repository.ProductColorEsRepository;
 import Fream_back.improve_Fream_Back.product.repository.SortOption;
+import Fream_back.improve_Fream_Back.style.repository.StyleRepository;
 import co.elastic.clients.json.JsonData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +24,8 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,10 +34,64 @@ public class ProductColorSearchService {
 
     private final ElasticsearchOperations esOperations;
     private final ProductColorEsRepository productColorEsRepository;
-
+    private final StyleRepository styleRepository;       // <- custom
+    private final OrderBidRepository orderBidRepository; // <- custom
     /**
      * 고급 검색 (멀티매치 + 오타 허용 + 동의어 등)
      */
+    public Page<ProductSearchResponseDto> searchToDto(
+            String keyword,
+            List<Long> categoryIds,
+            List<String> genders,
+            List<Long> brandIds,
+            List<Long> collectionIds,
+            List<String> colorNames,
+            List<String> sizes,
+            Integer minPrice,
+            Integer maxPrice,
+            SortOption sortOption,
+            Pageable pageable
+    ) {
+        // 1) 우선 ES 검색 (지금까지 작성한 search(...) 메서드를 재사용)
+        Page<ProductColorIndex> pageResult = search(
+                keyword, categoryIds, genders, brandIds,
+                collectionIds, colorNames, sizes,
+                minPrice, maxPrice, sortOption, pageable
+        );
+
+        // 2) ProductColorIndex → ProductSearchResponseDto 변환
+        List<ProductSearchResponseDto> dtoList = pageResult.getContent().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+
+        // 3) colorIds 추출
+        List<Long> colorIds = dtoList.stream()
+                .map(ProductSearchResponseDto::getColorId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (!colorIds.isEmpty()) {
+            // 4) styleCount, tradeCount Map
+            Map<Long, Long> styleCountMap = styleRepository.styleCountByColorIds(colorIds);
+            Map<Long, Long> tradeCountMap = orderBidRepository.tradeCountByColorIds(colorIds);
+
+            // 5) 주입
+            dtoList.forEach(dto -> {
+                Long cId = dto.getColorId();
+                dto.setStyleCount(styleCountMap.getOrDefault(cId, 0L));
+                dto.setTradeCount(tradeCountMap.getOrDefault(cId, 0L));
+            });
+        }
+
+        // 6) 결과 반환
+        return new PageImpl<>(
+                dtoList,
+                pageResult.getPageable(),
+                pageResult.getTotalElements()
+        );
+    }
+
     public Page<ProductColorIndex> search(
             String keyword,
             List<Long> categoryIds,
@@ -54,7 +113,7 @@ public class ProductColorSearchService {
             // MultiMatch: 여러 필드(productName, brandName, etc.)에 한 번에 매칭
             // fuzziness("AUTO") -> 오타 허용
             MultiMatchQuery.Builder multiMatchBuilder = new MultiMatchQuery.Builder()
-                    .fields("productName", "productEnglishName", "brandName", "categoryName", "collectionName")
+                    .fields("productName", "productEnglishName", "brandName", "categoryName", "collectionName","colorName")
                     .query(keyword)
                     .fuzziness("AUTO")       // 오타 자동 보정
                     .maxExpansions(50)      // 오타 교정 시 대체 단어 최대치
@@ -273,5 +332,19 @@ public class ProductColorSearchService {
             default:
                 return "UNISEX";
         }
+    }
+    private ProductSearchResponseDto toDto(ProductColorIndex idx) {
+        // thumbnailUrl 필드가 인덱스에 있다면 그대로 매핑
+        return ProductSearchResponseDto.builder()
+                .id(idx.getProductId())                 // productId
+                .name(idx.getProductName())             // productName
+                .englishName(idx.getProductEnglishName())
+                .releasePrice(idx.getReleasePrice())
+                .thumbnailImageUrl(idx.getThumbnailUrl())  // 인덱스에 넣었다면
+                .price(idx.getMinPrice())               // 최저 구매가
+                .colorName(idx.getColorName())
+                .colorId(idx.getColorId())
+                .interestCount(idx.getInterestCount())
+                .build();
     }
 }

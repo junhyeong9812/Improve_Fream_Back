@@ -5,6 +5,8 @@ import Fream_back.improve_Fream_Back.shipment.entity.OrderShipment;
 import Fream_back.improve_Fream_Back.shipment.entity.ShipmentStatus;
 import Fream_back.improve_Fream_Back.shipment.repository.OrderShipmentRepository;
 import Fream_back.improve_Fream_Back.shipment.service.OrderShipmentCommandService;
+import Fream_back.improve_Fream_Back.utils.CjTrackingPlaywright;
+import Fream_back.improve_Fream_Back.utils.PlaywrightBrowserManager;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -38,6 +40,7 @@ public class UpdateShipmentStatusesJobConfig {
     private final OrderShipmentRepository orderShipmentRepository;
     private final NotificationCommandService notificationService;
     private final OrderShipmentCommandService orderService;
+    private final CjTrackingPlaywright cjTrackingPlaywright;
 
     @Bean
     public Job updateShipmentStatusesJob() {
@@ -48,15 +51,23 @@ public class UpdateShipmentStatusesJobConfig {
 
     @Bean
     public Step updateShipmentStatusesStep() {
+
+
         return new StepBuilder("updateShipmentStatusesStep", jobRepository)
                 .<OrderShipment, OrderShipment>chunk(50, transactionManager)
-                .reader(shipmentItemReader())    // 1) 읽기
-                .processor(shipmentItemProcessor()) // 2) 처리(스크래핑 + 상태 업데이트)
-                .writer(shipmentJpaItemWriter())    // 3) 쓰기(DB 반영)
+                .reader(shipmentItemReader())
+                .processor(new ShipmentItemProcessor(
+                        playwrightBrowserManager(), // Bean or new
+                        notificationService,
+                        orderService
+                ))
+                .writer(shipmentJpaItemWriter())
                 .faultTolerant()
-                .skip(Exception.class)           // 네트워크/파싱 등 예외 시 Skip
+                .skip(Exception.class)
                 .skipLimit(50)
                 .listener(shipmentSkipListener())
+                // ★ Step Execution Listener로 Browser 관리 리스너 추가
+                .listener(new BrowserManageStepListener(playwrightBrowserManager()))
                 .build();
     }
 
@@ -86,8 +97,10 @@ public class UpdateShipmentStatusesJobConfig {
         // 만약 Processor를 여러 단계로 나누고 싶다면 CompositeItemProcessorBuilder 사용도 가능
         return orderShipment -> {
             // 2-1) Jsoup 스크래핑으로 현재 상태 가져오기
-            String currentStatus = parseCjLogisticsStatus(orderShipment.getTrackingNumber());
-
+//            String currentStatus = parseCjLogisticsStatus(orderShipment.getTrackingNumber());
+            String currentStatus = cjTrackingPlaywright.getCurrentTrackingStatus(
+                    orderShipment.getTrackingNumber()
+            );
             // 2-2) 매핑
             ShipmentStatus newStatus = mapToShipmentStatus(currentStatus);
 
@@ -161,5 +174,10 @@ public class UpdateShipmentStatusesJobConfig {
                 System.err.println("[SkipWrite] " + item.getId() + " reason=" + t.getMessage());
             }
         };
+    }
+
+    @Bean
+    public PlaywrightBrowserManager playwrightBrowserManager() {
+        return new PlaywrightBrowserManager();
     }
 }

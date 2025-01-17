@@ -7,6 +7,7 @@ import Fream_back.improve_Fream_Back.style.dto.StyleDetailResponseDto;
 import Fream_back.improve_Fream_Back.style.entity.QMediaUrl;
 import Fream_back.improve_Fream_Back.style.entity.QStyleOrderItem;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
@@ -20,7 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
@@ -213,7 +217,39 @@ public class StyleRepositoryCustomImpl implements StyleRepositoryCustom {
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
+    /**
+     * colorId 기준 스타일 수 조회
+     *  (StyleOrderItem -> OrderItem -> ProductSize -> ProductColor)
+     *  GROUP BY productColor.id
+     */
+    public Map<Long, Long> styleCountByColorIds(List<Long> colorIds) {
+        if (colorIds == null || colorIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
+        QStyleOrderItem styleOrderItem = QStyleOrderItem.styleOrderItem;
+        QStyle style = QStyle.style;
+        QOrderItem orderItem = QOrderItem.orderItem;
+        QProductSize productSize = QProductSize.productSize;
 
+        // select (colorId, countDistinct(style.id))
+        List<Tuple> results = queryFactory.select(
+                        productSize.productColor.id,
+                        styleOrderItem.style.id.countDistinct()
+                )
+                .from(styleOrderItem)
+                .join(styleOrderItem.style, style)
+                .join(styleOrderItem.orderItem, orderItem)
+                .join(orderItem.productSize, productSize)
+                .where(productSize.productColor.id.in(colorIds))
+                .groupBy(productSize.productColor.id)
+                .fetch();
 
+        // 결과 -> Map<colorId, styleCount>
+        return results.stream()
+                .collect(Collectors.toMap(
+                        t -> t.get(productSize.productColor.id),
+                        t -> t.get(styleOrderItem.style.id.countDistinct())
+                ));
+    }
 }

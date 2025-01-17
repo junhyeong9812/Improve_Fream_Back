@@ -4,7 +4,9 @@ import com.microsoft.playwright.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
 public class CjTrackingPlaywright {
     public String getCurrentTrackingStatus(String trackingNumber) throws Exception {
 

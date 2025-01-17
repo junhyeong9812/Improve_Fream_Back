@@ -28,6 +28,7 @@ public class ProductColorIndexQueryRepository {
         QCollection coll = QCollection.collection;
         QProductSize ps = QProductSize.productSize;
         QInterest it = QInterest.interest;
+        QProductImage pi = QProductImage.productImage; // 썸네일 이미지 엔티티
 
         return queryFactory
                 .select(Projections.fields(
@@ -48,13 +49,15 @@ public class ProductColorIndexQueryRepository {
                         ps.purchasePrice.min().as("minPrice"),
                         ps.purchasePrice.max().as("maxPrice"),
                         it.id.countDistinct().as("interestCount"),
-                        p.releaseDate.as("releaseDate")
+                        p.releaseDate.as("releaseDate"),
+                        pi.imageUrl.as("thumbnailUrl")
                 ))
                 .from(pc)
                 .leftJoin(pc.product, p)
                 .leftJoin(p.brand, b)
                 .leftJoin(p.category, c)
                 .leftJoin(p.collection, coll)
+                .leftJoin(pc.thumbnailImage, pi)
                 .leftJoin(pc.sizes, ps)      // minPrice, maxPrice를 위해 sizes 조인
                 .leftJoin(pc.interests, it) // interestCount를 위해
                 .groupBy(pc.id)
@@ -86,6 +89,7 @@ public class ProductColorIndexQueryRepository {
         QCollection coll = QCollection.collection;
         QProductSize ps = QProductSize.productSize;
         QInterest it = QInterest.interest;
+        QProductImage pi = QProductImage.productImage; // 썸네일 이미지 엔티티
 
         return queryFactory
                 .select(Projections.fields(
@@ -106,13 +110,15 @@ public class ProductColorIndexQueryRepository {
                         ps.purchasePrice.min().as("minPrice"),
                         ps.purchasePrice.max().as("maxPrice"),
                         it.id.countDistinct().as("interestCount"),
-                        p.releaseDate.as("releaseDate")
+                        p.releaseDate.as("releaseDate"),
+                        pi.imageUrl.as("thumbnailUrl")
                 ))
                 .from(pc)
                 .leftJoin(pc.product, p)
                 .leftJoin(p.brand, b)
                 .leftJoin(p.category, c)
                 .leftJoin(p.collection, coll)
+                .leftJoin(pc.thumbnailImage, pi)
                 .leftJoin(pc.sizes, ps)
                 .leftJoin(pc.interests, it)
                 .where(pc.id.eq(colorId))

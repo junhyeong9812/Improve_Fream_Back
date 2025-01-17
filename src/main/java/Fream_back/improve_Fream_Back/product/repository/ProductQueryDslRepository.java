@@ -1,9 +1,14 @@
 package Fream_back.improve_Fream_Back.product.repository;
 
+import Fream_back.improve_Fream_Back.order.entity.BidStatus;
+import Fream_back.improve_Fream_Back.order.entity.QOrderBid;
+import Fream_back.improve_Fream_Back.order.entity.QOrderItem;
 import Fream_back.improve_Fream_Back.product.dto.ProductDetailResponseDto;
 import Fream_back.improve_Fream_Back.product.dto.ProductSearchResponseDto;
 import Fream_back.improve_Fream_Back.product.entity.*;
 import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
+import Fream_back.improve_Fream_Back.style.entity.QStyle;
+import Fream_back.improve_Fream_Back.style.entity.QStyleOrderItem;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQuery;
@@ -15,6 +20,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class ProductQueryDslRepository {
@@ -632,6 +639,54 @@ public class ProductQueryDslRepository {
                 .toList();
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    public Map<Long, Long> tradeCountQuery(List<Long> colorIds) {
+        QOrderBid orderBid = QOrderBid.orderBid;
+        QProductSize productSize = QProductSize.productSize;
+
+        List<Tuple> list = queryFactory.select(
+                        productSize.productColor.id,
+                        orderBid.id.count()
+                )
+                .from(orderBid)
+                .join(orderBid.productSize, productSize)
+                .where(
+                        productSize.productColor.id.in(colorIds),
+                        orderBid.status.eq(BidStatus.COMPLETED)
+                )
+                .groupBy(productSize.productColor.id)
+                .fetch();
+
+        return list.stream().collect(Collectors.toMap(
+                t -> t.get(productSize.productColor.id),
+                t -> t.get(orderBid.id.count())
+        ));
+    }
+    public Map<Long, Long> styleCountQuery(List<Long> colorIds) {
+        QStyleOrderItem styleOrderItem = QStyleOrderItem.styleOrderItem;
+        QStyle style = QStyle.style;
+        QOrderItem orderItem = QOrderItem.orderItem;
+        QProductSize productSize = QProductSize.productSize;
+
+        // 튜플: (colorId, distinctCountOfStyleId)
+        List<Tuple> list = queryFactory.select(
+                        productSize.productColor.id,
+                        styleOrderItem.style.id.countDistinct()
+                )
+                .from(styleOrderItem)
+                .join(styleOrderItem.style, style)
+                .join(styleOrderItem.orderItem, orderItem)
+                .join(orderItem.productSize, productSize)
+                .where(productSize.productColor.id.in(colorIds))
+                .groupBy(productSize.productColor.id)
+                .fetch();
+
+        // 변환: Map<colorId, styleCount>
+        return list.stream().collect(Collectors.toMap(
+                t -> t.get(productSize.productColor.id),
+                t -> t.get(styleOrderItem.style.id.countDistinct())
+        ));
     }
 
 

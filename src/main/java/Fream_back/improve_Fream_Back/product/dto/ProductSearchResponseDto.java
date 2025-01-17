@@ -16,5 +16,8 @@ public class ProductSearchResponseDto {
     private String colorName; // 해당 이미지의 색상명 추가
     private Long colorId;        // 컬러 ID 추가
     private Long interestCount; // 관심 수 추가
+
+    private Long styleCount;              // 스타일 수
+    private Long tradeCount;              // 거래 수 (OrderBid 중 COMPLETED)
 }
 

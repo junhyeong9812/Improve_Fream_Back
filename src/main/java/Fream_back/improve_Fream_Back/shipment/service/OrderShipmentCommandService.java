@@ -35,7 +35,7 @@ public class OrderShipmentCommandService {
     private final SaleBidQueryService saleBidQueryService;
     private final OrderBidQueryService orderBidQueryService;
     private final WarehouseStorageCommandService warehouseStorageCommandService;
-
+    private final CjTrackingPlaywright cjTrackingPlaywright;
     @Transactional
     public OrderShipment createOrderShipment(Order order, String receiverName, String receiverPhone,
                                              String postalCode, String address) {
@@ -201,9 +201,11 @@ public class OrderShipmentCommandService {
     }
 
     private String getCurrentTrackingStatus(String trackingNumber) throws Exception {
-        CjTrackingPlaywright playwrightUtil = new CjTrackingPlaywright();
-        return playwrightUtil.getCurrentTrackingStatus(trackingNumber);
+//        CjTrackingPlaywright playwrightUtil = new CjTrackingPlaywright();
+//        return playwrightUtil.getCurrentTrackingStatus(trackingNumber);
+        return cjTrackingPlaywright.getCurrentTrackingStatus(trackingNumber);
     }
+
 //    private String getCurrentTrackingStatus(String trackingNumber) throws Exception {
 //        String url = "https://trace.cjlogistics.com/next/tracking.html?wblNo=" + trackingNumber;
 //        Document doc = Jsoup.connect(url).get();

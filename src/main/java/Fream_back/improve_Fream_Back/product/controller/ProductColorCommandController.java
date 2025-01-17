@@ -48,6 +48,7 @@ public class ProductColorCommandController {
         Long newColorId = productColorCommandService.createProductColor(requestDto, thumbnailImage, images, detailImages, productId);
         productColorIndexingService.indexColorById(newColorId);
         nginxCachePurgeUtil.purgeProductCache();
+        nginxCachePurgeUtil.purgeEsCache();
         return ResponseEntity.ok().build();
     }
 
@@ -64,7 +65,6 @@ public class ProductColorCommandController {
 
         String email = extractEmailFromSecurityContext();
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
-
         productColorCommandService.updateProductColor(productColorId, requestDto, thumbnailImage, newImages, newDetailImages);
         return ResponseEntity.ok().build();
     }
@@ -75,6 +75,11 @@ public class ProductColorCommandController {
         userQueryService.checkAdminRole(email); // 관리자 권한 확인
 
         productColorCommandService.deleteProductColor(productColorId);
+        // 2) ES 인덱스에서도 삭제
+        productColorIndexingService.deleteColorFromIndex(productColorId);
+        // 3) Nginx 캐시 Purge
+        nginxCachePurgeUtil.purgeProductCache();
+        nginxCachePurgeUtil.purgeEsCache();
         return ResponseEntity.noContent().build();
     }
 }

@@ -59,6 +59,7 @@ public class ProductColorIndexingService {
                             .maxPrice(dto.getMaxPrice())
                             .interestCount(dto.getInterestCount())
                             .releaseDate(dto.getReleaseDate()) // 새로 추가
+                            .thumbnailUrl(dto.getThumbnailUrl())
                             .sizes(sizes)
                             .build();
                 })
@@ -106,13 +107,19 @@ public class ProductColorIndexingService {
                 .maxPrice(dto.getMaxPrice())
                 .interestCount(dto.getInterestCount())
                 .releaseDate(dto.getReleaseDate()) // 새로 추가
+                .thumbnailUrl(dto.getThumbnailUrl())
                 .sizes(sizes) // 사이즈 목록을 최종 주입
                 .build();
 
         // 4) Elasticsearch에 저장 (upsert)
         productColorEsRepository.save(indexObj);
     }
-
+    //colorId 문서를 인덱스에서 삭제
+    @Transactional
+    public void deleteColorFromIndex(Long colorId) {
+        // colorId는 Elasticsearch 문서의 @Id로 쓰이므로
+        productColorEsRepository.deleteById(colorId);
+    }
 
 
 
@@ -146,45 +153,45 @@ public class ProductColorIndexingService {
 //    }
 
 
-    private ProductColorIndex toIndex(ProductColor pc) {
-        Product p = pc.getProduct();
-        int minPrice = pc.getSizes().stream()
-                .mapToInt(ProductSize::getPurchasePrice)
-                .min()
-                .orElse(p.getReleasePrice());
-        int maxPrice = pc.getSizes().stream()
-                .mapToInt(ProductSize::getPurchasePrice)
-                .max()
-                .orElse(p.getReleasePrice());
-
-        // 사이즈 목록
-        List<String> sizes = pc.getSizes().stream()
-                .map(ProductSize::getSize)
-                .collect(Collectors.toList());
-
-        // 관심 수
-        long interestCount = (long) pc.getInterests().size();
-
-        return ProductColorIndex.builder()
-                .colorId(pc.getId())
-                .productId(p.getId())
-                .productName(p.getName())
-                .productEnglishName(p.getEnglishName())
-                .brandName(p.getBrand() != null ? p.getBrand().getName() : null)
-                .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
-                .collectionName(p.getCollection() != null ? p.getCollection().getName() : null)
-                .brandId(p.getBrand() != null ? p.getBrand().getId() : null)
-                .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
-                .collectionId(p.getCollection() != null ? p.getCollection().getId() : null)
-
-                .colorName(pc.getColorName())
-                .gender(p.getGender().name()) // MALE/FEMALE/KIDS/UNISEX
-                .releasePrice(p.getReleasePrice())
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .interestCount(interestCount)
-
-                .sizes(sizes)
-                .build();
-    }
+//    private ProductColorIndex toIndex(ProductColor pc) {
+//        Product p = pc.getProduct();
+//        int minPrice = pc.getSizes().stream()
+//                .mapToInt(ProductSize::getPurchasePrice)
+//                .min()
+//                .orElse(p.getReleasePrice());
+//        int maxPrice = pc.getSizes().stream()
+//                .mapToInt(ProductSize::getPurchasePrice)
+//                .max()
+//                .orElse(p.getReleasePrice());
+//
+//        // 사이즈 목록
+//        List<String> sizes = pc.getSizes().stream()
+//                .map(ProductSize::getSize)
+//                .collect(Collectors.toList());
+//
+//        // 관심 수
+//        long interestCount = (long) pc.getInterests().size();
+//
+//        return ProductColorIndex.builder()
+//                .colorId(pc.getId())
+//                .productId(p.getId())
+//                .productName(p.getName())
+//                .productEnglishName(p.getEnglishName())
+//                .brandName(p.getBrand() != null ? p.getBrand().getName() : null)
+//                .categoryName(p.getCategory() != null ? p.getCategory().getName() : null)
+//                .collectionName(p.getCollection() != null ? p.getCollection().getName() : null)
+//                .brandId(p.getBrand() != null ? p.getBrand().getId() : null)
+//                .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
+//                .collectionId(p.getCollection() != null ? p.getCollection().getId() : null)
+//
+//                .colorName(pc.getColorName())
+//                .gender(p.getGender().name()) // MALE/FEMALE/KIDS/UNISEX
+//                .releasePrice(p.getReleasePrice())
+//                .minPrice(minPrice)
+//                .maxPrice(maxPrice)
+//                .interestCount(interestCount)
+//
+//                .sizes(sizes)
+//                .build();
+//    }
 }

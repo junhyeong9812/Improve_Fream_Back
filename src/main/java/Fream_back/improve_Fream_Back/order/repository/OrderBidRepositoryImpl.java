@@ -1,7 +1,9 @@
 package Fream_back.improve_Fream_Back.order.repository;
 
 import Fream_back.improve_Fream_Back.order.dto.OrderBidStatusCountDto;
+import Fream_back.improve_Fream_Back.order.entity.BidStatus;
 import Fream_back.improve_Fream_Back.user.entity.QUser;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import Fream_back.improve_Fream_Back.order.dto.OrderBidResponseDto;
@@ -18,7 +20,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -158,6 +163,39 @@ public class OrderBidRepositoryImpl implements OrderBidRepositoryCustom {
                         orderBid.user.email.eq(email) // 이메일 조건 추가
                 )
                 .fetchOne();
+    }
+
+    /**
+     * colorId 기준 거래(완료) 수 조회
+     *  (OrderBid -> ProductSize -> ProductColor)
+     *  status = COMPLETED
+     */
+    public Map<Long, Long> tradeCountByColorIds(List<Long> colorIds) {
+        if (colorIds == null || colorIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        QOrderBid orderBid = QOrderBid.orderBid;
+        QProductSize productSize = QProductSize.productSize;
+
+        List<Tuple> results = queryFactory.select(
+                        productSize.productColor.id,
+                        orderBid.id.count()
+                )
+                .from(orderBid)
+                .join(orderBid.productSize, productSize)
+                .where(
+                        productSize.productColor.id.in(colorIds),
+                        orderBid.status.eq(BidStatus.COMPLETED)
+                )
+                .groupBy(productSize.productColor.id)
+                .fetch();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        t -> t.get(productSize.productColor.id),
+                        t -> t.get(orderBid.id.count())
+                ));
     }
 
 }
