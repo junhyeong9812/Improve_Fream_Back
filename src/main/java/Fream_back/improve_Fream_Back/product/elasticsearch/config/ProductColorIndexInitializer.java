@@ -42,15 +42,20 @@ public void run(String... args) {
               "tokenizer": {
                 "nori_tokenizer_custom": {
                   "type": "nori_tokenizer",
-                  "decompound_mode": "mixed",
+                  "decompound_mode": "discard",
                   "user_dictionary": "analysis/userdict_ko.txt"
                 }
               },
               "filter": {
                 "my_synonym_filter": {
-                  "type": "synonym",
+                  "type": "synonym_graph",
                   "synonyms_path": "analysis/synonyms.txt",
                   "updateable": true
+                },
+                "my_nori_edge_ngram": {
+                  "type": "edge_ngram",
+                  "min_gram": 1,
+                  "max_gram": 4
                 }
               },
               "analyzer": {
@@ -58,7 +63,8 @@ public void run(String... args) {
                   "type": "custom",
                   "tokenizer": "nori_tokenizer_custom",
                   "filter": [
-                    "lowercase"
+                    "lowercase",
+                    "my_nori_edge_ngram"
                   ]
                 },
                 "my_nori_synonym_analyzer": {
@@ -66,7 +72,8 @@ public void run(String... args) {
                   "tokenizer": "nori_tokenizer_custom",
                   "filter": [
                     "lowercase",
-                    "my_synonym_filter"
+                    "my_synonym_filter",
+                    "my_nori_edge_ngram"
                   ]
                 }
               }
