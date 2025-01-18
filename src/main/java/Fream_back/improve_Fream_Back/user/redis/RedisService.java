@@ -16,11 +16,14 @@ public class RedisService {
     }
 
     // Access Token + 사용자 정보를 Hash 구조로 저장
-    public void addAccessToken(String accessToken, String email, Integer age, Gender gender, long expirationMillis) {
+    public void addAccessToken(String accessToken, String email, Integer age, Gender gender, long expirationMillis,String ip) {
         String key = "access:" + accessToken;
         redisTemplate.opsForHash().put(key, "email", email);
         redisTemplate.opsForHash().put(key, "age", String.valueOf(age));
         redisTemplate.opsForHash().put(key, "gender", gender.toString());
+        if (ip != null) {
+            redisTemplate.opsForHash().put(key, "ip", ip);
+        }
 
         // 유효 시간 설정 (밀리초 -> Duration 변환)
         redisTemplate.expire(key, Duration.ofMillis(expirationMillis));

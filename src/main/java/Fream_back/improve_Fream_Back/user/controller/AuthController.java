@@ -6,6 +6,7 @@ import Fream_back.improve_Fream_Back.user.entity.Gender;
 import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +29,15 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestHeader("RefreshToken") String refreshTokenHeader) {
+    public ResponseEntity<?> refresh(
+            @RequestHeader("RefreshToken") String refreshTokenHeader,
+            HttpServletRequest request
+    ) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            // 2) Fallback: 직접 연결된 소켓의 IP
+            ip = request.getRemoteAddr();
+        }
         // RefreshToken 헤더에서 "Bearer " 제거
         String refreshToken = refreshTokenHeader.replace("Bearer ", "");
 
@@ -52,7 +61,7 @@ public class AuthController {
         User user = userQueryService.findByEmail(email);
         Integer age =user.getAge();    // DB나 Redis에서 가져옴
         Gender gender = user.getGender();  // DB나 Redis에서 가져옴
-        TokenDto tokenDto = jwtTokenProvider.generateTokenPair(email, age, gender);
+        TokenDto tokenDto = jwtTokenProvider.generateTokenPair(email, age, gender,ip);
 
         return ResponseEntity.ok(tokenDto);
     }

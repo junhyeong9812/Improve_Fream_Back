@@ -2,12 +2,12 @@ package Fream_back.improve_Fream_Back.product.controller;
 
 import Fream_back.improve_Fream_Back.common.commonDto;
 import Fream_back.improve_Fream_Back.product.dto.*;
-import Fream_back.improve_Fream_Back.product.entity.enumType.GenderType;
-import Fream_back.improve_Fream_Back.product.repository.SortOption;
 import Fream_back.improve_Fream_Back.product.service.kafka.ViewEventProducer;
 import Fream_back.improve_Fream_Back.product.service.product.ProductQueryService;
+
+import Fream_back.improve_Fream_Back.user.Jwt.JwtAuthenticationFilter;
+import Fream_back.improve_Fream_Back.user.Jwt.UserInfo;
 import Fream_back.improve_Fream_Back.user.entity.Gender;
-import Fream_back.improve_Fream_Back.user.entity.User;
 import Fream_back.improve_Fream_Back.user.service.UserQueryService;
 import Fream_back.improve_Fream_Back.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -71,21 +71,30 @@ public class ProductQueryController {
 
         // 2) 이메일 추출 (익명 시 “anonymous”)
         String email = SecurityUtils.extractEmailOrAnonymous();
+        System.out.println("email = " + email);
+
+
 
         // 3) 로그인 사용자라면 나이, 성별 조회
         Integer age = 0;
         Gender gender = Gender.OTHER;
-        if (!"anonymous".equals(email)) {
+        if (!"anonymousUser".equals(email)) {
             try {
-                User user = userQueryService.findByEmail(email);
-                age = (user.getAge() == null) ? 0 : user.getAge();
-                gender = (user.getGender() == null) ? Gender.OTHER : user.getGender();
+                // 3) SecurityContext에 저장된 userInfo 꺼내기
+                JwtAuthenticationFilter.UserInfo userInfo = SecurityUtils.extractUserInfo();
+//                User user = userQueryService.findByEmail(email);
+//                age = (user.getAge() == null) ? 0 : user.getAge();
+//                gender = (user.getGender() == null) ? Gender.OTHER : user.getGender();
+                age = (userInfo.getAge() == null) ? 0 : userInfo.getAge();
+                gender = (userInfo.getGender() == null) ? Gender.OTHER : userInfo.getGender();
             } catch (IllegalArgumentException e) {
                 // 만약 이메일이 있지만 User가 없다면 anonymous로 처리
                 email = "anonymous";
             }
         }
-
+        System.out.println("age = " + age);
+        System.out.println("gender = " + gender);
+        System.out.println("email = " + email);
         // 4) Producer에게 카프카 이벤트 발행
         viewEventProducer.sendViewEvent(detailDto.getColorId(), email, age, gender);
 

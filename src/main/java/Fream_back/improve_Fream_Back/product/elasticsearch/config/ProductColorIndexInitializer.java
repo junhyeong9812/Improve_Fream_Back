@@ -54,7 +54,7 @@ public void run(String... args) {
                 },
                 "my_nori_edge_ngram": {
                   "type": "edge_ngram",
-                  "min_gram": 1,
+                  "min_gram": 2,
                   "max_gram": 4
                 }
               },

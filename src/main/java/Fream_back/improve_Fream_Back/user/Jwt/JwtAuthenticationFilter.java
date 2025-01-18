@@ -40,7 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Redis에서 추가 정보(나이, 성별) 가져오기
                 Integer age = redisService.getAgeByAccessToken(accessToken);
                 Gender gender = redisService.getGenderByAccessToken(accessToken);
-
                 // 스프링 시큐리티 인증 객체 구성
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(email, null, null);

@@ -35,7 +35,7 @@ public class JwtTokenProvider {
      * AccessToken + RefreshToken 동시 발급
      * (email, age, gender를 함께 받아서 Access Token 생성 시 저장)
      */
-    public TokenDto generateTokenPair(String email, Integer age, Gender gender) {
+    public TokenDto generateTokenPair(String email, Integer age, Gender gender,String ip) {
         long now = System.currentTimeMillis();
 
         // === Access Token 생성 ===
@@ -56,7 +56,7 @@ public class JwtTokenProvider {
 
         // === Redis에 저장 (화이트리스트) ===
         // 액세스 토큰은 나이/성별 같이 저장, 리프레시 토큰은 email만 저장
-        redisService.addAccessToken(accessToken, email, age, gender, accessTokenValidityMs);
+        redisService.addAccessToken(accessToken, email, age, gender, accessTokenValidityMs,ip);
         redisService.addRefreshToken(refreshToken, email, refreshTokenValidityMs);
 
         return new TokenDto(accessToken, refreshToken);

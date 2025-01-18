@@ -8,6 +8,7 @@ import Fream_back.improve_Fream_Back.user.redis.RedisService;
 import Fream_back.improve_Fream_Back.user.service.*;
 import Fream_back.improve_Fream_Back.user.validate.UserControllerValidator;
 import Fream_back.improve_Fream_Back.utils.SecurityUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,13 +55,23 @@ public class UserController {
 
     //로그인
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<Map<String, String>> login(
+            @RequestBody LoginRequestDto loginRequestDto,
+            HttpServletRequest request
+    ) {
         try {
+            // "X-Forwarded-For" 헤더 확인 (프록시나 로드 밸런서가 설정한 IP)
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isEmpty()) {
+                // 2) Fallback: 직접 연결된 소켓의 IP
+                ip = request.getRemoteAddr();
+            }
+
             // 검증
             UserControllerValidator.validateLoginRequestDto(loginRequestDto);
 
             // 로직 -> 여기서 TokenDto 받기
-            TokenDto tokenDto = authService.login(loginRequestDto);
+            TokenDto tokenDto = authService.login(loginRequestDto,ip);
 
             // JSON 응답으로 accessToken, refreshToken 모두 내려주기
             Map<String, String> responseBody = new HashMap<>();
@@ -163,8 +174,15 @@ public class UserController {
     public ResponseEntity<Map<String, String>> updateLoginInfo(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestHeader(value = "RefreshToken", required = false) String refreshTokenHeader,
-            @RequestBody LoginInfoUpdateDto dto) {
+            @RequestBody LoginInfoUpdateDto dto,
+            HttpServletRequest request) {
         try {
+            // "X-Forwarded-For" 헤더 확인 (프록시나 로드 밸런서가 설정한 IP)
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isEmpty()) {
+                // 2) Fallback: 직접 연결된 소켓의 IP
+                ip = request.getRemoteAddr();
+            }
             // 1) 현재 이메일(= oldEmail) 추출
             String oldEmail = SecurityUtils.extractEmailFromSecurityContext();
 
@@ -190,7 +208,7 @@ public class UserController {
                 // 5-2) userUpdateService 쪽 메서드 호출로 기존 토큰 제거 & 새 토큰 발급
                 //      (newEmail 로 DB 다시 조회하여 나이, 성별 꺼낸 다음 TokenPair 생성)
                 TokenDto newTokens = userUpdateService.reissueTokenAfterEmailChange(
-                        oldAccessToken, oldRefreshToken, oldEmail, newEmail
+                        oldAccessToken, oldRefreshToken, oldEmail, newEmail,ip
                 );
 
                 // 5-3) 응답에 새 토큰 담아서 반환

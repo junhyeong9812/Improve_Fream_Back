@@ -54,7 +54,8 @@ public class UserUpdateService {
             String oldAccessToken,
             String oldRefreshToken,
             String oldEmail,
-            String newEmail
+            String newEmail,
+            String ip
     ) {
         // 1) newEmail 로 DB에서 사용자 찾기
         User newUser = userRepository.findByEmail(newEmail)
@@ -73,7 +74,8 @@ public class UserUpdateService {
         return jwtTokenProvider.generateTokenPair(
                 newUser.getEmail(),
                 newUser.getAge(),
-                newUser.getGender()
+                newUser.getGender(),
+                ip
         );
     }
 

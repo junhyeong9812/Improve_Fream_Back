@@ -23,7 +23,7 @@ public class AuthService {
 
     //로그인 로직
     @Transactional
-    public TokenDto login(LoginRequestDto loginRequestDto) {
+    public TokenDto login(LoginRequestDto loginRequestDto,String ip) {
         // 사용자 조회
         User user = userRepository.findByEmail(loginRequestDto.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
@@ -38,7 +38,7 @@ public class AuthService {
         Gender gender = user.getGender();
 
         // JWT (AccessToken + RefreshToken) 발급
-        TokenDto tokenDto = jwtTokenProvider.generateTokenPair(user.getEmail(), age, gender);
+        TokenDto tokenDto = jwtTokenProvider.generateTokenPair(user.getEmail(), age, gender,ip);
 
         // tokenDto 내부에는 accessToken, refreshToken 둘 다 있음
         return tokenDto;
