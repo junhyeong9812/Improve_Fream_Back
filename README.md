@@ -119,7 +119,12 @@ spring:
       auto-offset-reset: "earliest"
 
   elasticsearch:
-    uris: http://elasticsearch:9200
+    uris: http://localhost:9200
+#    uris: http://elasticsearch:9200
+
+  batch:
+    jdbc:
+      initialize-schema: always
 
 logging.level:
   org.hibernate.SQL: debug
@@ -127,7 +132,8 @@ logging.level:
 
 jwt:
   secret: "YOUR_JWT_SECRET_KEY"      # JWT 서명에 사용할 비밀 키
-  expiration: 3600000               # JWT 만료 시간 (밀리초 단위, 예: 1시간)
+  expiration: 3600000               # JWT 만료 시간 (밀리초 단위, 예: 1시간
+  refreshExpiration : 360000000
 
 imp:
   key: "PORTONE_API_KEY"            # 아임포트(PortOne) API Key (필요 시)
