@@ -17,7 +17,10 @@ public class ViewEventConsumer {
     private final ProductColorViewLogRepository viewLogRepository;
 
     // KafkaListener: "view-log-topic" 구독
-    @KafkaListener(topics = "view-log-topic", groupId = "my-group")
+    @KafkaListener(topics = "view-log-topic",
+            groupId = "my-group",
+            containerFactory = "viewEventKafkaListenerContainerFactory"
+    )
     public void listen(ViewEvent event) {
         // 1) productColorId로 ProductColor 조회
         ProductColor productColor = productColorRepository.findById(event.getProductColorId())
