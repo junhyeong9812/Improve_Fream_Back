@@ -1,7 +1,18 @@
 # Fream 리빌딩 프로젝트
 
 ## 1. 프로젝트 개요
-- 기존 Kream 클론 프로젝트에서 부족했던 점을 개선하고, e-Commerce와 커뮤니티 기능을 통합한 리셀 플랫폼을 다시 설계/구현한 프로젝트입니다.
+
+- **기존 한계**
+    - 단순한 e-Commerce 구조 → 실제 KREAM과는 다른 로직/연관관계
+    - 모든 기능이 하나의 서비스에 집중되어 유지보수가 어려움
+    - 실무 수준 배포(클라우드, Docker) 미흡
+- **개선 목표**
+    - **모듈화된 도메인 설계** (User/Order/Payment/Style 등)
+    - **JPA & QueryDSL**로 성능/확장성 개선 (N+1 문제 해결, 동적쿼리 등)
+    - **AWS + Docker**로 컨테이너 배포 구현
+    - **Spring Security + JWT + Redis**로 인증/인가 및 세션 관리
+    - **실시간 WebSocket 알림**, **GeoIP**, **Kafka** 등 추가 기능
+
 ### 프로젝트 아키텍처
 ![image](https://github.com/user-attachments/assets/8c430732-6db7-4d6e-a8e8-4f3dbc8eb3f7)
 
@@ -13,28 +24,70 @@
 
 
 ## 2. 주요 기능
-- **유저 계정**: 회원가입, 로그인, 프로필, 팔로우/차단
-- **상품 관리**: 등록, 수정, 삭제, 이미지 관리
-- **구매/판매/결제/배송**: 실제 리셀 프로세스 구현
-- **스타일 커뮤니티**: 스타일 등록/좋아요/댓글
-- **알림/공지/FAQ**: 실시간 알림(WebSocket), 공지, FAQ 관리
+
+1. **회원/인증**
+    - 회원가입, 로그인(JWT), 이메일 찾기, 비밀번호 찾기/재설정
+    - 로그인 정보 수정(이메일 변경 시 토큰 재발급), 회원 탈퇴
+2. **프로필**
+    - 프로필 조회/수정, 프로필 이미지 업로드
+    - 팔로우/언팔로우, 차단/차단해제, 팔로워/팔로잉 목록
+3. **상품**
+    - 상품(Brand, Category, Collection) 등록/조회/수정/삭제(관리자)
+    - 컬러/사이즈 정보 관리, 상품 이미지, 관심상품
+    - (Elasticsearch) 상품 검색/자동완성
+4. **주문/판매/배송/결제**
+    - **구매 입찰**/즉시 구매, **판매 입찰**/즉시 판매
+    - 결제정보(PaymentInfo) 등록/삭제, 결제/환불(아임포트 PortOne)
+    - 배송정보(OrderShipment, SellerShipment) 업데이트, 운송장 조회/검수
+5. **스타일 커뮤니티**
+    - 스타일(Style) 등록/수정/삭제, 이미지 업로드
+    - 좋아요, 관심, 댓글/대댓글, 조회수 증가
+6. **공지/FAQ/검수 기준** (관리자 기능)
+    - 공지사항 / FAQ / 검수 기준 추가/수정/삭제
+    - 다중 이미지 첨부, 검색 기능
+7. **알림(Notification)**
+    - Redis + WebSocket, 개인/전체 브로드캐스트 알림
+    - 알림 읽음처리, 카테고리/유형/읽음여부 필터 조회
+8. **GeoIP**
+    - 사용자 접속 시 IP 기반 국가/도시 추출
+9. **이벤트(Event)**
+    - 이벤트 등록/수정/삭제, 썸네일/이미지 업로드, 기간 설정
+10. **배치(Spring Batch)**, **Kafka**
+    - 상품/뷰/로그성 데이터 분산 처리, 로그 적재
+
 
 ## 3. 기술 스택
-- **Backend**: Spring Boot, JPA, QueryDSL, Spring Security, Redis
-- **DB**: H2(개발), MySQL/AWS RDS(운영)
-- **Infra**: AWS EC2, S3, Docker 등
+
+- **Backend**
+    - Spring Boot 3.x, Spring Data JPA, QueryDSL
+    - Spring Security + JWT, Spring Data Redis
+    - Spring WebSocket (SockJS, STOMP)
+    - Spring Batch, Spring for Apache Kafka
+- **DB**
+    - 개발: H2 (In-memory)
+    - 운영: MySQL(AWS RDS)
+- **Infra & DevOps**
+    - AWS EC2, S3, RDS
+    - Docker, docker-compose
+    - Nginx(Reverse Proxy, Cache) + proxy_cache_purge 모듈
+    - Elasticsearch + Kibana
+- **Build/관리**
+    - Gradle, Lombok, P6Spy
+
+---
 
 ## 4. 환경 요구사항 (Prerequisites)
 
-1. **Java 11+**
-   - 설치 확인: `java -version`
+1. **Java 11+** (or 17)
+    - 설치 확인: `java -version`
 2. **Docker & Docker Compose**
-   - Redis 구동을 위해 필요
+    - Redis, Kafka, Elasticsearch 등 컨테이너 구동
 3. **Git**
-   - 저장소 클론을 위해 필요
-  
-> **참고**: 이 프로젝트에는 Gradle Wrapper(`gradlew`, `gradlew.bat`)가 포함되어 있으므로,  
-> 별도의 Gradle 설치 없이도 `./gradlew` 명령을 통해 빌드하고 실행할 수 있습니다.
+    - 저장소 클론
+
+> **참고**: `gradlew`(Gradle Wrapper)가 포함되어 있어, 별도 Gradle 설치 없이 `./gradlew` 명령어로 빌드/실행 가능
+
+---
 
 ## 5. 설치 및 실행
 

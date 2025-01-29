@@ -8,12 +8,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * BaseEntity
- *
- * BaseTimeEntity를 확장하여 생성자와 수정자를 추가로 관리하는 엔티티입니다.
- * 작성자 정보가 필요한 엔티티에서 사용됩니다.
- */
+
 @MappedSuperclass
 @Getter
 @EntityListeners(AuditingEntityListener.class)
